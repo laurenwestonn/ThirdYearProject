@@ -123,11 +123,11 @@ public class MapsActivity extends FragmentActivity  {
         double step = 45 / (noOfPaths - 1);
         double yourDirection = 30;
         double start = yourDirection - (step * 2);
-        List<Point> endCoords = new ArrayList<>();
+        List<LatLng> endCoords = new ArrayList<>();
 
         // 0 -> 6
         for (int i = 0; i < 7; i++) {
-            endCoords.add(new Point(xPos + 0.1 * Math.sin(Math.toRadians(start + i * step)),
+            endCoords.add(new LatLng(xPos + 0.1 * Math.sin(Math.toRadians(start + i * step)),
                                     yPos + 0.1 * Math.cos(Math.toRadians(start + i * step))));
         }
 
@@ -143,7 +143,7 @@ public class MapsActivity extends FragmentActivity  {
             for (int i = 0; i < noOfPaths; i++)
                 urls += "https://maps.googleapis.com/maps/api/elevation/json?path="
                         + xPos + "," + yPos + "|" +
-                        endCoords.get(i).getX() + "," + endCoords.get(i).getY() +
+                        endCoords.get(i).getLat() + "," + endCoords.get(i).getLng() +
                         "&samples=10&key=AIzaSyBtNG5C0b9-euGrqAUhqbiWc_f7WSjNZ-U!";
             if (!urls.equals("")) {
                 new RetrieveURLTask().execute(urls);

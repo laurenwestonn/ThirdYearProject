@@ -91,15 +91,15 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
                     // The highest position you can see
                     double hiLat = 91; //Lat cannot be 91, use this to check if it was set
                     double hiLng = 0;
-                    double hiEl = results.results.get(0).elevation;
+                    double hiEl = results.getResults().get(0).getElevation();
                     double hiDis = 0;
                     int loopCount = 0;
 
                     for(Result r : results) {
-                        if (r.elevation > hiEl) {
-                            hiEl = r.elevation;
-                            hiLat = r.location.lat;
-                            hiLng = r.location.lng;
+                        if (r.getElevation() > hiEl) {
+                            hiEl = r.getElevation();
+                            hiLat = r.getLocation().getLat();
+                            hiLng = r.getLocation().getLng();
                             hiDis = 45 / (7 - 1) * loopCount++; //ToDo: find the step size
                         }
                         Log.d("Hi", r.toString());

@@ -5,10 +5,9 @@ package com.example.recogniselocation.thirdyearproject;
  */
 
 public class Result {
-    //ToDo: Make these private with getters and setters
-    public LatLng location;
-    public double elevation;
-    public double distance;
+    private LatLng location;
+    private double elevation;
+    private double distance;
     public transient double resolution;
 
     public Result(LatLng givenLocation, double givenElevation, double givenDistance)
@@ -18,9 +17,21 @@ public class Result {
         this.distance = givenDistance;
     }
 
+    public LatLng getLocation() {
+        return location;
+    }
+
+    public double getElevation() {
+        return elevation;
+    }
+
+    public double getDistance() {
+        return distance;
+    }
+
     public String toString()
     {
-        return "Location: (" + location.lat + ", " + location.lng
+        return "Location: (" + location.getLat() + ", " + location.getLng()
                 + ") \tElevation: " + elevation + "\tDistance: " + distance;
     }
 }

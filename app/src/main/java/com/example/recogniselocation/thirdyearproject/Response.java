@@ -7,10 +7,10 @@ import java.util.Iterator;
 import java.util.List;
 
 public class Response implements Iterable<Result> {
-    public List<Result> results;
+    private List<Result> results;
     public String status;
 
-    public List<Result> getElevations() {
+    public List<Result> getResults() {
         return results;
     }
 
