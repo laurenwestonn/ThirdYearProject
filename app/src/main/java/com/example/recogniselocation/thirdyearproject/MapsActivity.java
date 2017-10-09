@@ -29,7 +29,6 @@ import java.util.List;
 
 public class MapsActivity extends FragmentActivity  {
 
-
     private Button button;
     private TextView textView;
     private LocationManager locationManager;
@@ -152,8 +151,8 @@ public class MapsActivity extends FragmentActivity  {
                         + xPos + "," + yPos + "|" +
                         endCoords.get(i).getX() + "," + endCoords.get(i).getY() +
                         "&samples=10&key=AIzaSyBtNG5C0b9-euGrqAUhqbiWc_f7WSjNZ-U!";
-            if (urls != null) {
-                new RetrieveURLTask().execute(urls.toString());
+            if (urls.equals("")) {
+                new RetrieveURLTask().execute(urls);
             }
         } catch (Exception e) {
             Log.d("Hi", "Failed " + e);
