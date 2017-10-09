@@ -116,6 +116,7 @@ public class MapsActivity extends FragmentActivity  {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Log.d("hi", "Button was clicked");
                 // Get your coordinates and direction
                 locationManager.requestLocationUpdates("gps", 1000, 5, locationListener);
             }
@@ -151,7 +152,7 @@ public class MapsActivity extends FragmentActivity  {
                         + xPos + "," + yPos + "|" +
                         endCoords.get(i).getX() + "," + endCoords.get(i).getY() +
                         "&samples=10&key=AIzaSyBtNG5C0b9-euGrqAUhqbiWc_f7WSjNZ-U!";
-            if (urls.equals("")) {
+            if (!urls.equals("")) {
                 new RetrieveURLTask().execute(urls);
             }
         } catch (Exception e) {
