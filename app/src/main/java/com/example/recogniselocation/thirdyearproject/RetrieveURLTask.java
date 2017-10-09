@@ -77,6 +77,8 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
 
     protected void onPostExecute(List<String> responses) {
 
+        List<Result> highPoints= new ArrayList<>(7) ;
+
         for (String response : responses) {
             Log.d("Hi", "Another response");
             // If we got a response, parse it
@@ -86,14 +88,32 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
                     Gson gson = new Gson();
                     Response results = gson.fromJson(response, Response.class);
 
+                    // The highest position you can see
+                    double hiLat = 91; //Lat cannot be 91, use this to check if it was set
+                    double hiLng = 0;
+                    double hiEl = results.results.get(0).elevation;
+                    double hiDis = 0;
+                    int loopCount = 0;
+
                     for(Result r : results) {
-                        Log.d("Hi", "Location: (" + r.location.lat + ", " + r.location.lng + ") \tElevation: " + r.elevation);
+                        if (r.elevation > hiEl) {
+                            hiEl = r.elevation;
+                            hiLat = r.location.lat;
+                            hiLng = r.location.lng;
+                            hiDis = 45 / (7 - 1) * loopCount++; //ToDo: find the step size
+                        }
+                        Log.d("Hi", r.toString());
                     }
+                    if (hiLat <= 90)
+                        highPoints.add(new Result(new LatLng(hiLat, hiLng), hiEl, hiDis));
+
                 } catch(Exception e){
                     Log.d("Hi", "On post execute failure\n" + e);
                 }
 
             }
         }
+        Log.d("Hi", "Highest points are:");
+        Log.d("Hi", highPoints.toString());
     }
 }

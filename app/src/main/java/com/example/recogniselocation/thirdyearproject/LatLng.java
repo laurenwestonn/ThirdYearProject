@@ -7,4 +7,10 @@ package com.example.recogniselocation.thirdyearproject;
 public class LatLng {
     public double lat;
     public double lng;
+
+    public LatLng(double givenLat, double givenLng)
+    {
+        this.lat = givenLat;
+        this.lng = givenLng;
+    }
 }

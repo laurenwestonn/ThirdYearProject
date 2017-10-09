@@ -17,13 +17,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-
-import com.google.gson.Gson;
-
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -126,7 +119,7 @@ public class MapsActivity extends FragmentActivity  {
     private List<Double> getVisiblePeaks() {
         // Calculate end points of each path
 
-        noOfPaths = 7; //Make this configurable
+        noOfPaths = 7; //ToDo: Make this configurable
         double step = 45 / (noOfPaths - 1);
         double yourDirection = 30;
         double start = yourDirection - (step * 2);
