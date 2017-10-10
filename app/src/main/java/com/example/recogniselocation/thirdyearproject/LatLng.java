@@ -17,4 +17,9 @@ public class LatLng {
     public double getLat() { return lat; }
 
     public double getLng() { return lng; }
+
+    @Override
+    public String toString() {
+        return "(" + lat + ", " + lng + ")";
+    }
 }

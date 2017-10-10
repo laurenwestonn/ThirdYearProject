@@ -29,6 +29,9 @@ public class MapsActivity extends FragmentActivity  {
 
     private double xPos, yPos;
     public int noOfPaths;
+    String APIkey = "AIzaSyBtNG5C0b9-euGrqAUhqbiWc_f7WSjNZ-U";
+    double lengthOfSearch = 0.1;
+    int noOfSamples = 10;
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
@@ -47,8 +50,20 @@ public class MapsActivity extends FragmentActivity  {
                 xPos = location.getLatitude();
                 yPos = location.getLongitude();
 
+
+                // Overwriting coords with coords of a valley SW of a sydney mountain
+                //xPos = -33.758731;
+                //yPos = 150.240165;
+
+                // Coords of in front of kinder scout
+                //xPos = 53.382105;
+                //yPos = -1.9060239;
+
+                // https://www.darrinward.com/lat-long/?id=59dcd03715f6d6.39982706
+                // Great tool to plot map points, for before the time I make my own
+
                 // Print out your co-ordinates
-                Log.d("Hi", "Location: " + xPos + ", " + yPos);
+                Log.d("Hi", "You're at : " + xPos + ", " + yPos);
                 textView.append("\n" + xPos + ", " + yPos);
 
                 // Find what you are looking at
@@ -124,11 +139,22 @@ public class MapsActivity extends FragmentActivity  {
         double yourDirection = 30;
         double start = yourDirection - (step * 2);
         List<LatLng> endCoords = new ArrayList<>();
+        List<LatLng> startCoords = new ArrayList<>();
 
         // 0 -> 6
         for (int i = 0; i < 7; i++) {
-            endCoords.add(new LatLng(xPos + 0.1 * Math.sin(Math.toRadians(start + i * step)),
-                                    yPos + 0.1 * Math.cos(Math.toRadians(start + i * step))));
+            double sinOfThisStep = Math.sin(Math.toRadians(start + i * step));
+            double cosOfThisStep = Math.cos(Math.toRadians(start + i * step));
+            // Start from the first position away from you in each direction
+            startCoords.add(new LatLng(
+                                    xPos + lengthOfSearch / noOfSamples * sinOfThisStep,
+                                    yPos + lengthOfSearch / noOfSamples * cosOfThisStep
+                                    ));
+            // End at the length of your search in each direction
+            endCoords.add(new LatLng(
+                                    xPos + lengthOfSearch * sinOfThisStep,
+                                    yPos + lengthOfSearch * cosOfThisStep
+                                    ));
         }
 
         Log.d("Hi", endCoords.toString());
@@ -139,12 +165,18 @@ public class MapsActivity extends FragmentActivity  {
 
         try {
             // Build up the web requests for each path
-            String urls = "";
+            // The first request is to get the elevation of where you are
+            String urls = "https://maps.googleapis.com/maps/api/elevation/json?path="
+                    + xPos + "," + yPos
+                    + "&samples=" + noOfSamples
+                    + "&key=" + APIkey + "!";
+            // The other requests are to get elevations along paths
             for (int i = 0; i < noOfPaths; i++)
                 urls += "https://maps.googleapis.com/maps/api/elevation/json?path="
-                        + xPos + "," + yPos + "|" +
-                        endCoords.get(i).getLat() + "," + endCoords.get(i).getLng() +
-                        "&samples=10&key=AIzaSyBtNG5C0b9-euGrqAUhqbiWc_f7WSjNZ-U!";
+                        + startCoords.get(i).getLat() + "," + startCoords.get(i).getLng() + "|"
+                        + endCoords.get(i).getLat() + "," + endCoords.get(i).getLng()
+                        + "&samples=" + noOfSamples
+                        + "&key=" + APIkey + "!";
             if (!urls.equals("")) {
                 new RetrieveURLTask().execute(urls);
             }

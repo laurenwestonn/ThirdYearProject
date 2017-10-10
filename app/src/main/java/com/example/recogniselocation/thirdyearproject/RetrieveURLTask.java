@@ -2,6 +2,7 @@ package com.example.recogniselocation.thirdyearproject;
 
 import android.os.AsyncTask;
 import android.util.Log;
+import android.widget.TextView;
 
 import com.google.gson.Gson;
 
@@ -19,13 +20,15 @@ import java.util.List;
 public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
 
     private Exception e;
+    double breadthOfSearch = 45;
+    double yourElevation;
 
     protected List<String> doInBackground(String... urls) {
         return connectToURL(urls[0]);
     }
 
     private List<String> connectToURL(String urls) {
-        // As we appended "url," every time, we need to remove the last comma
+        // As we appended "url," every time, we need to remove the last splitter
         urls = urls.substring(0, urls.length() - 1);
 
         // The URLs are comma separated. Split and do the same for each
@@ -49,18 +52,18 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
                     con.setRequestMethod("GET");
                     con.connect();
 
-
                     //Todo: Check that I did get all 10 results
 
                     // Build up the response in a string
                     StringBuilder response = new StringBuilder();
                     in = new BufferedReader(
                             new InputStreamReader(con.getInputStream()));
-                    while ((inputLine = in.readLine()) != null)
+
+                    while ((inputLine = in.readLine()) != null) {
                         response.append(inputLine);
+                    }
 
                     in.close();
-                    Log.d("Hi", "Got response of " + response.toString());
                     responseList.add(response.toString());
                 } else {
                     Log.d("Hi", "The connection wasn't successful: " + con.getResponseMessage());
@@ -78,9 +81,10 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
     protected void onPostExecute(List<String> responses) {
 
         List<Result> highPoints= new ArrayList<>(7) ;
+        int isFirstResponse = 1;
 
         for (String response : responses) {
-            Log.d("Hi", "Another response");
+            Log.d("Hi", "\nAnother response");
             // If we got a response, parse it
             if (response != null) {
                 try {
@@ -88,24 +92,43 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
                     Gson gson = new Gson();
                     Response results = gson.fromJson(response, Response.class);
 
-                    // The highest position you can see
-                    double hiLat = 91; //Lat cannot be 91, use this to check if it was set
-                    double hiLng = 0;
-                    double hiEl = results.getResults().get(0).getElevation();
-                    double hiDis = 0;
-                    int loopCount = 0;
+                    if (isFirstResponse == 1) {
+                        yourElevation = results.getResults().get(0).getElevation();
+                        isFirstResponse = 0; // Treat the others differently, they are paths
+                    } else {    // Calculate the highest visible point ToDo: make this its own method
+                        // The highest position you can see
+                        double hiLat = 0;
+                        double hiLng = 0;
+                        double hiEl = 0;
+                        double hiDis = 0;
+                        double hiAng = Math.atan(
+                                    (results.getResults().get(0).getElevation() - yourElevation) /    // First one away
+                                        0.1 * (1.0 / 10.0));                                // from you, i.e. step
+                        int loopCount = 1;
 
-                    for(Result r : results) {
-                        if (r.getElevation() > hiEl) {
-                            hiEl = r.getElevation();
-                            hiLat = r.getLocation().getLat();
-                            hiLng = r.getLocation().getLng();
-                            hiDis = 45 / (7 - 1) * loopCount++; //ToDo: find the step size
+                        for(Result r : results) {
+                            double thisOnesDistance = 0.1 * loopCount / 10; //Fraction of path length we're at now
+                            double angleOfThisElevation = Math.atan(
+                                                    (r.getElevation() - yourElevation) /    //ToDo: Get your elevation and minus it
+                                                    thisOnesDistance);  // Distance of the first one away
+                            // from you, i.e. step
+                            Log.d("Hi", r.toString());
+                            Log.d("Hi", "Looking at distance " + thisOnesDistance);
+                            Log.d("Hi", "Is " + angleOfThisElevation + " > " + hiAng + "?");
+                            if (loopCount > 1 && angleOfThisElevation > hiAng) {    // Initialised as the first step away, no need to check first
+                                Log.d("Hi", "Yes, update details");
+                                hiEl = r.getElevation() - yourElevation;
+                                hiLat = r.getLocation().getLat();
+                                hiLng = r.getLocation().getLng();
+                                hiDis = thisOnesDistance;
+                                hiAng = angleOfThisElevation;
+                            }
+                            loopCount++;
                         }
-                        Log.d("Hi", r.toString());
+                        if (hiDis != 0) // We're not looking at distance 0, that is where you are
+                            highPoints.add(new Result(new LatLng(hiLat, hiLng), hiEl, hiDis, hiAng));
                     }
-                    if (hiLat <= 90)
-                        highPoints.add(new Result(new LatLng(hiLat, hiLng), hiEl, hiDis));
+
 
                 } catch(Exception e){
                     Log.d("Hi", "On post execute failure\n" + e);
@@ -115,5 +138,8 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
         }
         Log.d("Hi", "Highest points are:");
         Log.d("Hi", highPoints.toString());
+
+        for (Result highPoint : highPoints)
+            Log.d("Hi", highPoint.getLocation().toString());
     }
 }
