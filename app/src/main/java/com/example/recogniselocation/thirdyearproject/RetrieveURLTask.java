@@ -94,6 +94,7 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
                         isFirstResponse = 0; // Treat the others differently, they are paths
                     } else {
                         findHighestVisiblePoints(results);
+                        plotHighest();
                     }
 
 
@@ -108,6 +109,10 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
 
         for (Result highPoint : highPoints)
             Log.d("Hi", highPoint.getLocation().toString());
+    }
+
+    private void plotHighest() {
+
     }
 
     public void findHighestVisiblePoints(Response results) {

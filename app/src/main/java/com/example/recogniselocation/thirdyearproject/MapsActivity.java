@@ -1,6 +1,7 @@
 package com.example.recogniselocation.thirdyearproject;
 
 import android.Manifest;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -12,34 +13,55 @@ import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
-import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.OnMapReadyCallback;
+
 import java.util.ArrayList;
 import java.util.List;
 
-public class MapsActivity extends FragmentActivity  {
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private Button button;
     private TextView textView;
     private LocationManager locationManager;
     private LocationListener locationListener;
 
+    GoogleMap googleMap;
+
     private double xPos, yPos;
     public int noOfPaths;
-    String APIkey = "AIzaSyBtNG5C0b9-euGrqAUhqbiWc_f7WSjNZ-U";
     double lengthOfSearch = 0.1;
     int noOfSamples = 10;
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_maps);
+
+        if (googleServicesAvailable()) {
+            Toast.makeText(this, "Connected to google services", Toast.LENGTH_LONG).show();
+            Log.d("Hi", "2");
+            setContentView(R.layout.activity_maps); //Crashes here when loading the fragment in act_maps.xml
+            Log.d("Hi", "3");
+            initMap();
+        } else {
+            setContentView(R.layout.activity_maps);
+            // Show content without google maps
+        }
+
 
         button = (Button) findViewById(R.id.button);
         textView = (TextView) findViewById(R.id.text);
@@ -113,6 +135,25 @@ public class MapsActivity extends FragmentActivity  {
         });
     }
 
+    private void initMap() {
+       // MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.mapFragment);
+        //mapFragment.getMapAsync(this);
+    }
+
+    public boolean googleServicesAvailable() {
+        GoogleApiAvailability api = GoogleApiAvailability.getInstance();
+        int isAvailable = api.isGooglePlayServicesAvailable(this);
+        if (isAvailable == ConnectionResult.SUCCESS) {
+            return true;
+        } else if (api.isUserResolvableError(isAvailable)) {
+            Dialog dialog = api.getErrorDialog(this, isAvailable, 0);
+            dialog.show();
+        } else {
+            Toast.makeText(this, "Can't connect to play services", Toast.LENGTH_LONG).show();
+        }
+        return false;
+    }
+
     @RequiresApi(api = Build.VERSION_CODES.M)
     public void loadLocation() {
         if (ActivityCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)
@@ -173,24 +214,21 @@ public class MapsActivity extends FragmentActivity  {
 
         Log.d("Hi", endCoords.toString());
 
-        // Now we have the end co ords, we can get heights of 7 paths
-
-        // Get the elevations of the first path, first
-
+        // Now we have the path coords, we can get heights along them
         try {
             // Build up the web requests for each path
             // The first request is to get the elevation of where you are
             String urls = "https://maps.googleapis.com/maps/api/elevation/json?path="
                     + xPos + "," + yPos
                     + "&samples=" + noOfSamples
-                    + "&key=" + APIkey + "!";
+                    + "&key=" + getString(R.string.google_api_key) + "!";
             // The other requests are to get elevations along paths
             for (int i = 0; i < noOfPaths; i++)
                 urls += "https://maps.googleapis.com/maps/api/elevation/json?path="
                         + startCoords.get(i).getLat() + "," + startCoords.get(i).getLng() + "|"
                         + endCoords.get(i).getLat() + "," + endCoords.get(i).getLng()
                         + "&samples=" + noOfSamples
-                        + "&key=" + APIkey + "!";
+                        + "&key=" + getString(R.string.google_api_key) + "!";
             if (!urls.equals("")) {
                 new RetrieveURLTask().execute(urls);
             }
@@ -198,5 +236,10 @@ public class MapsActivity extends FragmentActivity  {
             Log.d("Hi", "Failed " + e);
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void onMapReady(GoogleMap givenGoogleMap) {
+        googleMap = givenGoogleMap;
     }
 }

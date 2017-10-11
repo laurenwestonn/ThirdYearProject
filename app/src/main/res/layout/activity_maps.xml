@@ -1,22 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical" >
+    android:orientation="vertical"
+    tools:context=".MapsActivity">
+
     <TextView android:id="@+id/text"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Hello" />
-    <Button android:id="@+id/button"
-        android:layout_width="wrap_content"
+        android:text="" />
+
+    <Button
+        android:id="@+id/button"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Where am I?" />
+<!--
+    <fragment
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />             THIS ALONE CAUSES THE ISSUE
+                                                            Suggested to replace it with LinearLayout / rellay
+                                                            This does allow it to render,
+                                                            but then the sprocs further on fail if
+                                                            mapFragment is a Layout and not a fragment ....
+                                                            -->
+<!--
+    <fragment
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:name="com.google.android.gms.maps.MapFragment"
+        android:id="@+id/mapFragment"
+        tools:layout="@android:layout/activity_list_item" />-->
 </LinearLayout>
-    <!--<fragment xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:map="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/map"
-    android:name="com.google.android.gms.maps.SupportMapFragment"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context="com.example.recogniselocation.thirdyearproject.MapsActivity" /> -->
