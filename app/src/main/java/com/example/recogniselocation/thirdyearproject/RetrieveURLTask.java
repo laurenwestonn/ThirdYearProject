@@ -2,7 +2,6 @@ package com.example.recogniselocation.thirdyearproject;
 
 import android.os.AsyncTask;
 import android.util.Log;
-import android.widget.TextView;
 
 import com.google.gson.Gson;
 
@@ -20,8 +19,8 @@ import java.util.List;
 public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
 
     private Exception e;
-    double breadthOfSearch = 45;
-    double yourElevation;
+    private double yourElevation;
+    private List<Result> highPoints= new ArrayList<>(7) ;
 
     protected List<String> doInBackground(String... urls) {
         return connectToURL(urls[0]);
@@ -79,8 +78,6 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
     }
 
     protected void onPostExecute(List<String> responses) {
-
-        List<Result> highPoints= new ArrayList<>(7) ;
         int isFirstResponse = 1;
 
         for (String response : responses) {
@@ -95,38 +92,8 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
                     if (isFirstResponse == 1) {
                         yourElevation = results.getResults().get(0).getElevation();
                         isFirstResponse = 0; // Treat the others differently, they are paths
-                    } else {    // Calculate the highest visible point ToDo: make this its own method
-                        // The highest position you can see
-                        double hiLat = 0;
-                        double hiLng = 0;
-                        double hiEl = 0;
-                        double hiDis = 0;
-                        double hiAng = Math.atan(
-                                    (results.getResults().get(0).getElevation() - yourElevation) /    // First one away
-                                        0.1 * (1.0 / 10.0));                                // from you, i.e. step
-                        int loopCount = 1;
-
-                        for(Result r : results) {
-                            double thisOnesDistance = 0.1 * loopCount / 10; //Fraction of path length we're at now
-                            double angleOfThisElevation = Math.atan(
-                                                    (r.getElevation() - yourElevation) /    //ToDo: Get your elevation and minus it
-                                                    thisOnesDistance);  // Distance of the first one away
-                            // from you, i.e. step
-                            Log.d("Hi", r.toString());
-                            Log.d("Hi", "Looking at distance " + thisOnesDistance);
-                            Log.d("Hi", "Is " + angleOfThisElevation + " > " + hiAng + "?");
-                            if (loopCount > 1 && angleOfThisElevation > hiAng) {    // Initialised as the first step away, no need to check first
-                                Log.d("Hi", "Yes, update details");
-                                hiEl = r.getElevation() - yourElevation;
-                                hiLat = r.getLocation().getLat();
-                                hiLng = r.getLocation().getLng();
-                                hiDis = thisOnesDistance;
-                                hiAng = angleOfThisElevation;
-                            }
-                            loopCount++;
-                        }
-                        if (hiDis != 0) // We're not looking at distance 0, that is where you are
-                            highPoints.add(new Result(new LatLng(hiLat, hiLng), hiEl, hiDis, hiAng));
+                    } else {
+                        findHighestVisiblePoints(results);
                     }
 
 
@@ -141,5 +108,38 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
 
         for (Result highPoint : highPoints)
             Log.d("Hi", highPoint.getLocation().toString());
+    }
+
+    public void findHighestVisiblePoints(Response results) {
+        // Find the highest visible point
+        double hiLat, hiLng, hiEl, hiDis;
+        hiLat = hiLng = hiEl = hiDis = 0;
+        double hiAng = Math.atan(
+                (results.getResults().get(0).getElevation() - yourElevation) /    // First one away
+                        0.1 * (1.0 / 10.0));                                // from you, i.e. step
+
+        // Go through each result to see if you can see any that are higher
+        int loopCount = 1;
+        for(Result r : results) {
+            double thisOnesDistance = 0.1 * loopCount / 10; //Fraction of path length we're at now
+            double angleOfThisElevation = Math.atan(
+                    (r.getElevation() - yourElevation) /    //ToDo: Get your elevation and minus it
+                            thisOnesDistance);  // Distance of the first one away
+            // from you, i.e. step
+            Log.d("Hi", r.toString());
+            Log.d("Hi", "Looking at distance " + thisOnesDistance);
+            Log.d("Hi", "Is " + angleOfThisElevation + " > " + hiAng + "?");
+            if (loopCount > 1 && angleOfThisElevation > hiAng) {    // Initialised as the first step away, no need to check first
+                Log.d("Hi", "Yes, update details");
+                hiEl = r.getElevation() - yourElevation;
+                hiLat = r.getLocation().getLat();
+                hiLng = r.getLocation().getLng();
+                hiDis = thisOnesDistance;
+                hiAng = angleOfThisElevation;
+            }
+            loopCount++;
+        }
+        if (hiDis != 0) // We're not looking at distance 0, that is where you are
+            highPoints.add(new Result(new LatLng(hiLat, hiLng), hiEl, hiDis, hiAng));
     }
 }

@@ -1,6 +1,7 @@
 package com.example.recogniselocation.thirdyearproject;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -13,6 +14,7 @@ import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -67,7 +69,7 @@ public class MapsActivity extends FragmentActivity  {
                 textView.append("\n" + xPos + ", " + yPos);
 
                 // Find what you are looking at
-                findArea();
+                getVisiblePeaks();
             }
 
             @Override
@@ -88,50 +90,62 @@ public class MapsActivity extends FragmentActivity  {
             }
         };
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+
+
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d("hi", "Button was clicked. Check permissions");
+
+                if (ActivityCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)
+                        != PackageManager.PERMISSION_GRANTED
+                        && ActivityCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                        != PackageManager.PERMISSION_GRANTED) {
+                    requestPermissions(new String[] {
+                            Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_COARSE_LOCATION,
+                            Manifest.permission.INTERNET
+                    }, 10);
+                } else {
+                    locationManager.requestLocationUpdates("gps", 1000, 5, locationListener);
+                }
+            }
+        });
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    public void loadLocation() {
+        if (ActivityCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[] {
                     Manifest.permission.ACCESS_FINE_LOCATION,
                     Manifest.permission.ACCESS_COARSE_LOCATION,
                     Manifest.permission.INTERNET
             }, 10);
         } else {
-            getLocation();
+            locationManager.requestLocationUpdates("gps", 1000, 5, locationListener);
         }
-
     }
 
-    private void findArea() {
-        // Get visible peaks from seven paths
-        List<Double> visiblePeaks = getVisiblePeaks();
-
-        // Draw points on blank screen
-
-        // Draw path of the points on blank
-
-        // Draw path on a map
-    }
-
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode) {
             case 10:
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
-                    getLocation();
+                    loadLocation();
+                else
+                    requestPermissions(new String[] {
+                            Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_COARSE_LOCATION,
+                            Manifest.permission.INTERNET
+                    }, 10);
         }
     }
 
-    private void getLocation() {
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.d("hi", "Button was clicked");
-                // Get your coordinates and direction
-                locationManager.requestLocationUpdates("gps", 1000, 5, locationListener);
-            }
-        });
-    }
-
-    private List<Double> getVisiblePeaks() {
+    private void getVisiblePeaks() {
         // Calculate end points of each path
 
         noOfPaths = 7; //ToDo: Make this configurable
@@ -184,8 +198,5 @@ public class MapsActivity extends FragmentActivity  {
             Log.d("Hi", "Failed " + e);
             e.printStackTrace();
         }
-
-        List<Double> visiblePeaks = new ArrayList<>();
-        return visiblePeaks;
     }
 }
