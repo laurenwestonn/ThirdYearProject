@@ -13,7 +13,6 @@ import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -135,9 +134,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.HONEYCOMB)
     private void initMap() {
-       // MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.mapFragment);
-        //mapFragment.getMapAsync(this);
+        MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.mapFragment);
+        if (mapFragment == null)
+            Log.d("Hi", "Couldn't find mapFragment");
+        else {
+            Log.d("Hi", "Found  mapFragment");
+            mapFragment.getMapAsync(this);
+        }
     }
 
     public boolean googleServicesAvailable() {
@@ -186,6 +191,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.CUPCAKE)
     private void getVisiblePeaks() {
         // Calculate end points of each path
 
@@ -221,14 +227,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             String urls = "https://maps.googleapis.com/maps/api/elevation/json?path="
                     + xPos + "," + yPos
                     + "&samples=" + noOfSamples
-                    + "&key=" + getString(R.string.google_api_key) + "!";
+                    + "&key=" + getString(R.string.google_maps_key) + "!";
             // The other requests are to get elevations along paths
             for (int i = 0; i < noOfPaths; i++)
                 urls += "https://maps.googleapis.com/maps/api/elevation/json?path="
                         + startCoords.get(i).getLat() + "," + startCoords.get(i).getLng() + "|"
                         + endCoords.get(i).getLat() + "," + endCoords.get(i).getLng()
                         + "&samples=" + noOfSamples
-                        + "&key=" + getString(R.string.google_api_key) + "!";
+                        + "&key=" + getString(R.string.google_maps_key) + "!";
             if (!urls.equals("")) {
                 new RetrieveURLTask().execute(urls);
             }

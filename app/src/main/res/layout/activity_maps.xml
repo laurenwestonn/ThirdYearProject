@@ -16,20 +16,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Where am I?" />
-<!--
-    <fragment
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />             THIS ALONE CAUSES THE ISSUE
-                                                            Suggested to replace it with LinearLayout / rellay
-                                                            This does allow it to render,
-                                                            but then the sprocs further on fail if
-                                                            mapFragment is a Layout and not a fragment ....
-                                                            -->
-<!--
+
     <fragment
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:name="com.google.android.gms.maps.MapFragment"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
         android:id="@+id/mapFragment"
-        tools:layout="@android:layout/activity_list_item" />-->
+        tools:layout="@android:layout/activity_list_item" />
 </LinearLayout>
