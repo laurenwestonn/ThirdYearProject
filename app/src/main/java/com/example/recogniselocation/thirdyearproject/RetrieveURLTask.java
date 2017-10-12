@@ -3,6 +3,7 @@ package com.example.recogniselocation.thirdyearproject;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.gson.Gson;
 
 import java.io.BufferedReader;
@@ -89,15 +90,17 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
                     Gson gson = new Gson();
                     Response results = gson.fromJson(response, Response.class);
 
-                    if (isFirstResponse == 1) {
-                        yourElevation = results.getResults().get(0).getElevation();
-                        isFirstResponse = 0; // Treat the others differently, they are paths
-                    } else {
-                        findHighestVisiblePoints(results);
-                        plotHighest();
+                    // If the results came back correctly
+                    if (results != null) {
+                        if (isFirstResponse == 1) {
+                            yourElevation = results.getResults().get(0).getElevation();
+                            isFirstResponse = 0; // Treat the others differently, they are paths
+                        } else {
+                            findHighestVisiblePoints(results);
+                            MapsActivity.goToLocation(MapsActivity.xPos, MapsActivity.yPos, 9);
+                            plotHighest();
+                        }
                     }
-
-
                 } catch(Exception e){
                     Log.d("Hi", "On post execute failure\n" + e);
                 }
@@ -112,7 +115,7 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
     }
 
     private void plotHighest() {
-
+        //MapsActivity.googleMap.addMarker(new MarkerOptions(21,))
     }
 
     public void findHighestVisiblePoints(Response results) {

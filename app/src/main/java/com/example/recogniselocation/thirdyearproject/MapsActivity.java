@@ -23,6 +23,8 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -37,9 +39,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private LocationManager locationManager;
     private LocationListener locationListener;
 
-    GoogleMap googleMap;
+    static GoogleMap googleMap;
 
-    private double xPos, yPos;
+    public static double xPos, yPos;
     public int noOfPaths;
     double lengthOfSearch = 0.1;
     int noOfSamples = 10;
@@ -52,9 +54,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         if (googleServicesAvailable()) {
             Toast.makeText(this, "Connected to google services", Toast.LENGTH_LONG).show();
-            Log.d("Hi", "2");
-            setContentView(R.layout.activity_maps); //Crashes here when loading the fragment in act_maps.xml
-            Log.d("Hi", "3");
+            setContentView(R.layout.activity_maps);
             initMap();
         } else {
             setContentView(R.layout.activity_maps);
@@ -87,7 +87,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                 // Print out your co-ordinates
                 Log.d("Hi", "You're at : " + xPos + ", " + yPos);
-                textView.append("\n" + xPos + ", " + yPos);
+                textView.setText("\n" + xPos + ", " + yPos);
 
                 // Find what you are looking at
                 getVisiblePeaks();
@@ -248,4 +248,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap givenGoogleMap) {
         googleMap = givenGoogleMap;
     }
+
+    public static void goToLocation(double lat, double lng, float zoom) {
+        Log.d("Hi", "Go to location " + lat + ", " + lng);
+        com.google.android.gms.maps.model.LatLng pos = new com.google.android.gms.maps.model.LatLng(lat, lng);
+        CameraUpdate update = CameraUpdateFactory.newLatLngZoom(pos, zoom);
+        googleMap.moveCamera(update);
+        Log.d("Hi", "Moved");
+    }
+
 }

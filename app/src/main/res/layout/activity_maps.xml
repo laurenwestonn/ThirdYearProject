@@ -20,7 +20,7 @@
     <fragment
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:name="com.google.android.gms.maps.MapFragment"
         android:id="@+id/mapFragment"
         tools:layout="@android:layout/activity_list_item" />
 </LinearLayout>
