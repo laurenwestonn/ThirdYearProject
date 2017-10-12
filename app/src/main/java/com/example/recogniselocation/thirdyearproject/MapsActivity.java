@@ -2,7 +2,6 @@ package com.example.recogniselocation.thirdyearproject;
 
 import android.Manifest;
 import android.app.Dialog;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -34,6 +33,8 @@ import java.util.List;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
+    int demo = 2;   // 0 for your location. 1, Sydney. 2, Kinder Scout
+
     private Button button;
     private TextView textView;
     private LocationManager locationManager;
@@ -42,7 +43,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     static GoogleMap googleMap;
 
     public static double xPos, yPos;
-    public int noOfPaths;
+    public static int noOfPaths;
     double lengthOfSearch = 0.1;
     int noOfSamples = 10;
 
@@ -69,25 +70,31 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         locationListener = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
-                // Save your co-ordinates
-                xPos = location.getLatitude();
-                yPos = location.getLongitude();
+                switch (demo) {
+                    case 1:
+                        // Overwriting coords with coords of a valley SW of a sydney mountain
+                        xPos = -33.758731;
+                        yPos = 150.240165;
+                        break;
+                    case 2:
+                        // Coords of in front of kinder scout
+                        xPos = 53.382105;
+                        yPos = -1.9060239;
+                        break;
+                    default:
+                        // Save your co-ordinates
+                        xPos = location.getLatitude();
+                        yPos = location.getLongitude();
+                        break;
+                }
 
-
-                // Overwriting coords with coords of a valley SW of a sydney mountain
-                //xPos = -33.758731;
-                //yPos = 150.240165;
-
-                // Coords of in front of kinder scout
-                //xPos = 53.382105;
-                //yPos = -1.9060239;
+                goToLocation(xPos, yPos, 12);
 
                 // https://www.darrinward.com/lat-long/?id=59dcd03715f6d6.39982706
                 // Great tool to plot map points, for before the time I make my own
 
                 // Print out your co-ordinates
-                Log.d("Hi", "You're at : " + xPos + ", " + yPos);
-                textView.setText("\n" + xPos + ", " + yPos);
+                textView.setText("You're at (" + xPos + ", " + yPos + ")");
 
                 // Find what you are looking at
                 getVisiblePeaks();
@@ -203,7 +210,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         List<LatLng> startCoords = new ArrayList<>();
 
         // 0 -> 6
-        for (int i = 0; i < 7; i++) {
+        for (int i = 0; i < noOfPaths; i++) {
             double sinOfThisStep = Math.sin(Math.toRadians(start + i * step));
             double cosOfThisStep = Math.cos(Math.toRadians(start + i * step));
             // Start from the first position away from you in each direction

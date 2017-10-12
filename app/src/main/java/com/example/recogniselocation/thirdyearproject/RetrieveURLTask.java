@@ -12,6 +12,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by LaUrE on 07/10/2017.
@@ -21,7 +22,7 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
 
     private Exception e;
     private double yourElevation;
-    private List<Result> highPoints= new ArrayList<>(7) ;
+    private List<Result> highPoints= new ArrayList<>(MapsActivity.noOfPaths) ;
 
     protected List<String> doInBackground(String... urls) {
         return connectToURL(urls[0]);
@@ -34,7 +35,7 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
         // The URLs are comma separated. Split and do the same for each
         String[] urlArr = urls.split("!");
 
-        List<String> responseList = new ArrayList<>(7);
+        List<String> responseList = new ArrayList<>(MapsActivity.noOfPaths);
 
         String inputLine;
         HttpURLConnection con = null;
@@ -97,7 +98,6 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
                             isFirstResponse = 0; // Treat the others differently, they are paths
                         } else {
                             findHighestVisiblePoints(results);
-                            MapsActivity.goToLocation(MapsActivity.xPos, MapsActivity.yPos, 9);
                             plotHighest();
                         }
                     }
@@ -108,14 +108,32 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
             }
         }
         Log.d("Hi", "Highest points are:");
-        Log.d("Hi", highPoints.toString());
-
         for (Result highPoint : highPoints)
             Log.d("Hi", highPoint.getLocation().toString());
     }
 
     private void plotHighest() {
-        //MapsActivity.googleMap.addMarker(new MarkerOptions(21,))
+        // Update your position to be the average latitude and longitude,
+        // I'm using the average of your position, and the middle peak found
+        double avLat = (MapsActivity.xPos
+                        + highPoints.get(MapsActivity.noOfPaths / 2).getLocation().getLat())
+                        / 2;
+        double avLng = (MapsActivity.yPos
+                        + highPoints.get(MapsActivity.noOfPaths / 2).getLocation().getLng())
+                        / 2;
+        Log.d("Hi", "Average latitude is average of " + MapsActivity.xPos + " + " + highPoints.get(MapsActivity.noOfPaths / 2).getLocation().getLat());
+        Log.d("Hi", "Updating the location to be inbetween points: " + avLat + ", " + avLng);
+        MapsActivity.goToLocation(avLat, avLng, 12);
+
+
+        for (Result highPoint : highPoints) {
+            Log.d("Hi", "plotting at " + highPoint.getLocation());
+            MapsActivity.googleMap.addMarker(new MarkerOptions()
+                    .title("Marker!")
+                    .position(new com.google.android.gms.maps.model.LatLng(
+                            highPoint.getLocation().getLat(),
+                            highPoint.getLocation().getLng())));
+        }
     }
 
     public void findHighestVisiblePoints(Response results) {
