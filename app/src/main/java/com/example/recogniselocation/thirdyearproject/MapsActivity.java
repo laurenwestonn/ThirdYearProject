@@ -33,7 +33,7 @@ import java.util.List;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
-    int demo = 2;   // 0 for your location. 1, Sydney. 2, Kinder Scout
+    int demo = 1;   // 0 for your location. 1, Sydney. 2, Kinder Scout
 
     private Button button;
     private TextView textView;
@@ -47,10 +47,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     double lengthOfSearch = 0.1;
     int noOfSamples = 10;
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
 
         if (googleServicesAvailable()) {
@@ -87,8 +85,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         yPos = location.getLongitude();
                         break;
                 }
-
-                goToLocation(xPos, yPos, 12);
 
                 // https://www.darrinward.com/lat-long/?id=59dcd03715f6d6.39982706
                 // Great tool to plot map points, for before the time I make my own
@@ -141,7 +137,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.HONEYCOMB)
     private void initMap() {
         MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.mapFragment);
         if (mapFragment == null)
@@ -166,7 +161,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return false;
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     public void loadLocation() {
         if (ActivityCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED
@@ -182,7 +176,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode) {
@@ -198,7 +191,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.CUPCAKE)
     private void getVisiblePeaks() {
         // Calculate end points of each path
 
@@ -258,7 +250,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     public static void goToLocation(double lat, double lng, float zoom) {
         Log.d("Hi", "Go to location " + lat + ", " + lng);
-        com.google.android.gms.maps.model.LatLng pos = new com.google.android.gms.maps.model.LatLng(lat, lng);
+        com.google.android.gms.maps.model.LatLng pos =
+                new com.google.android.gms.maps.model.LatLng(lat, lng);
         CameraUpdate update = CameraUpdateFactory.newLatLngZoom(pos, zoom);
         googleMap.moveCamera(update);
         Log.d("Hi", "Moved");

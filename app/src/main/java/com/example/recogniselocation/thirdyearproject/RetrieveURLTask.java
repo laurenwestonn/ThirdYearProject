@@ -1,9 +1,12 @@
 package com.example.recogniselocation.thirdyearproject;
 
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.util.Log;
 
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.gson.Gson;
 
 import java.io.BufferedReader;
@@ -13,6 +16,9 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import static com.example.recogniselocation.thirdyearproject.MapsActivity.xPos;
+import static com.example.recogniselocation.thirdyearproject.MapsActivity.yPos;
 
 /**
  * Created by LaUrE on 07/10/2017.
@@ -115,25 +121,33 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
     private void plotHighest() {
         // Update your position to be the average latitude and longitude,
         // I'm using the average of your position, and the middle peak found
-        double avLat = (MapsActivity.xPos
+        double avLat = (xPos
                         + highPoints.get(MapsActivity.noOfPaths / 2).getLocation().getLat())
                         / 2;
         double avLng = (MapsActivity.yPos
                         + highPoints.get(MapsActivity.noOfPaths / 2).getLocation().getLng())
                         / 2;
-        Log.d("Hi", "Average latitude is average of " + MapsActivity.xPos + " + " + highPoints.get(MapsActivity.noOfPaths / 2).getLocation().getLat());
+        Log.d("Hi", "Average latitude is average of " + xPos + " + " + highPoints.get(MapsActivity.noOfPaths / 2).getLocation().getLat());
         Log.d("Hi", "Updating the location to be inbetween points: " + avLat + ", " + avLng);
-        MapsActivity.goToLocation(avLat, avLng, 12);
+        MapsActivity.goToLocation(avLat, avLng, 13);
+        MapsActivity.googleMap.addMarker(new MarkerOptions()
+                .title("You are here!")
+                .position(new com.google.android.gms.maps.model.LatLng(
+                        xPos,
+                        yPos)));
 
+        PolylineOptions polylineOptions = new PolylineOptions();
+        polylineOptions.color(Color.YELLOW);
 
         for (Result highPoint : highPoints) {
             Log.d("Hi", "plotting at " + highPoint.getLocation());
-            MapsActivity.googleMap.addMarker(new MarkerOptions()
-                    .title("Marker!")
-                    .position(new com.google.android.gms.maps.model.LatLng(
-                            highPoint.getLocation().getLat(),
-                            highPoint.getLocation().getLng())));
+
+            polylineOptions.add(new com.google.android.gms.maps.model.LatLng(
+                    highPoint.getLocation().getLat(),
+                    highPoint.getLocation().getLng()));
+
         }
+        Polyline polyline = MapsActivity.googleMap.addPolyline(polylineOptions);
     }
 
     public void findHighestVisiblePoints(Response results) {
