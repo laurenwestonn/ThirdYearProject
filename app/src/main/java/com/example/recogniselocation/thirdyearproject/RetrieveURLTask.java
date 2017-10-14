@@ -142,6 +142,12 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
         for (Result highPoint : highPoints) {
             Log.d("Hi", "plotting at " + highPoint.getLocation());
 
+            MapsActivity.googleMap.addMarker(new MarkerOptions().position(
+                    new com.google.android.gms.maps.model.LatLng(
+                            highPoint.getLocation().getLat(),
+                            highPoint.getLocation().getLng())
+            ));
+
             polylineOptions.add(new com.google.android.gms.maps.model.LatLng(
                     highPoint.getLocation().getLat(),
                     highPoint.getLocation().getLng()));

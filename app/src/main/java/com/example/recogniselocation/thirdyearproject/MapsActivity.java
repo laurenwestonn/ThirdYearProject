@@ -7,10 +7,8 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.os.Build;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
-import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
@@ -43,7 +41,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     static GoogleMap googleMap;
 
     public static double xPos, yPos;
-    public static int noOfPaths;
+    public static int noOfPaths = 15; //ToDo: Make this configurable
     double lengthOfSearch = 0.1;
     int noOfSamples = 10;
 
@@ -78,6 +76,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         // Coords of in front of kinder scout
                         xPos = 53.382105;
                         yPos = -1.9060239;
+                        break;
+                    case 3:
+                        xPos = 54.426385;
+                        yPos = -3.3186308;
                         break;
                     default:
                         // Save your co-ordinates
@@ -194,7 +196,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private void getVisiblePeaks() {
         // Calculate end points of each path
 
-        noOfPaths = 7; //ToDo: Make this configurable
         double step = 45 / (noOfPaths - 1);
         double yourDirection = 30;
         double start = yourDirection - (step * 2);
@@ -246,6 +247,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap givenGoogleMap) {
         googleMap = givenGoogleMap;
+        googleMap.setMapType(googleMap.MAP_TYPE_TERRAIN);
     }
 
     public static void goToLocation(double lat, double lng, float zoom) {
