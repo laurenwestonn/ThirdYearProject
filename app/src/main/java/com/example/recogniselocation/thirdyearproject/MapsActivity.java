@@ -144,7 +144,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if (mapFragment == null)
             Log.d("Hi", "Couldn't find mapFragment");
         else {
-            Log.d("Hi", "Found  mapFragment");
+            Log.d("Hi", "Found mapFragment");
             mapFragment.getMapAsync(this);
         }
     }
@@ -218,15 +218,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                     ));
         }
 
-        Log.d("Hi", endCoords.toString());
-
         // Now we have the path coords, we can get heights along them
         try {
             // Build up the web requests for each path
             // The first request is to get the elevation of where you are
-            String urls = "https://maps.googleapis.com/maps/api/elevation/json?path="
+            String urls = "https://maps.googleapis.com/maps/api/elevation/json?locations="
                     + xPos + "," + yPos
-                    + "&samples=" + noOfSamples
                     + "&key=" + getString(R.string.google_maps_key) + "!";
             // The other requests are to get elevations along paths
             for (int i = 0; i < noOfPaths; i++)

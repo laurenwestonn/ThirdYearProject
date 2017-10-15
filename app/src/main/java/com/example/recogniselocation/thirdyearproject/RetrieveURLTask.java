@@ -15,6 +15,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -42,6 +43,9 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
 
         // The URLs are comma separated. Split and do the same for each
         String[] urlArr = urls.split("!");
+        for (String url : urlArr) {
+            Log.d("Hi", "URL: " + url);
+        }
 
         List<String> responseList = new ArrayList<>(MapsActivity.noOfPaths);
 
@@ -51,7 +55,6 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
 
         for (String url : urlArr) {
             try {
-                Log.d("Hi", "URL:" + url);
                 URL urlObj = new URL(url);
                 con = (HttpURLConnection) urlObj.openConnection();
 
@@ -91,7 +94,6 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
         int isFirstResponse = 1;
 
         for (String response : responses) {
-            Log.d("Hi", "\nAnother response");
             // If we got a response, parse it
             if (response != null) {
                 try {
@@ -102,16 +104,10 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
                     // If the results came back correctly
                     if (results != null) {
                         if (isFirstResponse == 1) {
-                            yourElevation = results.getResults().get(0).getElevation();
                             isFirstResponse = 0; // Treat the others differently, they are paths
-                        } else {
-                            findHighestVisiblePoints(results);
-
-                            Log.d("Hi", "Exited findHighestVisPoints. Here's the peaks: ");
-                            for(Result highPoint : highPoints)
-                                Log.d("Hi", highPoint.toString());
-                            plotHighest();
-                        }
+                            yourElevation = results.getResults().get(0).getElevation();
+                        } else
+                            findHighestVisiblePoint(results);
                     }
                 } catch(Exception e){
                     Log.d("Hi", "On post execute failure\n" + e);
@@ -119,23 +115,68 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
 
             }
         }
-        Log.d("Hi", "Highest points are:");
+
+        Log.d("Hi", "Got all highest points:");
         for (Result highPoint : highPoints)
-            Log.d("Hi", highPoint.getLocation().toString());
+            Log.d("Hi", highPoint.toString());
+        plotPoints(googleMap, highPoints, xPos, yPos);
+        drawHorizon(highPoints);
+
     }
 
-    private void plotHighest() {
-        // Update your position to be the average latitude and longitude,
-        // I'm using the average of your position, and the middle peak found
-        double avLat = (xPos
-                        + highPoints.get(MapsActivity.noOfPaths / 2).getLocation().getLat())
-                        / 2;
-        double avLng = (MapsActivity.yPos
-                        + highPoints.get(MapsActivity.noOfPaths / 2).getLocation().getLng())
-                        / 2;
+    public void findHighestVisiblePoint(Response results) {
+        // Find the highest visible point
+        double hiLat, hiLng, hiEl, hiDis;
+        hiLat = hiLng = hiEl = hiDis = 0;
+        // Say that the current highest is the first, compare with the rest
+        double currentHighestAng = Math.atan(
+                (results.getResults().get(0).getElevation() - yourElevation) /    // First one away
+                        0.1 * (1.0 / 10.0));                                // from you, i.e. step
+        // Store the angle of the first peak so you can calculate the difference later
+        double firstAng = currentHighestAng;
+
+
+        // Go through each result to see if you can see any that are higher
+        int loopCount = 1;
+        for(Result r : results) {
+            if (loopCount > 1) {    //We're comparing the first against the rest
+                double thisOnesDistance = 0.1 * loopCount / 10; //Fraction of path length we're at now
+                double angleOfThisElevation = Math.atan(
+                        (r.getElevation() - yourElevation) /
+                                thisOnesDistance);  // Distance of the first one away
+                // from you, i.e. step
+                if (angleOfThisElevation > currentHighestAng) {
+                    hiEl = r.getElevation() - yourElevation;
+                    hiLat = r.getLocation().getLat();
+                    hiLng = r.getLocation().getLng();
+                    hiDis = thisOnesDistance;
+                    currentHighestAng = angleOfThisElevation;   //ToDo: do I need to set all these?
+                }
+            }
+            loopCount++;
+        }
+        if (hiDis != 0) { // If we found a highest visible peak
+            highPoints.add(new Result(
+                                    new LatLng(hiLat, hiLng),
+                                    hiEl,
+                                    hiDis,
+                                    currentHighestAng,
+                                    diffFromFirst(firstAng, hiDis, hiEl)));
+        }
+    }
+
+    // Draw a line around the points, add a marker to where you are
+    private void plotPoints(GoogleMap map, List<Result> highPoints, double x, double y) {
+        // Centre the camera around the middle of the points and your location
+        double avLat = (x
+                + highPoints.get(MapsActivity.noOfPaths / 2).getLocation().getLat())
+                / 2;
+        double avLng = (y
+                + highPoints.get(MapsActivity.noOfPaths / 2).getLocation().getLng())
+                / 2;
         MapsActivity.goToLocation(avLat, avLng, 13);
 
-        addMarkerAt(googleMap, xPos, yPos, "You are here!");
+        addMarkerAt(map, x, y, "You are here!");
 
         // Plot a line and add markers for each of the visible peaks
         showVisiblePeaks(highPoints);
@@ -172,53 +213,27 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
         MapsActivity.googleMap.addPolyline(polylineOptions);
     }
 
-    public void findHighestVisiblePoints(Response results) {
-        // Find the highest visible point
-        double hiLat, hiLng, hiEl, hiDis;
-        hiLat = hiLng = hiEl = hiDis = 0;
-        // Say that the current highest is the first, compare with the rest
-        double currentHighestAng = Math.atan(
-                (results.getResults().get(0).getElevation() - yourElevation) /    // First one away
-                        0.1 * (1.0 / 10.0));                                // from you, i.e. step
-        // Store the angle of the first peak so you can calculate the difference later
-        double firstAng = currentHighestAng;
-
-
-        // Go through each result to see if you can see any that are higher
-        int loopCount = 1;
-        for(Result r : results) {
-            Log.d("Hi", r.toString());
-            if (loopCount > 1) {    //We're comparing the first against the rest
-                double thisOnesDistance = 0.1 * loopCount / 10; //Fraction of path length we're at now
-                double angleOfThisElevation = Math.atan(
-                        (r.getElevation() - yourElevation) /
-                                thisOnesDistance);  // Distance of the first one away
-                // from you, i.e. step
-                if (angleOfThisElevation > currentHighestAng) {
-                    hiEl = r.getElevation() - yourElevation;
-                    hiLat = r.getLocation().getLat();
-                    hiLng = r.getLocation().getLng();
-                    hiDis = thisOnesDistance;
-                    currentHighestAng = angleOfThisElevation;   //ToDo: do I need to set all these?
-                }
-            }
-            loopCount++;
-        }
-        if (hiDis != 0) { // If we found a highest visible peak
-            Log.d("Hi", "Adding values " + hiEl + "\t" + hiDis + "\t" + currentHighestAng + "\t" + diffFromFirst(firstAng, hiDis, hiEl));
-            highPoints.add(new Result(
-                                    new LatLng(hiLat, hiLng),
-                                    hiEl,
-                                    hiDis,
-                                    currentHighestAng,
-                                    diffFromFirst(firstAng, hiDis, hiEl)));
-        }
+    private double diffFromFirst(double comparisonAngle, double thisPeaksDistance, double thisElevation) {
+        double perceivedHeight = thisPeaksDistance * Math.tan(comparisonAngle);
+        return thisElevation - perceivedHeight;
     }
 
-    private double diffFromFirst(double comparisonAngle, double thisPeaksDistance, double thisElevation) {
-        Log.d("Hi", "This peaks distance multiplied by the tan of the comparison angle: " + thisPeaksDistance + " * tan(" + comparisonAngle);
-        double perceivedHeight = thisPeaksDistance * Math.tan(comparisonAngle);
-        Log.d("Hi", thisElevation + " - " + perceivedHeight + " = " + (thisElevation-perceivedHeight));
-        return thisElevation - perceivedHeight;
+    private void drawHorizon(List<Result> highPoints) {
+        Log.d("Hi", "Entered drawHorizon");
+        double distanceBetweenPlots = 100;
+        int count = 0;
+
+        Log.d("Hi", "The first result should be at 0,0.. should it? Think about it");
+        for (Result highPoint : highPoints)
+            addToCanvas(highPoint.getDifference(), count++ * distanceBetweenPlots);
+
+        // Display canvas
+        Log.d("Hi", "Leaving drawHorizon");
+    }
+
+    private void addToCanvas(double x, double y) {
+        Log.d("Hi", "Would be plotting at " + x + ", " + y);
+
+        // ToDo: Make something that will draw a line (not on a map)
     }
 }
