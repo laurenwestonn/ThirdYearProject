@@ -41,9 +41,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     static GoogleMap googleMap;
 
     public static double xPos, yPos;
-    public static int noOfPaths = 15; //ToDo: Make this configurable
-    double lengthOfSearch = 0.1;
-    int noOfSamples = 10;
+    public static int noOfPaths = 10; //ToDo: Make this configurable
+    int noOfSamples = 20;
+    double lengthOfSearch = 0.1;  // radius of the search
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

@@ -4,6 +4,7 @@ import android.graphics.Color;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
@@ -17,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static com.example.recogniselocation.thirdyearproject.MapsActivity.googleMap;
 import static com.example.recogniselocation.thirdyearproject.MapsActivity.xPos;
 import static com.example.recogniselocation.thirdyearproject.MapsActivity.yPos;
 
@@ -104,6 +106,10 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
                             isFirstResponse = 0; // Treat the others differently, they are paths
                         } else {
                             findHighestVisiblePoints(results);
+
+                            Log.d("Hi", "Exited findHighestVisPoints. Here's the peaks: ");
+                            for(Result highPoint : highPoints)
+                                Log.d("Hi", highPoint.toString());
                             plotHighest();
                         }
                     }
@@ -127,65 +133,92 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
         double avLng = (MapsActivity.yPos
                         + highPoints.get(MapsActivity.noOfPaths / 2).getLocation().getLng())
                         / 2;
-        Log.d("Hi", "Average latitude is average of " + xPos + " + " + highPoints.get(MapsActivity.noOfPaths / 2).getLocation().getLat());
-        Log.d("Hi", "Updating the location to be inbetween points: " + avLat + ", " + avLng);
         MapsActivity.goToLocation(avLat, avLng, 13);
-        MapsActivity.googleMap.addMarker(new MarkerOptions()
-                .title("You are here!")
-                .position(new com.google.android.gms.maps.model.LatLng(
-                        xPos,
-                        yPos)));
 
+        addMarkerAt(googleMap, xPos, yPos, "You are here!");
+
+        // Plot a line and add markers for each of the visible peaks
+        showVisiblePeaks(highPoints);
+    }
+
+    // Add marker to map at  x and y that says the string
+    private void addMarkerAt(GoogleMap map, double x, double y, String msg) {
+        map.addMarker(new MarkerOptions()
+                .title(msg)
+                .position(new com.google.android.gms.maps.model.LatLng(x, y)));
+    }
+
+    // Add marker to map at  x and y with no message
+    private void addMarkerAt(GoogleMap map, double x, double y) {
+        map.addMarker(new MarkerOptions()
+                .title("You are here!")
+                .position(new com.google.android.gms.maps.model.LatLng(x, y)));
+    }
+
+    private void showVisiblePeaks(List<Result> highPoints) {
         PolylineOptions polylineOptions = new PolylineOptions();
         polylineOptions.color(Color.YELLOW);
 
         for (Result highPoint : highPoints) {
-            Log.d("Hi", "plotting at " + highPoint.getLocation());
-
-            MapsActivity.googleMap.addMarker(new MarkerOptions().position(
-                    new com.google.android.gms.maps.model.LatLng(
-                            highPoint.getLocation().getLat(),
-                            highPoint.getLocation().getLng())
-            ));
-
+            // Show the path of the peaks
             polylineOptions.add(new com.google.android.gms.maps.model.LatLng(
                     highPoint.getLocation().getLat(),
                     highPoint.getLocation().getLng()));
 
+            // Show a marker at each peak
+            addMarkerAt(MapsActivity.googleMap, highPoint.getLocation().getLat(), highPoint.getLocation().getLng());
+
         }
-        Polyline polyline = MapsActivity.googleMap.addPolyline(polylineOptions);
+        MapsActivity.googleMap.addPolyline(polylineOptions);
     }
 
     public void findHighestVisiblePoints(Response results) {
         // Find the highest visible point
         double hiLat, hiLng, hiEl, hiDis;
         hiLat = hiLng = hiEl = hiDis = 0;
-        double hiAng = Math.atan(
+        // Say that the current highest is the first, compare with the rest
+        double currentHighestAng = Math.atan(
                 (results.getResults().get(0).getElevation() - yourElevation) /    // First one away
                         0.1 * (1.0 / 10.0));                                // from you, i.e. step
+        // Store the angle of the first peak so you can calculate the difference later
+        double firstAng = currentHighestAng;
+
 
         // Go through each result to see if you can see any that are higher
         int loopCount = 1;
         for(Result r : results) {
-            double thisOnesDistance = 0.1 * loopCount / 10; //Fraction of path length we're at now
-            double angleOfThisElevation = Math.atan(
-                    (r.getElevation() - yourElevation) /    //ToDo: Get your elevation and minus it
-                            thisOnesDistance);  // Distance of the first one away
-            // from you, i.e. step
             Log.d("Hi", r.toString());
-            Log.d("Hi", "Looking at distance " + thisOnesDistance);
-            Log.d("Hi", "Is " + angleOfThisElevation + " > " + hiAng + "?");
-            if (loopCount > 1 && angleOfThisElevation > hiAng) {    // Initialised as the first step away, no need to check first
-                Log.d("Hi", "Yes, update details");
-                hiEl = r.getElevation() - yourElevation;
-                hiLat = r.getLocation().getLat();
-                hiLng = r.getLocation().getLng();
-                hiDis = thisOnesDistance;
-                hiAng = angleOfThisElevation;
+            if (loopCount > 1) {    //We're comparing the first against the rest
+                double thisOnesDistance = 0.1 * loopCount / 10; //Fraction of path length we're at now
+                double angleOfThisElevation = Math.atan(
+                        (r.getElevation() - yourElevation) /
+                                thisOnesDistance);  // Distance of the first one away
+                // from you, i.e. step
+                if (angleOfThisElevation > currentHighestAng) {
+                    hiEl = r.getElevation() - yourElevation;
+                    hiLat = r.getLocation().getLat();
+                    hiLng = r.getLocation().getLng();
+                    hiDis = thisOnesDistance;
+                    currentHighestAng = angleOfThisElevation;   //ToDo: do I need to set all these?
+                }
             }
             loopCount++;
         }
-        if (hiDis != 0) // We're not looking at distance 0, that is where you are
-            highPoints.add(new Result(new LatLng(hiLat, hiLng), hiEl, hiDis, hiAng));
+        if (hiDis != 0) { // If we found a highest visible peak
+            Log.d("Hi", "Adding values " + hiEl + "\t" + hiDis + "\t" + currentHighestAng + "\t" + diffFromFirst(firstAng, hiDis, hiEl));
+            highPoints.add(new Result(
+                                    new LatLng(hiLat, hiLng),
+                                    hiEl,
+                                    hiDis,
+                                    currentHighestAng,
+                                    diffFromFirst(firstAng, hiDis, hiEl)));
+        }
+    }
+
+    private double diffFromFirst(double comparisonAngle, double thisPeaksDistance, double thisElevation) {
+        Log.d("Hi", "This peaks distance multiplied by the tan of the comparison angle: " + thisPeaksDistance + " * tan(" + comparisonAngle);
+        double perceivedHeight = thisPeaksDistance * Math.tan(comparisonAngle);
+        Log.d("Hi", thisElevation + " - " + perceivedHeight + " = " + (thisElevation-perceivedHeight));
+        return thisElevation - perceivedHeight;
     }
 }
