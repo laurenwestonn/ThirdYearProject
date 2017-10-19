@@ -29,19 +29,20 @@ import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
-    int demo = 1;   // 0 for your location. 1, Sydney. 2, Kinder Scout
+    int demo = 0;   // 0: Your location. 1: Sydney. 2: Kinder Scout. 3:
 
     private Button button;
     private TextView textView;
     private LocationManager locationManager;
     private LocationListener locationListener;
-    LineGraphSeries<DataPoint> series;
 
+    static GraphView graph;
     static GoogleMap googleMap;
 
     public static double xPos, yPos;
@@ -63,7 +64,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
 
 
-        final GraphView graph = (GraphView) findViewById(R.id.graph);
+        graph = (GraphView) findViewById(R.id.graph);
         button = (Button) findViewById(R.id.button);
         textView = (TextView) findViewById(R.id.text);
 
@@ -97,23 +98,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 // Great tool to plot map points, for before the time I make my own
 
                 // Print out your co-ordinates
-                textView.setText("You're at (" + xPos + ", " + yPos + ")");
+                textView.setText("You're at (" + BigDecimal.valueOf(xPos) + ", " + BigDecimal.valueOf(yPos) + ")");
 
                 // Find what you are looking at
                 getVisiblePeaks();
-
-                double x,y;
-                x = -5;
-                y = 4;
-
-                series = new LineGraphSeries<>();
-                for (int i = 0; i < 7; i++) {
-                    x += 3;
-                    y -= 1;
-                    series.appendData(new DataPoint(x, y), true, 7); //last is no of points
-                }
-                graph.addSeries(series);
-
             }
 
             @Override

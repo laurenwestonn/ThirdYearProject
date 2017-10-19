@@ -9,15 +9,15 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.gson.Gson;
+import com.jjoe64.graphview.series.DataPoint;
+import com.jjoe64.graphview.series.LineGraphSeries;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import static com.example.recogniselocation.thirdyearproject.MapsActivity.googleMap;
 import static com.example.recogniselocation.thirdyearproject.MapsActivity.xPos;
@@ -31,7 +31,8 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
 
     private Exception e;
     private double yourElevation;
-    private List<Result> highPoints= new ArrayList<>(MapsActivity.noOfPaths) ;
+    private List<Result> highPoints= new ArrayList<>(MapsActivity.noOfPaths);
+    LineGraphSeries<DataPoint> series = new LineGraphSeries<>();
 
     protected List<String> doInBackground(String... urls) {
         return connectToURL(urls[0]);
@@ -120,7 +121,9 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
         for (Result highPoint : highPoints)
             Log.d("Hi", highPoint.toString());
         plotPoints(googleMap, highPoints, xPos, yPos);
-        drawHorizon(highPoints);
+
+        // Draw the horizon
+        drawOnGraph(highPoints);
 
     }
 
@@ -218,22 +221,17 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
         return thisElevation - perceivedHeight;
     }
 
-    private void drawHorizon(List<Result> highPoints) {
-        Log.d("Hi", "Entered drawHorizon");
-        double distanceBetweenPlots = 100;
+    private void drawOnGraph(List<Result> points) {
+        double distanceBetweenPlots = 5;
         int count = 0;
 
         Log.d("Hi", "The first result should be at 0,0.. should it? Think about it");
-        for (Result highPoint : highPoints)
-            addToCanvas(highPoint.getDifference(), count++ * distanceBetweenPlots);
-
-        // Display canvas
-        Log.d("Hi", "Leaving drawHorizon");
-    }
-
-    private void addToCanvas(double x, double y) {
-        Log.d("Hi", "Would be plotting at " + x + ", " + y);
-
-        // ToDo: Make something that will draw a line (not on a map)
+        for (Result highPoint : points) {
+            double x = count++ * distanceBetweenPlots;
+            double y = highPoint.getDifference() / 100;
+            Log.d("Hi", "Plotting at " + x + ", " + y);
+            series.appendData(new DataPoint(x,y), true, points.size());
+        }
+        MapsActivity.graph.addSeries(series);
     }
 }
