@@ -174,7 +174,7 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
         double avLng = (y
                 + highPoints.get(MapsActivity.noOfPaths / 2).getLocation().getLng())
                 / 2;
-        MapsActivity.goToLocation(avLat, avLng, 13);
+        MapsActivity.goToLocation(avLat, avLng, 12);
 
         addMarkerAt(map, x, y, "You are here!");
 

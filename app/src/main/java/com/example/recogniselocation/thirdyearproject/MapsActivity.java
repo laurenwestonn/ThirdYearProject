@@ -25,6 +25,9 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.series.DataPoint;
+import com.jjoe64.graphview.series.LineGraphSeries;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +40,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private TextView textView;
     private LocationManager locationManager;
     private LocationListener locationListener;
+    LineGraphSeries<DataPoint> series;
 
     static GoogleMap googleMap;
 
@@ -59,6 +63,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
 
 
+        final GraphView graph = (GraphView) findViewById(R.id.graph);
         button = (Button) findViewById(R.id.button);
         textView = (TextView) findViewById(R.id.text);
 
@@ -96,6 +101,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                 // Find what you are looking at
                 getVisiblePeaks();
+
+                double x,y;
+                x = -5;
+                y = 4;
+
+                series = new LineGraphSeries<>();
+                for (int i = 0; i < 7; i++) {
+                    x += 3;
+                    y -= 1;
+                    series.appendData(new DataPoint(x, y), true, 7); //last is no of points
+                }
+                graph.addSeries(series);
+
             }
 
             @Override
