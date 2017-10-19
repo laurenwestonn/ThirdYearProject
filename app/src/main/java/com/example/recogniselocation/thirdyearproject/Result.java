@@ -43,6 +43,10 @@ public class Result {
         return difference;
     }
 
+    public void setDifference(double newDifference) {
+        this.difference = newDifference;
+    }
+
     public String toString()
     {
         return "Location: (" + location.getLat() + ", " + location.getLng()

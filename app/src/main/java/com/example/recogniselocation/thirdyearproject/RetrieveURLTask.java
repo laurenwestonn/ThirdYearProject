@@ -6,7 +6,6 @@ import android.util.Log;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.gson.Gson;
 import com.jjoe64.graphview.series.DataPoint;
@@ -120,11 +119,21 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
         Log.d("Hi", "Got all highest points:");
         for (Result highPoint : highPoints)
             Log.d("Hi", highPoint.toString());
+
+        findDifferenceBetweenPoints(highPoints);
+
         plotPoints(googleMap, highPoints, xPos, yPos);
 
         // Draw the horizon
         drawOnGraph(highPoints);
 
+    }
+
+    private void findDifferenceBetweenPoints(List<Result> highPoints) {
+        double firstAng = highPoints.get(0).getAngle();
+
+        for (Result highPoint : highPoints)
+            highPoint.setDifference(diffFromFirst(firstAng, highPoint.getDistance(), highPoint.getElevation()));
     }
 
     public void findHighestVisiblePoint(Response results) {
@@ -135,8 +144,6 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
         double currentHighestAng = Math.atan(
                 (results.getResults().get(0).getElevation() - yourElevation) /    // First one away
                         0.1 * (1.0 / 10.0));                                // from you, i.e. step
-        // Store the angle of the first peak so you can calculate the difference later
-        double firstAng = currentHighestAng;
 
 
         // Go through each result to see if you can see any that are higher
@@ -164,7 +171,7 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
                                     hiEl,
                                     hiDis,
                                     currentHighestAng,
-                                    diffFromFirst(firstAng, hiDis, hiEl)));
+                                    0));
         }
     }
 
@@ -209,8 +216,10 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
                     highPoint.getLocation().getLat(),
                     highPoint.getLocation().getLng()));
 
-            // Show a marker at each peak
-            addMarkerAt(MapsActivity.googleMap, highPoint.getLocation().getLat(), highPoint.getLocation().getLng());
+            // Show a marker at each peak if there aren't many
+            //  - Many markers looks cluttered
+            if (MapsActivity.noOfPaths <= 15)
+                addMarkerAt(MapsActivity.googleMap, highPoint.getLocation().getLat(), highPoint.getLocation().getLng());
 
         }
         MapsActivity.googleMap.addPolyline(polylineOptions);
@@ -218,6 +227,8 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
 
     private double diffFromFirst(double comparisonAngle, double thisPeaksDistance, double thisElevation) {
         double perceivedHeight = thisPeaksDistance * Math.tan(comparisonAngle);
+        Log.d("Hi", "perceived height, got from a distance of " + thisPeaksDistance + " and an angle of " + comparisonAngle + " was calculated as " + perceivedHeight
+        + "\nThis elevation is " + thisElevation + ", therefore, the difference is " + (thisElevation-perceivedHeight));
         return thisElevation - perceivedHeight;
     }
 
@@ -228,7 +239,7 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
         Log.d("Hi", "The first result should be at 0,0.. should it? Think about it");
         for (Result highPoint : points) {
             double x = count++ * distanceBetweenPlots;
-            double y = highPoint.getDifference() / 100;
+            double y = highPoint.getDifference();
             Log.d("Hi", "Plotting at " + x + ", " + y);
             series.appendData(new DataPoint(x,y), true, points.size());
         }

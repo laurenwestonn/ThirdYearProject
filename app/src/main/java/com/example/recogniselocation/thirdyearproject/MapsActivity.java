@@ -37,7 +37,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     int demo = 0;   // 0: Your location. 1: Sydney. 2: Kinder Scout. 3:
 
-    private Button button;
     private TextView textView;
     private LocationManager locationManager;
     private LocationListener locationListener;
@@ -46,7 +45,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     static GoogleMap googleMap;
 
     public static double xPos, yPos;
-    public static int noOfPaths = 10; //ToDo: Make this configurable
+
+    //ToDo: Make these configurable
+    public static int noOfPaths = 20;
+    public static int widthOfSearch = 45;
     int noOfSamples = 20;
     double lengthOfSearch = 0.1;  // radius of the search
 
@@ -65,7 +67,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
         graph = (GraphView) findViewById(R.id.graph);
-        button = (Button) findViewById(R.id.button);
+        Button button = (Button) findViewById(R.id.button);
         textView = (TextView) findViewById(R.id.text);
 
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
@@ -200,15 +202,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void getVisiblePeaks() {
-        // Calculate end points of each path
-
-        double step = 45 / (noOfPaths - 1);
+        double step = widthOfSearch / (noOfPaths - 1);
         double yourDirection = 30;
         double start = yourDirection - (step * 2);
         List<LatLng> endCoords = new ArrayList<>();
         List<LatLng> startCoords = new ArrayList<>();
 
-        // 0 -> 6
+        // Build up the coordinates of the start and the end of each path
         for (int i = 0; i < noOfPaths; i++) {
             double sinOfThisStep = Math.sin(Math.toRadians(start + i * step));
             double cosOfThisStep = Math.cos(Math.toRadians(start + i * step));
