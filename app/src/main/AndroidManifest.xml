@@ -42,6 +42,16 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".ImageToDetect"
+            android:label="@string/title_image_to_detect"
+            android:screenOrientation="landscape">
+            <intent-filter>
+                <action android:name="com.example.recogniselocation.thirdyearproject.IMAGETODETECT" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
         <meta-data
             android:name="com.google.android.maps.v2.API_KEY"
             android:value="@string/google_maps_key" />

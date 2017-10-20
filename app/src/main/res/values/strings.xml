@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">Third Year Project</string>
     <string name="title_activity_maps">Map</string>
+    <string name="title_image_to_detect">Image</string>
+
+    <string name="CUSTOM_ACTION_IMAGETODETECT">com.example.recogniselocation.thirdyearproject.IMAGETODETECT</string>
 </resources>

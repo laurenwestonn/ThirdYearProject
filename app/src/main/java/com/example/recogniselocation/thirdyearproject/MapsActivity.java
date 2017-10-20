@@ -124,8 +124,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         };
 
-
-
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -262,4 +260,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         Log.d("Hi", "Moved");
     }
 
+    public void buttonClicked(View view) {
+        switch (view.getId()) {
+            case R.id.imageButton: {
+                Intent intent = new Intent(this.getString(R.string.CUSTOM_ACTION_IMAGETODETECT));
+                startActivity(intent);
+            }
+        }
+    }
 }
