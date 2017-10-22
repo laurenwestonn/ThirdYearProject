@@ -42,8 +42,6 @@ public class ImageToDetect extends Activity {
             //Check no of times we loop around
             int testCount = 0;
 
-            int threshold = 100; //Todo: experiment with changing this to get a good threshold
-
             // No of pixels around the centre to do at once
             // i.e 5 will be a 11 * 11 sized block. 5 + center + 5
             int distFromCentre = 4;     //TODO: CHANGE THIS TO CHANGE THE SPEED/CLARITY
@@ -57,13 +55,35 @@ public class ImageToDetect extends Activity {
                      j += widthToColourAtOnce) {
                     testCount++;
 
-                    int brightness = Color.blue(bmp.getPixel(i,j));
+                    // 1: Threshold
+                    // 2: Masking
+                    int method = 2;
 
-                    int bOrW = (brightness > threshold) ? Color.WHITE : Color.BLACK;
+                    int colour = 0;
+
+                    if (method == 1) {
+                        int threshold = 100;
+                        int brightness = Color.blue(bmp.getPixel(i,j));
+                        colour = (brightness > threshold) ? Color.WHITE : Color.BLACK;
+                    } else if (method == 2) {
+                        int edgeness = (bmp.getPixel(i, j + 3) * 3
+                                + bmp.getPixel(i, j + 2) * 2
+                                + bmp.getPixel(i + 2, j + 2) * 2
+                                + bmp.getPixel(i, j + 1)
+                                + bmp.getPixel(i + 1, j + 1)
+                                - bmp.getPixel(i, j - 1)
+                                - bmp.getPixel(i - 1, j - 1)
+                                - bmp.getPixel(i, j - 2) * 2
+                                - bmp.getPixel(i - 2, j - 2) * 2
+                                - bmp.getPixel(i, j - 3) * 3) / 100;
+
+                        Log.d("Hi", "" + edgeness);
+                        colour = (edgeness > 0) ? Color.WHITE : Color.BLACK;
+                    }
 
                     // setPixels needs an int array of colours
                     int[] colours = new int[widthToColourAtOnce * widthToColourAtOnce];
-                    Arrays.fill(colours, bOrW);
+                    Arrays.fill(colours, colour);
 
                     bmp.setPixels(colours, 0,       // array to colour in this area, no offset
                             widthToColourAtOnce,    // stride, width of what you wanna colour in
