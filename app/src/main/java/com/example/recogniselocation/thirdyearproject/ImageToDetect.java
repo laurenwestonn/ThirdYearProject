@@ -33,87 +33,39 @@ public class ImageToDetect extends Activity {
 
         if (bmp != null) {
 
-            // 1: Resize image, work on that. Faster but unclear
-            // 2: Keep same sized image, skip pixels in the loops. Clear but slow
-            // 3: 2, but see if I can set many pixels in one method call
-            int method = 1;
-
-            if (method == 1)
-                // Make image 4 times smaller so we have less pixels to deal with
-                bmp = bmp.createScaledBitmap(bmp,bmp.getWidth() / 5, bmp.getHeight() / 5, true);
-
             // Make the bitmap mutable so we can mess with it
             bmp = bmp.copy(bmp.getConfig(), true);
 
             //Check no of times we loop around
             int testCount = 0;
 
-            if (method == 1)
-                for (int i = 0; i < bmp.getWidth(); i++)
-                    for (int j = 0; j < bmp.getHeight(); j++) {
-                        testCount++;
-                        bmp.setPixel(i, j, bmp.getPixel(i,j) * 3);
-                    }
-            else if (method == 2)
-                for (int i = 2; i < bmp.getWidth()-2; i += 5)
-                    for (int j = 2; j < bmp.getHeight()-2; j += 5) {
-                        testCount++;
-                        int colour = bmp.getPixel(i,j) * 3;
-                        //Top left
-                        bmp.setPixel(i-2, j+2, colour);
-                        bmp.setPixel(i-2, j+1, colour);
-                        bmp.setPixel(i-1, j+2, colour);
-                        bmp.setPixel(i-1, j+1, colour);
+            // No of pixels around the centre to do at once
+            // i.e 5 will be a 11 * 11 sized block. 5 + center + 5
+            int distFromCentre = 4;     //TODO: CHANGE THIS TO CHANGE THE SPEED/CLARITY
+            int widthToColourAtOnce = distFromCentre * 2 + 1;
 
-                        // Top
-                        bmp.setPixel(i, j+1, colour);
-                        bmp.setPixel(i, j+2, colour);
+            for (int i = distFromCentre+1;
+                 i <= bmp.getWidth()-distFromCentre;
+                 i += widthToColourAtOnce)
+                for (int j = distFromCentre+1;
+                     j <= bmp.getHeight()-distFromCentre;
+                     j += widthToColourAtOnce) {
+                    testCount++;
+                    int colour = bmp.getPixel(i, j) * 3;
 
-                        //Top right
-                        bmp.setPixel(i+2, j+2, colour);
-                        bmp.setPixel(i+2, j+1, colour);
-                        bmp.setPixel(i+1, j+2, colour);
-                        bmp.setPixel(i+1, j+1, colour);
+                    // setPixels needs an int array of colours
+                    // only need to make the array hold the one colour
+                    //int[] colours = new int[]{colour};
+                    int[] colours = new int[widthToColourAtOnce * widthToColourAtOnce];
+                    Arrays.fill(colours, colour);
 
-                        //Right
-                        bmp.setPixel(i+1, j, colour);
-                        bmp.setPixel(i+2, j, colour);
-
-                        //Bottom right
-                        bmp.setPixel(i+2, j-2, colour);
-                        bmp.setPixel(i+2, j-1, colour);
-                        bmp.setPixel(i+1, j-2, colour);
-                        bmp.setPixel(i+1, j-1, colour);
-
-                        //Bottom
-                        bmp.setPixel(i, j-1, colour);
-                        bmp.setPixel(i, j-2, colour);
-
-                        //Bottom left
-                        bmp.setPixel(i-2, j-2, colour);
-                        bmp.setPixel(i-2, j-1, colour);
-                        bmp.setPixel(i-1, j-2, colour);
-                        bmp.setPixel(i-1, j-1, colour);
-
-                        //Left
-                        bmp.setPixel(i-1, j, colour);
-                        bmp.setPixel(i-2, j, colour);
-
-                        //Centre
-                        bmp.setPixel(i, j, colour);
-                    }
-            else if (method == 3)
-                for (int i = 2; i < bmp.getWidth()-2; i += 5)
-                    for (int j = 2; j < bmp.getHeight()-2; j += 5) {
-                        testCount++;
-                        int colour = bmp.getPixel(i, j) * 3;
-
-                        // setPixels needs an int array of colours
-                        // only need to make the array hold the one colour
-                        int[] colours = new int[]{colour};
-
-                        bmp.setPixels(colours, 0, 0, i - 2, j - 2, 5, 5);
-                    }
+                    bmp.setPixels(colours, 0,       // array to colour in this area, no offset
+                            widthToColourAtOnce,    // stride, width of what you wanna colour in
+                            i - distFromCentre - 1, // x coord of first pixel to colour
+                            j - distFromCentre - 1, // y coord of first pixel to colour
+                            widthToColourAtOnce,    // width of area to colour
+                            widthToColourAtOnce);   // height of area to colour
+                }
 
             Log.d("Hi", "The image was " + bmp.getWidth() + " x " + bmp.getHeight());
             Log.d("Hi", "Looped " + testCount + " times.");
