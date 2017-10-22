@@ -2,11 +2,14 @@ package com.example.recogniselocation.thirdyearproject;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.media.Image;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.content.IntentCompat;
 import android.support.v4.content.res.ResourcesCompat;
+import android.support.v4.graphics.ColorUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
@@ -39,6 +42,8 @@ public class ImageToDetect extends Activity {
             //Check no of times we loop around
             int testCount = 0;
 
+            int threshold = 100; //Todo: experiment with changing this to get a good threshold
+
             // No of pixels around the centre to do at once
             // i.e 5 will be a 11 * 11 sized block. 5 + center + 5
             int distFromCentre = 4;     //TODO: CHANGE THIS TO CHANGE THE SPEED/CLARITY
@@ -51,18 +56,19 @@ public class ImageToDetect extends Activity {
                      j <= bmp.getHeight()-distFromCentre;
                      j += widthToColourAtOnce) {
                     testCount++;
-                    int colour = bmp.getPixel(i, j) * 3;
+
+                    int brightness = Color.blue(bmp.getPixel(i,j));
+
+                    int bOrW = (brightness > threshold) ? Color.WHITE : Color.BLACK;
 
                     // setPixels needs an int array of colours
-                    // only need to make the array hold the one colour
-                    //int[] colours = new int[]{colour};
                     int[] colours = new int[widthToColourAtOnce * widthToColourAtOnce];
-                    Arrays.fill(colours, colour);
+                    Arrays.fill(colours, bOrW);
 
                     bmp.setPixels(colours, 0,       // array to colour in this area, no offset
                             widthToColourAtOnce,    // stride, width of what you wanna colour in
-                            i - distFromCentre - 1, // x coord of first pixel to colour
-                            j - distFromCentre - 1, // y coord of first pixel to colour
+                            i - distFromCentre - 1, // x co-ord of first pixel to colour
+                            j - distFromCentre - 1, // y co-ord of first pixel to colour
                             widthToColourAtOnce,    // width of area to colour
                             widthToColourAtOnce);   // height of area to colour
                 }
