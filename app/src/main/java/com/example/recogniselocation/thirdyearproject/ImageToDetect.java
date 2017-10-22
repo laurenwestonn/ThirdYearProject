@@ -57,6 +57,7 @@ public class ImageToDetect extends Activity {
 
                     // 1: Threshold
                     // 2: Masking
+                    // 3: Thresh then mask
                     int method = 2;
 
                     int colour = 0;
@@ -66,19 +67,28 @@ public class ImageToDetect extends Activity {
                         int brightness = Color.blue(bmp.getPixel(i,j));
                         colour = (brightness > threshold) ? Color.WHITE : Color.BLACK;
                     } else if (method == 2) {
-                        int edgeness = (bmp.getPixel(i, j + 3) * 3
-                                + bmp.getPixel(i, j + 2) * 2
-                                + bmp.getPixel(i + 2, j + 2) * 2
-                                + bmp.getPixel(i, j + 1)
+                        double edgeness = (
+                                  bmp.getPixel(i - 1, j + 2) * 2
+                                + bmp.getPixel(i + 0, j + 2) * 3
+                                + bmp.getPixel(i + 1, j + 2) * 2
+                                + bmp.getPixel(i - 1, j + 1)
+                                + bmp.getPixel(i + 0, j + 1)
                                 + bmp.getPixel(i + 1, j + 1)
-                                - bmp.getPixel(i, j - 1)
-                                - bmp.getPixel(i - 1, j - 1)
-                                - bmp.getPixel(i, j - 2) * 2
-                                - bmp.getPixel(i - 2, j - 2) * 2
-                                - bmp.getPixel(i, j - 3) * 3) / 100;
 
-                        Log.d("Hi", "" + edgeness);
-                        colour = (edgeness > 0) ? Color.WHITE : Color.BLACK;
+                                - bmp.getPixel(i - 1, j - 1)
+                                - bmp.getPixel(i + 0, j - 1)
+                                - bmp.getPixel(i + 1, j - 1)
+                                - bmp.getPixel(i - 1, j - 2) * 2
+                                - bmp.getPixel(i + 0, j - 2) * 3
+                                - bmp.getPixel(i + 1, j - 2) * 2)  / 10;
+
+                        //Log.d("Hi", "" + edgeness);
+                        colour = (Math.abs(edgeness) > 2000000) ? Color.WHITE : Color.BLACK;
+                    } else if (method == 3) {
+
+                        // We are looking at the first pixel (area) here, we can't
+                        // threshold AND mask here. We'll have to complete this i,j loop
+                        // and then mask
                     }
 
                     // setPixels needs an int array of colours
