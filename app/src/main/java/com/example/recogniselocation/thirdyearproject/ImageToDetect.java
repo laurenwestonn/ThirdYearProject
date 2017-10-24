@@ -44,7 +44,6 @@ public class ImageToDetect extends Activity {
 
             // No of pixels around the centre to do at once
             // i.e 5 will be a 11 * 11 sized block. 5 + center + 5
-            // distFromCentre
             int distFromCentre = 25;     //TODO: CHANGE THIS TO CHANGE THE SPEED/CLARITY
             int widthToColourAtOnce = distFromCentre * 2 + 1;
 
@@ -68,19 +67,29 @@ public class ImageToDetect extends Activity {
                         colour = (brightness > threshold) ? Color.WHITE : Color.BLACK;
                     } else if (method == 2) {
 
+                        Log.d("Hi", "Another pixel");
+
                         int pThr = 40; // Threshold which means this point is an edge
                         int nThr = 20; // Threshold acceptable for neighbouring points
 
-                        // Get the likelihood that this is an edge
-                        int edgeness = getEdgeness(bmp, i, j, distFromCentre);
+                        Log.d("Hi", "This pixels value is " + bmp.getPixel(i,j));
+                        // Get the likelihood that this is an edge,
+                        // unless it has already been marked blue
+                        int edgeness = bmp.getPixel(i,j) != Color.BLUE ?
+                                getEdgeness(bmp, i, j, distFromCentre) :
+                                Color.BLUE;
 
-                        if (edgeness < nThr)
+                        Log.d("Hi", "Edgeness of (" + i + ", " + j + ") is " + edgeness);
+                        if (edgeness == Color.BLUE)
+                            // If a neighbour set this as a semi edge, leave it be
+                            colour = Color.BLUE;
+                        else if (edgeness < nThr)
                             // Not a strong edge, ignore it
                             colour = Color.BLACK;
                         else if (edgeness < pThr ||
                                 (edgeness >= 40 &&
-                                        !checkAndSetNeigh(bmp, i, j, widthToColourAtOnce, nThr)))
-                            // Point is within the neighbouring threshold 
+                                        !checkAndSetNbour(bmp, i, j, widthToColourAtOnce, nThr)))
+                            // Point is within the neighbouring threshold
                             // or is a definite edge with no neighbours, therefore doesn't count
                             colour = edgeness;
                         else
@@ -114,7 +123,7 @@ public class ImageToDetect extends Activity {
         }
     }
 
-    private boolean checkAndSetNeigh(Bitmap bmp, int i, int j, int pointWidth, int minThreshold) {
+    private boolean checkAndSetNbour(Bitmap bmp, int i, int j, int pointWidth, int minThreshold) {
 
         boolean anyColoured = false;
 
@@ -151,14 +160,21 @@ public class ImageToDetect extends Activity {
                 // Check last four unchecked neighbours
                 // and if the coordinates are within the bitmap
                 if ((y == (j + pointWidth) || x == (i + pointWidth))
-                        && (x >= 0 && x < bmp.getWidth() && y >= 0 && y < bmp.getHeight())) {
+                        && (x >= 0 && x + ((pointWidth-1)/2) < bmp.getWidth() && y >= 0 && y + ((pointWidth-1)/2) < bmp.getHeight())) {
 
-                    Log.d("Hi", "Finding new neighbour at (" + x + ", " + y + ")");
+                    Log.d("Hi", "Checking unseen neighbour " + x + ", " + y);
                     // If this neighbour meets the minimum threshold, the centre has
                     // a neighbouring edge
                     if (getEdgeness(bmp, x, y, (pointWidth-1)/2) > minThreshold) {
+                        Log.d("Hi", "Neighbour (" + x + ", " + y + ") had a worthy edge of " + getEdgeness(bmp, x, y, (pointWidth-1)/2));
+                        if (getEdgeness(bmp, x, y, (pointWidth-1)/2) < minThreshold + 20) {
+                            Log.d("Hi", "Set pixel blue");
+                            bmp.setPixel(x, y, 255);
+                        }
                         anyColoured = true;
                         break;
+                    } else {
+                        Log.d("Hi", "Neighbour (" + x + ", " + y + ") isn't edgy enough.. " + getEdgeness(bmp, x, y, (pointWidth-1)/2));
                     }
 
                 }
