@@ -49,43 +49,34 @@ public class ImageToDetect extends Activity {
                 for (int i = distFromCentre+1;
                      i <= bmp.getWidth()-distFromCentre;
                      i += widthToColourAtOnce) {
+
                     testCount++;
+                    int colour = 0;
 
                     // 1: Threshold
                     // 2: Masking
                     int method = 2;
 
-                    int colour = 0;
-
                     if (method == 1) {
                         int threshold = 100;
                         int brightness = Color.blue(bmp.getPixel(i,j));
                         colour = (brightness > threshold) ? Color.WHITE : Color.BLACK;
+
+                        // Colour in the point around this pixel
+                        ImageManipulation.colourPoint(bmp, i, j, colour, distFromCentre);
                     } else if (method == 2) {
-                        colour = ImageManipulation.masking(bmp, i, j, distFromCentre);
+                        ImageManipulation.colourMaskPoint(bmp, i, j, distFromCentre);
                     }
-
-                    // setPixels needs an int array of colours
-                    int[] colours = new int[widthToColourAtOnce * widthToColourAtOnce];
-                    Arrays.fill(colours, colour);
-
-                    bmp.setPixels(colours, 0,       // array to colour in this area, no offset
-                            widthToColourAtOnce,    // stride, width of what you wanna colour in
-                            i - distFromCentre - 1, // x co-ord of first pixel to colour
-                            j - distFromCentre - 1, // y co-ord of first pixel to colour
-                            widthToColourAtOnce,    // width of area to colour
-                            widthToColourAtOnce);   // height of area to colour
                 }
 
             Log.d("Hi", "The image was " + bmp.getWidth() + " x " + bmp.getHeight());
             Log.d("Hi", "Looped " + testCount + " times.");
 
-
             imageButton.setImageBitmap(bmp);
 
             Log.d("Hi", "Put the bitmap on the buttonImage");
         } else {
-            Log.d("Hi", "No bitmap!");
+            Log.d("Hi", "Couldn't find a bitmap! :'(");
         }
     }
 }
