@@ -12,7 +12,7 @@ import java.util.Arrays;
 
 public class ImageManipulation {
 
-    public static void colourMaskPoint(Bitmap bmp, int i, int j, int distFromCentre) {
+    public static boolean colourMaskPoint(Bitmap bmp, int i, int j, int distFromCentre) {
         
         // Thresholds
         int pThr = 40; // The threshold to determine an edge for a point
@@ -25,13 +25,14 @@ public class ImageManipulation {
                 Color.BLUE;
 
         Log.d("Hi", "\tAnother pixel. Edgeness of (" + i + ", " + j + ") is " + edgeness);
-        
-        determineColour(bmp, edgeness, pThr, nThr, i, j, distFromCentre);
+
+        // If we coloured point at (i,j) a useful colour, return this fact
+        return determineColour(bmp, edgeness, pThr, nThr, i, j, distFromCentre);
 
     }
 
     // Colour in the point around pixel (i,j) based on the edgeness we got
-    private static void determineColour(Bitmap bmp, int edgeness, int pThr, int nThr,
+    private static boolean determineColour(Bitmap bmp, int edgeness, int pThr, int nThr,
                                        int i, int j, int distFromCentre) {
         // Width of the whole area we're checking for this pixel (i,j)
         int widthToColourAtOnce = distFromCentre * 2 + 1;
@@ -39,12 +40,13 @@ public class ImageManipulation {
         if (edgeness == Color.BLUE) {
             Log.d("Colour", "Blue");
             // If a neighbour set this as a semi edge, leave it be
-            colourPoint(bmp, i, j, Color.BLUE, distFromCentre);
+            colourArea(bmp, i, j, Color.BLUE, widthToColourAtOnce, widthToColourAtOnce);
+            return true;
         }
         else if (edgeness < nThr) {
             Log.d("Colour", "Black");
             // Not a strong edge, ignore it
-            colourPoint(bmp, i, j, Color.BLACK, distFromCentre);
+            colourArea(bmp, i, j, Color.BLACK, widthToColourAtOnce, widthToColourAtOnce);
         }
         else if (edgeness < pThr ||
                 (edgeness >= 40 &&
@@ -52,13 +54,15 @@ public class ImageManipulation {
             Log.d("Colour", "Medium blue");
             // Point is within the neighbouring threshold
             // or is a definite edge with no neighbours, therefore doesn't count
-            colourPoint(bmp, i, j, edgeness, distFromCentre);
+            colourArea(bmp, i, j, edgeness, widthToColourAtOnce, widthToColourAtOnce);
         }
         else {
             Log.d("Colour", "White");
             // Point is an edge with neighbours
-            colourPoint(bmp, i, j, Color.WHITE, distFromCentre);
+            colourArea(bmp, i, j, Color.WHITE, widthToColourAtOnce, widthToColourAtOnce);
+            return true;
         }
+        return false;
     }
 
 
@@ -212,18 +216,18 @@ public class ImageManipulation {
 
 
     // Colour a square block of pixels around (i,j) the requested colour 
-    public static void colourPoint(Bitmap bmp, int i, int j, int colour, int distFromCentre) {
-        int widthToColourAtOnce = distFromCentre * 2 + 1;
+    public static void colourArea(Bitmap bmp, int i, int j, int colour, int width, int height) {
 
         // setPixels needs an int array of colours
-        int[] colours = new int[widthToColourAtOnce * widthToColourAtOnce];
+        int[] colours = new int[width * height];
         Arrays.fill(colours, colour);
 
+        Log.d("Hi", "Trying to colour from " + (i - (width-1) / 2) + ", " + (j - (height-1) / 2) + ". Width x height: " + width + "x" + height + ". Bitmap: " + bmp.getWidth() + "x" + bmp.getHeight());
         bmp.setPixels(colours, 0,       // array to colour in this area, no offset
-                widthToColourAtOnce,    // stride, width of what you wanna colour in
-                i - distFromCentre - 1, // x co-ord of first pixel to colour
-                j - distFromCentre - 1, // y co-ord of first pixel to colour
-                widthToColourAtOnce,    // width of area to colour
-                widthToColourAtOnce);   // height of area to colour
+                width,    // stride, width of what you wanna colour in
+                i - (width-1) / 2, // x co-ord of first pixel to colour
+                j - (height-1) / 2, // y co-ord of first pixel to colour
+                width,    // width of area to colour
+                height);   // height of area to colour
     }
 }
