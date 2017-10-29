@@ -24,7 +24,7 @@ public class ImageManipulation {
                 getEdgeness(bmp, i, j, distFromCentre) :
                 Color.BLUE;
 
-        Log.d("Hi", "\tAnother pixel. Edgeness of (" + i + ", " + j + ") is " + edgeness);
+        //Log.d("Hi", "\tAnother pixel. Edgeness of (" + i + ", " + j + ") is " + edgeness);
 
         // If we coloured point at (i,j) a useful colour, return this fact
         return determineColour(bmp, edgeness, pThr, nThr, i, j, distFromCentre);
@@ -38,26 +38,26 @@ public class ImageManipulation {
         int widthToColourAtOnce = distFromCentre * 2 + 1;
         
         if (edgeness == Color.BLUE) {
-            Log.d("Colour", "Blue");
+            //Log.d("Colour", "Blue");
             // If a neighbour set this as a semi edge, leave it be
             colourArea(bmp, i, j, Color.BLUE, widthToColourAtOnce, widthToColourAtOnce);
             return true;
         }
         else if (edgeness < nThr) {
-            Log.d("Colour", "Black");
+            //Log.d("Colour", "Black");
             // Not a strong edge, ignore it
             colourArea(bmp, i, j, Color.BLACK, widthToColourAtOnce, widthToColourAtOnce);
         }
         else if (edgeness < pThr ||
                 (edgeness >= 40 &&
                         !checkAndSetNbour(bmp, i, j, widthToColourAtOnce, nThr))) {
-            Log.d("Colour", "Medium blue");
+            //Log.d("Colour", "Medium blue");
             // Point is within the neighbouring threshold
             // or is a definite edge with no neighbours, therefore doesn't count
             colourArea(bmp, i, j, edgeness, widthToColourAtOnce, widthToColourAtOnce);
         }
         else {
-            Log.d("Colour", "White");
+            //Log.d("Colour", "White");
             // Point is an edge with neighbours
             colourArea(bmp, i, j, Color.WHITE, widthToColourAtOnce, widthToColourAtOnce);
             return true;
@@ -148,14 +148,14 @@ public class ImageManipulation {
 
     private static boolean checkUnseenNbour(Bitmap bmp, int x, int y, int pointWidth, int minThreshold) {
         if (getEdgeness(bmp, x, y, (pointWidth-1)/2) > minThreshold) {
-            Log.d("Hi", "Neighbour (" + x + ", " + y + ") had a worthy edge of " + getEdgeness(bmp, x, y, (pointWidth-1)/2));
+            //Log.d("Hi", "Neighbour (" + x + ", " + y + ") had a worthy edge of " + getEdgeness(bmp, x, y, (pointWidth-1)/2));
             if (getEdgeness(bmp, x, y, (pointWidth-1)/2) < minThreshold + 20) {
                 Log.d("Hi", "Set pixel blue");
                 bmp.setPixel(x, y, 255);
             }
             return true;
         } else {
-            Log.d("Hi", "Neighbour (" + x + ", " + y + ") isn't edgy enough.. " + getEdgeness(bmp, x, y, (pointWidth-1)/2));
+            //Log.d("Hi", "Neighbour (" + x + ", " + y + ") isn't edgy enough.. " + getEdgeness(bmp, x, y, (pointWidth-1)/2));
             return false;
         }
     }
@@ -222,7 +222,7 @@ public class ImageManipulation {
         int[] colours = new int[width * height];
         Arrays.fill(colours, colour);
 
-        Log.d("Hi", "Trying to colour from " + (i - (width-1) / 2) + ", " + (j - (height-1) / 2) + ". Width x height: " + width + "x" + height + ". Bitmap: " + bmp.getWidth() + "x" + bmp.getHeight());
+        //Log.d("Hi", "Trying to colour from " + (i - (width-1) / 2) + ", " + (j - (height-1) / 2) + ". Width x height: " + width + "x" + height);
         bmp.setPixels(colours, 0,       // array to colour in this area, no offset
                 width,    // stride, width of what you wanna colour in
                 i - (width-1) / 2, // x co-ord of first pixel to colour
