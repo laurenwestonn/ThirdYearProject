@@ -72,7 +72,7 @@ public class ImageToDetect extends Activity {
                         // Colour in the point around this pixel
                         ImageManipulation.colourArea(coarseBMP, i, j, colour, widthToColourAtOnce, widthToColourAtOnce);
                     } else if (method == 2) {
-                        boolean relevantEdge = ImageManipulation.colourMaskPoint(coarseBMP, i, j, distFromCentre);
+                        boolean relevantEdge = ImageManipulation.colourCoarseMaskPoint(coarseBMP, i, j, distFromCentre);
                         if (relevantEdge)
                             ysOfEdges.add(j);
                     }
@@ -111,28 +111,11 @@ public class ImageToDetect extends Activity {
             int fineWidth = fineWidthFromCentre * 2 + 1; // Total width of the fine mask
             int fineHeightFromCentre = 1;
             int fineHeight = fineHeightFromCentre * 2 + 1; // Total height of the fine mask
-            int colour;
 
             // Use a fine mask on the area found to be the horizon by the useCoarse mask
             for(int y = minRange+1; y <= maxRange - fineHeightFromCentre; y+= fineHeight)
-                for (int x = fineWidthFromCentre; x <= fineBMP.getWidth() - fineWidthFromCentre; x+= fineWidth) {
-                    colour = (Color.blue(fineBMP.getPixel(x-2, y-1))
-                            + Color.blue(fineBMP.getPixel(x,   y-1))
-                            + Color.blue(fineBMP.getPixel(x+2, y-1))
-                            - Color.blue(fineBMP.getPixel(x-2, y+1))
-                            - Color.blue(fineBMP.getPixel(x,   y+1))
-                            - Color.blue(fineBMP.getPixel(x+2, y+1))) / 3;
-
-                    // Determine which colour we should have this group of pixels appearing as
-                    if (colour < 0)     // We don't care about edges going from dark to light
-                        colour = 0;
-                    else if (colour > 30) // Classify this as an edge
-                        colour = Color.WHITE;
-                    else                // Classify this as not an edge
-                        colour = Color.BLACK;
-
-                    ImageManipulation.colourArea(fineBMP, x, y, colour, fineWidth, fineHeight);
-                }
+                for (int x = fineWidthFromCentre; x <= fineBMP.getWidth() - fineWidthFromCentre; x+= fineWidth)
+                    ImageManipulation.colourFineMaskPoint(fineBMP, x, y, fineWidth, fineHeight);
 
 
             if (useCoarse)
