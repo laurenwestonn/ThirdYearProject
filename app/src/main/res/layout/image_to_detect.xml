@@ -11,7 +11,7 @@
         android:id="@+id/imageButton"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:src="@drawable/kinder_scout"
+        android:src="@drawable/kinder_scout_crop"
         android:onClick="clickedImage"
         android:scaleType="fitCenter"/>
 </LinearLayout>

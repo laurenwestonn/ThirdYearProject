@@ -22,6 +22,7 @@ public class ImageToDetect extends Activity {
     boolean useCoarse = false;
     boolean sdDetail = true;    // Want to draw SD and log info about standard deviation under "sd"?
     int distFromCentre = 25;    //TODO: CHANGE THIS TO CHANGE THE SPEED/CLARITY
+    public List<List<Integer>> edgeCoords;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -110,15 +111,54 @@ public class ImageToDetect extends Activity {
 
             boolean relevantEdge;
             ysOfEdges = new ArrayList();
+            edgeCoords = new ArrayList<List<Integer>>();
 
             // Use a fine mask on the area found to be the horizon by the useCoarse mask
             for(int y = coarseSD.minRange + 1; y <= coarseSD.maxRange - fineHeightFromCentre; y+= fineHeight)
                 for (int x = fineWidthFromCentre; x <= fineBMP.getWidth() - fineWidthFromCentre; x+= fineWidth) {
+
+                    // Want to add a new list to store each column, only need to add for the first row
+                    if (y == coarseSD.minRange + 1)
+                        edgeCoords.add(new ArrayList<Integer>());
+
+                    // Is this a edge?
                     relevantEdge = ImageManipulation.colourFineMaskPoint(fineBMP, x, y, fineWidth, fineHeight);
-                    if (relevantEdge)
-                        ysOfEdges.add(y);
+                    if (relevantEdge) {
+                        //ysOfEdges.add(y);
+
+                        // This should hold the location of every edge found with the fine mask
+                        edgeCoords.get(x/fineWidth).add(y);
+                    }
                 }
 
+            int colIndex = 0;
+            for (List col : edgeCoords) {
+
+                // Keep track of the column number
+                colIndex+= fineHeight;
+
+                // Skip any columns that don't have edges
+                int noOfEdgesInCol = col.size();
+                if (noOfEdgesInCol > 0) {
+                    // The middle edge in the column is most likely to be accurate, keep it
+                    int mostAccurateEdgeInCol = noOfEdgesInCol / 2;
+
+                    // Just testing which edge is determined as the best edge of the column, remove this when it's working
+                    ImageManipulation.colourArea(fineBMP, colIndex, (int) col.get(mostAccurateEdgeInCol), Color.YELLOW, fineWidth, fineHeight);
+                    // Only hold the edges we don't want so we can clear them
+                    col.remove(mostAccurateEdgeInCol);
+
+                    // Clear the unnecessary edges
+                    for (Object y : col) {
+                        Log.d("Hi", "Removing from column " + colIndex);
+                        ImageManipulation.colourArea(fineBMP, colIndex, (int) y, Color.RED, fineWidth, fineHeight);
+                    }
+                } else {
+                    Log.d("Hi", "No edges in column " + colIndex);
+                }
+
+            }
+/*
             ///////////// Standard Deviation of Fine Mask //////////////
             StandardDeviation fineSD = new StandardDeviation(ysOfEdges, fineHeightFromCentre);
 
@@ -133,6 +173,14 @@ public class ImageToDetect extends Activity {
                 ImageManipulation.colourArea(fineBMP, fineBMP.getWidth()/2, fineSD.maxRange-2, Color.RED, fineBMP.getWidth(), 4);
             }
 
+            // Now we've got a narrowed down search area, look here to thin edges
+            ysOfEdges = new ArrayList();
+            for (int x = fineWidthFromCentre + 1; x < fineBMP.getWidth() - fineWidthFromCentre; x += fineWidth)
+                for (int y = fineSD.minRange + fineHeightFromCentre + 1; y < fineSD.maxRange - fineHeightFromCentre; y += fineHeight) {
+                    // See how many there are in this column, remember y of each, so build up a list
+                    // Get middle y coordinate
+                }
+*/
 
 
             if (useCoarse)
