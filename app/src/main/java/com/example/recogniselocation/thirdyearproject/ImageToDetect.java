@@ -131,11 +131,8 @@ public class ImageToDetect extends Activity {
                     }
                 }
 
-            int colIndex = 0;
+            int colIndex = fineWidthFromCentre;
             for (List col : edgeCoords) {
-
-                // Keep track of the column number
-                colIndex+= fineHeight;
 
                 // Skip any columns that don't have edges
                 int noOfEdgesInCol = col.size();
@@ -157,6 +154,8 @@ public class ImageToDetect extends Activity {
                     Log.d("Hi", "No edges in column " + colIndex);
                 }
 
+                // Keep track of the column number
+                colIndex+= fineWidth;
             }
 /*
             ///////////// Standard Deviation of Fine Mask //////////////

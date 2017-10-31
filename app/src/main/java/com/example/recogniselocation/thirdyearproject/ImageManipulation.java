@@ -237,7 +237,7 @@ public class ImageManipulation {
         int[] colours = new int[width * height];
         Arrays.fill(colours, colour);
 
-        //Log.d("Hi", "Trying to colour from " + (i - (width-1) / 2) + ", " + (j - (height-1) / 2) + ". Width x height: " + width + "x" + height);
+        //Log.d("Hi", "Trying to colour from " + (i - (width-1) / 2) + ", " + (j - (height-1) / 2) + ". Width x height: " + width + "x" + height + " BMP: " + bmp.getWidth() + ", " + bmp.getHeight());
         bmp.setPixels(colours, 0,       // array to colour in this area, no offset
                 width,    // stride, width of what you wanna colour in
                 i - (width-1) / 2, // x co-ord of first pixel to colour
