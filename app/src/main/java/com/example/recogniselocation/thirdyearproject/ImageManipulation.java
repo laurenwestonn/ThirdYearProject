@@ -33,7 +33,7 @@ public class ImageManipulation {
 
     }
 
-    public static void colourFineMaskPoint(Bitmap bmp, int i, int j, int fineWidth, int fineHeight) {
+    public static boolean colourFineMaskPoint(Bitmap bmp, int i, int j, int fineWidth, int fineHeight) {
 
         int widthFromCentre = (fineWidth - 1) / 2;
         int heightFromCentre = (fineHeight - 1) / 2;
@@ -48,7 +48,7 @@ public class ImageManipulation {
                 getFineEdgeness(bmp, i, j, widthFromCentre, heightFromCentre) :
                 Color.BLUE;
 
-        determineColour(bmp, edgeness, pThr, nThr, i, j, fineWidth, fineHeight);
+        return determineColour(bmp, edgeness, pThr, nThr, i, j, fineWidth, fineHeight);
     }
 
     private static int getFineEdgeness(Bitmap bmp, int i, int j, int widthFromCentre, int heightFromCentre) {
@@ -220,20 +220,9 @@ public class ImageManipulation {
             return true; // Found an already found neighbouring edge
         } else if (neighCol != Color.BLACK){
             //Log.d("Hi", "Seen neighbour (" + x + ", " + y + ") must have been a weak edge, set it blue");
-/*
+
             // Found a new neighbouring edge
-            int[] colours = new int[pointWidth * pointWidth];
-            Arrays.fill(colours, Color.BLUE);*/
-
             colourArea(bmp, x, y, Color.BLUE, pointWidth, pointWidth);
-/*            bmp.setPixels(colours, 0,       // array to colour in this area, no offset
-                    pointWidth,    // stride, width of what you wanna colour in
-                    x - ((pointWidth-1)/2) - 1, // x co-ord of first pixel to colour
-                    y - ((pointWidth-1)/2) - 1, // y co-ord of first pixel to colour
-                    pointWidth,    // width of area to colour
-                    pointWidth);   // height of area to colour*/
-
-            Log.d("Colour", "*Actually setting it to yellow to test, doesn't seem to stay yellow");
             return true;
         }
 

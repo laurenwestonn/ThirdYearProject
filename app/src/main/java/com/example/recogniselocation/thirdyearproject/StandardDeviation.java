@@ -8,6 +8,18 @@ import java.util.List;
 
 public class StandardDeviation {
 
+    double mean;
+    double sd;
+    int minRange;
+    int maxRange;
+
+    public StandardDeviation(List<Integer> range, int heightFromCentre) {
+        mean = calcMean(range);
+        sd = calcSD(range, mean);
+        minRange = (int) (mean - 3*sd) - heightFromCentre;  // Get more above the horizon
+        maxRange = (int) (mean + sd) + heightFromCentre;    // as there's more likely to be more noise below
+    }
+
     public static double calcSD(List<Integer> numArray)
     {
         int sum = 0;

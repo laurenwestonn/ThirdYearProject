@@ -49,7 +49,7 @@ public class ImageToDetect extends Activity {
             // i.e 5 will be a 11 * 11 sized block. 5 + center + 5
             int widthToColourAtOnce = distFromCentre * 2 + 1;
 
-            ////////////// useCoarse Mask /////////////////
+            ////////////// Coarse Mask /////////////////
             for (int j = distFromCentre+1;
                  j < coarseBMP.getHeight()-distFromCentre;
                  j += widthToColourAtOnce)
@@ -58,7 +58,7 @@ public class ImageToDetect extends Activity {
                      i += widthToColourAtOnce) {
 
                     testCount++;
-                    int colour = 0;
+                    int colour;
 
                     // 1: Threshold
                     // 2: Masking
@@ -68,8 +68,7 @@ public class ImageToDetect extends Activity {
                         int threshold = 100;
                         int brightness = Color.blue(coarseBMP.getPixel(i,j));
                         colour = (brightness > threshold) ? Color.WHITE : Color.BLACK;
-
-                        // Colour in the point around this pixel
+                        // Colour in the square around this pixel
                         ImageManipulation.colourArea(coarseBMP, i, j, colour, widthToColourAtOnce, widthToColourAtOnce);
                     } else if (method == 2) {
                         boolean relevantEdge = ImageManipulation.colourCoarseMaskPoint(coarseBMP, i, j, distFromCentre);
@@ -82,20 +81,17 @@ public class ImageToDetect extends Activity {
             Log.d("Hi", "Looped " + testCount + " times.");
 
             ///////////// Standard Deviation //////////////
-            double mean = StandardDeviation.calcMean(ysOfEdges);
-            double sd = StandardDeviation.calcSD(ysOfEdges, mean);
-            int minRange = (int) (mean - 3*sd) - distFromCentre;    // Get more above the horizon
-            int maxRange = (int) (mean + sd) + distFromCentre;      // as there's more likely to be more noise below
+            StandardDeviation coarseSD = new StandardDeviation(ysOfEdges, distFromCentre);
 
             if (sdDetail) {
                 Log.d("sd", "ysOfEdges: " + ysOfEdges.toString());
-                Log.d("sd", "Standard Deviation is " + sd + ". Mean is " + mean);
-                Log.d("sd", "Range should be from " + minRange  + " to " + maxRange);
+                Log.d("sd", "Standard Deviation is " + coarseSD.sd + ". Mean is " + coarseSD.mean);
+                Log.d("sd", "Range should be from " + coarseSD.minRange  + " to " + coarseSD.maxRange);
                 // Draw mean height of edges
-                ImageManipulation.colourArea(coarseBMP, coarseBMP.getWidth()/2, (int)mean, Color.YELLOW, coarseBMP.getWidth(), 10);
+                ImageManipulation.colourArea(coarseBMP, coarseBMP.getWidth()/2, (int)coarseSD.mean, Color.YELLOW, coarseBMP.getWidth(), 10);
                 // Draw SD of edges
-                ImageManipulation.colourArea(coarseBMP, coarseBMP.getWidth()/2, minRange+15, Color.RED, coarseBMP.getWidth(), 30);
-                ImageManipulation.colourArea(coarseBMP, coarseBMP.getWidth()/2, maxRange-15, Color.RED, coarseBMP.getWidth(), 30);
+                ImageManipulation.colourArea(coarseBMP, coarseBMP.getWidth()/2, coarseSD.minRange+15, Color.RED, coarseBMP.getWidth(), 30);
+                ImageManipulation.colourArea(coarseBMP, coarseBMP.getWidth()/2, coarseSD.maxRange-15, Color.RED, coarseBMP.getWidth(), 30);
             }
 
 
@@ -112,10 +108,31 @@ public class ImageToDetect extends Activity {
             int fineHeightFromCentre = 1;
             int fineHeight = fineHeightFromCentre * 2 + 1; // Total height of the fine mask
 
+            boolean relevantEdge;
+            ysOfEdges = new ArrayList();
+
             // Use a fine mask on the area found to be the horizon by the useCoarse mask
-            for(int y = minRange+1; y <= maxRange - fineHeightFromCentre; y+= fineHeight)
-                for (int x = fineWidthFromCentre; x <= fineBMP.getWidth() - fineWidthFromCentre; x+= fineWidth)
-                    ImageManipulation.colourFineMaskPoint(fineBMP, x, y, fineWidth, fineHeight);
+            for(int y = coarseSD.minRange + 1; y <= coarseSD.maxRange - fineHeightFromCentre; y+= fineHeight)
+                for (int x = fineWidthFromCentre; x <= fineBMP.getWidth() - fineWidthFromCentre; x+= fineWidth) {
+                    relevantEdge = ImageManipulation.colourFineMaskPoint(fineBMP, x, y, fineWidth, fineHeight);
+                    if (relevantEdge)
+                        ysOfEdges.add(y);
+                }
+
+            ///////////// Standard Deviation of Fine Mask //////////////
+            StandardDeviation fineSD = new StandardDeviation(ysOfEdges, fineHeightFromCentre);
+
+            if (!useCoarse && sdDetail) {
+                Log.d("sd", "ysOfEdges: " + ysOfEdges.toString());
+                Log.d("sd", "Standard Deviation is " + fineSD.sd + ". Mean is " + fineSD.mean);
+                Log.d("sd", "Range should be from " + fineSD.minRange  + " to " + fineSD.maxRange);
+                // Draw mean height of edges
+                ImageManipulation.colourArea(fineBMP, fineBMP.getWidth()/2, (int)fineSD.mean, Color.YELLOW, fineBMP.getWidth(), 2);
+                // Draw SD of edges
+                ImageManipulation.colourArea(fineBMP, fineBMP.getWidth()/2, fineSD.minRange+2, Color.RED, fineBMP.getWidth(), 4);
+                ImageManipulation.colourArea(fineBMP, fineBMP.getWidth()/2, fineSD.maxRange-2, Color.RED, fineBMP.getWidth(), 4);
+            }
+
 
 
             if (useCoarse)
