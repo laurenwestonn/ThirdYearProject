@@ -11,6 +11,7 @@ import android.view.View;
 import android.widget.ImageButton;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -22,7 +23,7 @@ public class ImageToDetect extends Activity {
     public static boolean useCoarse = false;
     boolean sdDetail = true;    // Want to draw SD and log info about standard deviation under "sd"?
     int distFromCentre = 25;    //TODO: CHANGE THIS TO CHANGE THE SPEED/CLARITY
-    public List<List<Integer>> edgeCoords;
+    public static List<List<Integer>> edgeCoords;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -89,12 +90,12 @@ public class ImageToDetect extends Activity {
                 Log.d("sd", "Standard Deviation is " + coarseSD.sd + ". Mean is " + coarseSD.mean);
                 Log.d("sd", "Range should be from " + coarseSD.minRange  + " to " + coarseSD.maxRange);
                 // Draw mean height of edges
-                ImageManipulation.colourArea(coarseBMP, (int) Math.ceil(coarseBMP.getWidth()/2) - 1,
+                ImageManipulation.colourArea(coarseBMP, (int) Math.floor(coarseBMP.getWidth()/2),
                         (int)coarseSD.mean, Color.YELLOW, coarseBMP.getWidth(), 10);
                 // Draw SD of edges
-                ImageManipulation.colourArea(coarseBMP, (int) Math.ceil(coarseBMP.getWidth()/2) - 1,
+                ImageManipulation.colourArea(coarseBMP, (int) Math.floor(coarseBMP.getWidth()/2),
                         coarseSD.minRange+15, Color.RED, coarseBMP.getWidth(), 30);
-                ImageManipulation.colourArea(coarseBMP, (int) Math.ceil(coarseBMP.getWidth()/2) - 1,
+                ImageManipulation.colourArea(coarseBMP, (int) Math.floor(coarseBMP.getWidth()/2),
                         coarseSD.maxRange-15, Color.RED, coarseBMP.getWidth(), 30);
             }
 
@@ -113,7 +114,6 @@ public class ImageToDetect extends Activity {
             int fineHeight = fineHeightFromCentre * 2 + 1; // Total height of the fine mask
 
             boolean relevantEdge;
-            ysOfEdges = new ArrayList();
             edgeCoords = new ArrayList<List<Integer>>();
 
             // Use a fine mask on the area found to be the horizon by the useCoarse mask
@@ -143,16 +143,20 @@ public class ImageToDetect extends Activity {
                     // The middle edge in the column is most likely to be accurate, keep it
                     int mostAccurateEdgeInCol = noOfEdgesInCol / 2;
 
-                    //Log.d("Hi", "In column " + colIndex + " there are edges at " + col + ". Remove edge at (" + colIndex + ", " + col.get(mostAccurateEdgeInCol));
-                    // Just testing which edge is determined as the best edge of the column, remove this when it's working
-                    ImageManipulation.colourArea(fineBMP, colIndex, (int) col.get(mostAccurateEdgeInCol), Color.YELLOW, fineWidth, fineHeight);
-                    // Only hold the edges we don't want so we can clear them
+                    Collections.sort(col);
+                    Log.d("Hi", "In column " + colIndex + " there are edges at " + col + ". Keep edge (" + colIndex + ", " + col.get(mostAccurateEdgeInCol) + ")");
+
+                    // Uncomment to show the result of thinning in yellow
+                    //ImageManipulation.colourArea(fineBMP, colIndex, (int) col.get(mostAccurateEdgeInCol), Color.YELLOW, fineWidth, fineHeight);
+
+                    // Only hold the edges we don't want in col, we want to show the most accurate
                     col.remove(mostAccurateEdgeInCol);
 
                     // Clear the unnecessary edges
                     for (Object y : col) {
-                        Log.d("Hi", "Removing from column " + colIndex);
-                        ImageManipulation.colourArea(fineBMP, colIndex, (int) y, Color.RED, fineWidth, fineHeight);
+                        Log.d("Hi", "Thin out " + y + " from column " + colIndex);
+                        //Make this red to see which edges were removed from thinning
+                        ImageManipulation.colourArea(fineBMP, colIndex, (int) y, Color.BLACK, fineWidth, fineHeight);
                     }
                 } else {
                     Log.d("Hi", "No edges in column " + colIndex);

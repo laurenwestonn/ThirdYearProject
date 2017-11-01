@@ -2,6 +2,7 @@ package com.example.recogniselocation.thirdyearproject;
 
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.media.Image;
 import android.util.Log;
 
 import java.util.Arrays;
@@ -193,6 +194,10 @@ public class ImageManipulation {
                 if (getFineEdgeness(bmp, x, y, (width-1)/2, (height-1)/2) < maxThreshold) {
                     //Log.d("Hi", "Set pixel blue");
                     colourArea(bmp, x, y, Color.BLUE, width, height);
+                    /*if (ImageToDetect.edgeCoords != null && !ImageToDetect.edgeCoords.get(x/width).contains(y)) {
+                        ImageToDetect.edgeCoords.get(x / width).add(y);
+                        Log.d("Hi", "Found this UNseen one is blue, add it " + x + ", " + y);
+                    }*/ // TODO: Is this needed?
                 }
                 return true;
             } else {
@@ -239,6 +244,10 @@ public class ImageManipulation {
 
             // Found a new neighbouring edge
             colourArea(bmp, x, y, Color.BLUE, width, height);
+            if (ImageToDetect.edgeCoords != null && !ImageToDetect.edgeCoords.get(x/width).contains(y)) {
+                ImageToDetect.edgeCoords.get(x / width).add(y);
+                Log.d("Hi", "Found this seen one is blue, add it " + x + ", " + y);
+            }
             return true;
         }
 
