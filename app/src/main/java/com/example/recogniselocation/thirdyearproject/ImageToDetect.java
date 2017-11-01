@@ -19,7 +19,7 @@ import java.util.List;
 
 public class ImageToDetect extends Activity {
 
-    boolean useCoarse = false;
+    public static boolean useCoarse = false;
     boolean sdDetail = true;    // Want to draw SD and log info about standard deviation under "sd"?
     int distFromCentre = 25;    //TODO: CHANGE THIS TO CHANGE THE SPEED/CLARITY
     public List<List<Integer>> edgeCoords;
@@ -89,10 +89,13 @@ public class ImageToDetect extends Activity {
                 Log.d("sd", "Standard Deviation is " + coarseSD.sd + ". Mean is " + coarseSD.mean);
                 Log.d("sd", "Range should be from " + coarseSD.minRange  + " to " + coarseSD.maxRange);
                 // Draw mean height of edges
-                ImageManipulation.colourArea(coarseBMP, coarseBMP.getWidth()/2, (int)coarseSD.mean, Color.YELLOW, coarseBMP.getWidth(), 10);
+                ImageManipulation.colourArea(coarseBMP, (int) Math.ceil(coarseBMP.getWidth()/2) - 1,
+                        (int)coarseSD.mean, Color.YELLOW, coarseBMP.getWidth(), 10);
                 // Draw SD of edges
-                ImageManipulation.colourArea(coarseBMP, coarseBMP.getWidth()/2, coarseSD.minRange+15, Color.RED, coarseBMP.getWidth(), 30);
-                ImageManipulation.colourArea(coarseBMP, coarseBMP.getWidth()/2, coarseSD.maxRange-15, Color.RED, coarseBMP.getWidth(), 30);
+                ImageManipulation.colourArea(coarseBMP, (int) Math.ceil(coarseBMP.getWidth()/2) - 1,
+                        coarseSD.minRange+15, Color.RED, coarseBMP.getWidth(), 30);
+                ImageManipulation.colourArea(coarseBMP, (int) Math.ceil(coarseBMP.getWidth()/2) - 1,
+                        coarseSD.maxRange-15, Color.RED, coarseBMP.getWidth(), 30);
             }
 
 
@@ -140,6 +143,7 @@ public class ImageToDetect extends Activity {
                     // The middle edge in the column is most likely to be accurate, keep it
                     int mostAccurateEdgeInCol = noOfEdgesInCol / 2;
 
+                    //Log.d("Hi", "In column " + colIndex + " there are edges at " + col + ". Remove edge at (" + colIndex + ", " + col.get(mostAccurateEdgeInCol));
                     // Just testing which edge is determined as the best edge of the column, remove this when it's working
                     ImageManipulation.colourArea(fineBMP, colIndex, (int) col.get(mostAccurateEdgeInCol), Color.YELLOW, fineWidth, fineHeight);
                     // Only hold the edges we don't want so we can clear them
