@@ -90,13 +90,10 @@ public class ImageToDetect extends Activity {
                 Log.d("sd", "Standard Deviation is " + coarseSD.sd + ". Mean is " + coarseSD.mean);
                 Log.d("sd", "Range should be from " + coarseSD.minRange  + " to " + coarseSD.maxRange);
                 // Draw mean height of edges
-                ImageManipulation.colourArea(coarseBMP, (int) Math.floor(coarseBMP.getWidth()/2),
-                        (int)coarseSD.mean, Color.YELLOW, coarseBMP.getWidth(), 10);
+                ImageManipulation.colourArea(coarseBMP, coarseBMP.getWidth()/2, (int)coarseSD.mean, Color.YELLOW, coarseBMP.getWidth()-1, 10);
                 // Draw SD of edges
-                ImageManipulation.colourArea(coarseBMP, (int) Math.floor(coarseBMP.getWidth()/2),
-                        coarseSD.minRange+15, Color.RED, coarseBMP.getWidth(), 30);
-                ImageManipulation.colourArea(coarseBMP, (int) Math.floor(coarseBMP.getWidth()/2),
-                        coarseSD.maxRange-15, Color.RED, coarseBMP.getWidth(), 30);
+                ImageManipulation.colourArea(coarseBMP, coarseBMP.getWidth()/2, coarseSD.minRange+15, Color.RED, coarseBMP.getWidth()-1, 30);
+                ImageManipulation.colourArea(coarseBMP, coarseBMP.getWidth()/2, coarseSD.maxRange-15, Color.RED, coarseBMP.getWidth()-1, 30);
             }
 
 
@@ -118,12 +115,11 @@ public class ImageToDetect extends Activity {
 
             // Use a fine mask on the area found to be the horizon by the useCoarse mask
             for(int y = coarseSD.minRange + 1; y <= coarseSD.maxRange - fineHeightFromCentre; y+= fineHeight)
-                for (int x = fineWidthFromCentre; x <= fineBMP.getWidth() - fineWidthFromCentre; x+= fineWidth) {
+                for (int x = fineWidthFromCentre; x < fineBMP.getWidth() - fineWidthFromCentre; x+= fineWidth) {
 
                     // Want to add a new list to store each column, only need to add for the first row
                     if (y == coarseSD.minRange + 1)
                         edgeCoords.add(new ArrayList<Integer>());
-
                     // Is this a edge?
                     relevantEdge = ImageManipulation.colourFineMaskPoint(fineBMP, x, y, fineWidth, fineHeight);
                     if (relevantEdge) {
@@ -146,8 +142,8 @@ public class ImageToDetect extends Activity {
                     Collections.sort(col);
                     Log.d("Hi", "In column " + colIndex + " there are edges at " + col + ". Keep edge (" + colIndex + ", " + col.get(mostAccurateEdgeInCol) + ")");
 
-                    // Uncomment to show the result of thinning in yellow
-                    //ImageManipulation.colourArea(fineBMP, colIndex, (int) col.get(mostAccurateEdgeInCol), Color.YELLOW, fineWidth, fineHeight);
+                    // Change to yellow to show the result of thinning more clearly
+                    ImageManipulation.colourArea(fineBMP, colIndex, (int) col.get(mostAccurateEdgeInCol), Color.WHITE, fineWidth, fineHeight);
 
                     // Only hold the edges we don't want in col, we want to show the most accurate
                     col.remove(mostAccurateEdgeInCol);
@@ -155,7 +151,7 @@ public class ImageToDetect extends Activity {
                     // Clear the unnecessary edges
                     for (Object y : col) {
                         Log.d("Hi", "Thin out " + y + " from column " + colIndex);
-                        //Make this red to see which edges were removed from thinning
+                        // Change to red to see which edges were removed from thinning
                         ImageManipulation.colourArea(fineBMP, colIndex, (int) y, Color.BLACK, fineWidth, fineHeight);
                     }
                 } else {
@@ -165,29 +161,7 @@ public class ImageToDetect extends Activity {
                 // Keep track of the column number
                 colIndex+= fineWidth;
             }
-/*
-            ///////////// Standard Deviation of Fine Mask //////////////
-            StandardDeviation fineSD = new StandardDeviation(ysOfEdges, fineHeightFromCentre);
 
-            if (!useCoarse && sdDetail) {
-                Log.d("sd", "ysOfEdges: " + ysOfEdges.toString());
-                Log.d("sd", "Standard Deviation is " + fineSD.sd + ". Mean is " + fineSD.mean);
-                Log.d("sd", "Range should be from " + fineSD.minRange  + " to " + fineSD.maxRange);
-                // Draw mean height of edges
-                ImageManipulation.colourArea(fineBMP, fineBMP.getWidth()/2, (int)fineSD.mean, Color.YELLOW, fineBMP.getWidth(), 2);
-                // Draw SD of edges
-                ImageManipulation.colourArea(fineBMP, fineBMP.getWidth()/2, fineSD.minRange+2, Color.RED, fineBMP.getWidth(), 4);
-                ImageManipulation.colourArea(fineBMP, fineBMP.getWidth()/2, fineSD.maxRange-2, Color.RED, fineBMP.getWidth(), 4);
-            }
-
-            // Now we've got a narrowed down search area, look here to thin edges
-            ysOfEdges = new ArrayList();
-            for (int x = fineWidthFromCentre + 1; x < fineBMP.getWidth() - fineWidthFromCentre; x += fineWidth)
-                for (int y = fineSD.minRange + fineHeightFromCentre + 1; y < fineSD.maxRange - fineHeightFromCentre; y += fineHeight) {
-                    // See how many there are in this column, remember y of each, so build up a list
-                    // Get middle y coordinate
-                }
-*/
 
 
             if (useCoarse)
