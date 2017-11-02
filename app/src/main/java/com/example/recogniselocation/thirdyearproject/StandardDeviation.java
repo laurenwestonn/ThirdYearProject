@@ -18,6 +18,9 @@ public class StandardDeviation {
         sd = calcSD(range, mean);
         minRange = (int) (mean - 3*sd) - heightFromCentre;  // Get more above the horizon
         maxRange = (int) (mean + sd) + heightFromCentre;    // as there's more likely to be more noise below
+
+        if (minRange < 0)
+            minRange = 0;
     }
 
     public static double calcSD(List<Integer> numArray)

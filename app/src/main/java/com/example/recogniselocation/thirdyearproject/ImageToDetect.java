@@ -11,7 +11,6 @@ import android.view.View;
 import android.widget.ImageButton;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -20,11 +19,11 @@ import java.util.List;
 
 public class ImageToDetect extends Activity {
 
-    public static boolean useCoarse = false;
+    public static boolean useCoarse = true;
     public static boolean useThinning = false;
 
     boolean sdDetail = true;    // Want to draw SD and log info about standard deviation under "sd"?
-    int distFromCentre = 25;    //TODO: CHANGE THIS TO CHANGE THE SPEED/CLARITY
+    int distFromCentre;    //TODO: CHANGE THIS TO CHANGE THE SPEED/CLARITY
     public static List<List<Integer>> edgeCoords;
 
     @Override
@@ -48,6 +47,8 @@ public class ImageToDetect extends Activity {
             int testCount = 0;
 
             List ysOfEdges = new ArrayList();
+
+            distFromCentre = bmp.getHeight() / 17;
 
             // No of pixels around the centre to do at once
             // i.e 5 will be a 11 * 11 sized block. 5 + center + 5
@@ -75,7 +76,13 @@ public class ImageToDetect extends Activity {
                         // Colour in the square around this pixel
                         ImageManipulation.colourArea(coarseBMP, i, j, colour, widthToColourAtOnce, widthToColourAtOnce);
                     } else if (method == 2) {
-                        boolean relevantEdge = ImageManipulation.colourCoarseMaskPoint(coarseBMP, i, j, distFromCentre);
+
+                        // Thresholds
+                        int pointThreshold = coarseBMP.getHeight() / 23; // The threshold to determine an edge for a point
+                        int neighbThreshold = (int) (pointThreshold * 0.8); // A point that is neighbouring an edge's threshold
+                        Log.d("Hi", "COARSE threshold of " + pointThreshold + ". Neighbouring threshold at " + neighbThreshold);
+
+                        boolean relevantEdge = ImageManipulation.colourCoarseMaskPoint(coarseBMP, i, j, distFromCentre, pointThreshold, neighbThreshold);
                         if (relevantEdge)
                             ysOfEdges.add(j);
                     }
@@ -108,24 +115,30 @@ public class ImageToDetect extends Activity {
             // Get the original photo again, as we've coloured in the other bitmap we were using
             Bitmap fineBMP = bmp.copy(bmp.getConfig(), true);
 
-            int fineWidthFromCentre = 2; // 1 would make a mask of width 3, 2 would give width 5
+            int fineWidthFromCentre = fineBMP.getWidth() / 250; // 1 would make a mask of width 3, 2 would give width 5
             int fineWidth = fineWidthFromCentre * 2 + 1; // Total width of the fine mask
-            int fineHeightFromCentre = 1;
+            int fineHeightFromCentre = fineBMP.getHeight() / 200;
             int fineHeight = fineHeightFromCentre * 2 + 1; // Total height of the fine mask
 
             boolean relevantEdge;
             edgeCoords = new ArrayList<List<Integer>>();
 
             // Use a fine mask on the area found to be the horizon by the useCoarse mask
-            for(int y = coarseSD.minRange + 1; y <= coarseSD.maxRange - fineHeightFromCentre; y+= fineHeight)
+            for(int y = coarseSD.minRange + fineHeightFromCentre; y <= coarseSD.maxRange - fineHeightFromCentre; y+= fineHeight)
                 for (int x = fineWidthFromCentre; x < fineBMP.getWidth() - fineWidthFromCentre; x+= fineWidth) {
 
-                    if (y == coarseSD.minRange + 1) // Want to add a new list for every column
+                    if (y == coarseSD.minRange + fineHeightFromCentre) // Want to add a new list for every column
                         edgeCoords.add(new ArrayList<Integer>());
 
                     /////// NEIGHBOURING THRESHOLD ///////
+
+                    // Thresholds
+                    int pointThreshold = bmp.getHeight() / 25; // The threshold to determine an edge for a point
+                    int neighbThreshold = (int) (pointThreshold * 0.9); // A point that is neighbouring an edge's threshold
+                    Log.d("Hi", "Fine threshold of " + pointThreshold + ". Neighbouring threshold at " + neighbThreshold);
+
                     // Is this a edge?
-                    relevantEdge = ImageManipulation.colourFineMaskPoint(fineBMP, x, y, fineWidth, fineHeight);
+                    relevantEdge = ImageManipulation.colourFineMaskPoint(fineBMP, x, y, fineWidth, fineHeight, pointThreshold, neighbThreshold);
                     if (relevantEdge) {
                         // This should hold the location of every edge found with the fine mask
                         edgeCoords.get(x/fineWidth).add(y);

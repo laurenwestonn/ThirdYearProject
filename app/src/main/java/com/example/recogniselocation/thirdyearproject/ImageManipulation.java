@@ -14,11 +14,7 @@ import java.util.List;
 
 public class ImageManipulation {
 
-    public static boolean colourCoarseMaskPoint(Bitmap bmp, int i, int j, int distFromCentre) {
-
-        // Thresholds
-        int pThr = 40; // The threshold to determine an edge for a point
-        int nThr = 35; // A point that is neighbouring an edge's threshold
+    public static boolean colourCoarseMaskPoint(Bitmap bmp, int i, int j, int distFromCentre, int loThresh, int hiThresh) {
 
         // Get the likelihood that this is an edge,
         // unless it has already been marked blue
@@ -32,18 +28,14 @@ public class ImageManipulation {
         int heightToColourAtOnce = widthToColourAtOnce; // For the coarse detector, we're using a square
 
         // If we coloured point at (i,j) a useful colour, return this fact
-        return determineColour(bmp, edgeness, pThr, nThr, i, j, widthToColourAtOnce, heightToColourAtOnce);
+        return determineColour(bmp, edgeness, loThresh, hiThresh, i, j, widthToColourAtOnce, heightToColourAtOnce);
 
     }
 
-    public static boolean colourFineMaskPoint(Bitmap bmp, int i, int j, int fineWidth, int fineHeight) {
+    public static boolean colourFineMaskPoint(Bitmap bmp, int i, int j, int fineWidth, int fineHeight, int loThresh, int hiThresh) {
 
         int widthFromCentre = (fineWidth - 1) / 2;
         int heightFromCentre = (fineHeight - 1) / 2;
-
-        // Thresholds
-        int pThr = 30; // The threshold to determine an edge for a point
-        int nThr = 27; // A point that is neighbouring an edge's threshold
 
         // Get the likelihood that this is an edge,
         // unless it has already been marked blue
@@ -52,7 +44,7 @@ public class ImageManipulation {
                 Color.BLUE;
 
         //Log.d("Hi", "\tAnother FINE pixel. Edgeness of (" + i + ", " + j + ") is " + edgeness);
-        return determineColour(bmp, edgeness, pThr, nThr, i, j, fineWidth, fineHeight);
+        return determineColour(bmp, edgeness, hiThresh, loThresh, i, j, fineWidth, fineHeight);
     }
 
     private static int getFineEdgeness(Bitmap bmp, int i, int j, int widthFromCentre, int heightFromCentre) {
@@ -244,10 +236,9 @@ public class ImageManipulation {
             colourArea(bmp, x, y, Color.BLUE, width, height);
             // New edge that we've already gone past so will not revisit
             // will have to add this to edgeCoords manually
-            if (ImageToDetect.edgeCoords != null) {
+            if (ImageToDetect.edgeCoords != null)
                 ImageToDetect.edgeCoords.get(x / width).add(y);
-                Log.d("Hi", "Found this seen one is blue, add it " + x + ", " + y);
-            } // Next time this point is checked it will be blue so we wouldn't enter
+            // Next time this point is checked it will be blue so we wouldn't enter
             // this area of code so the same coords can't be added twice
             return true;
         }
@@ -297,11 +288,10 @@ public class ImageManipulation {
                 ImageManipulation.colourArea(fineBMP, colIndex, (int) y, Color.BLACK, fineWidth, fineHeight);
             }
 
-            // Keep track of the column number
-            return colIndex + fineWidth;
         } else {
             Log.e("Hi", "No edges in column " + colIndex);
-            return -1;
         }
+        // Keep track of the column number
+        return colIndex + fineWidth;
     }
 }
