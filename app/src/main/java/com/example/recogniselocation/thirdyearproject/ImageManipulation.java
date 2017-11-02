@@ -5,6 +5,8 @@ import android.graphics.Color;
 import android.util.Log;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Created by LaUrE on 28/10/2017.
@@ -268,5 +270,38 @@ public class ImageManipulation {
                 j - (height-1) / 2, // y co-ord of first pixel to colour
                 width,    // width of area to colour
                 height);   // height of area to colour
+    }
+
+    // Reduce the number of edges in this column to one. Pick the middle one.
+    public static int thinColumn(Bitmap fineBMP, List col, int colIndex, int fineWidth, int fineHeight) {
+
+        // Skip any columns that don't have edges
+        int noOfEdgesInCol = col.size();
+        if (noOfEdgesInCol > 0) {
+            // The middle edge in the column is most likely to be accurate, keep it
+            int mostAccurateEdgeInCol = noOfEdgesInCol / 2;
+
+            Collections.sort(col);
+            //Log.d("Hi", "In column " + colIndex + " there are edges at " + col + ". Keep edge (" + colIndex + ", " + col.get(mostAccurateEdgeInCol) + ")");
+
+            // Colour in the only edge we want in this column as white, and ensure that
+            // col only holds edges in this column that we want to black out
+            // (Change to yellow to show the result of thinning more clearly)
+            ImageManipulation.colourArea(fineBMP, colIndex, (int) col.get(mostAccurateEdgeInCol), Color.WHITE, fineWidth, fineHeight);
+            col.remove(mostAccurateEdgeInCol);
+
+            // Clear the unnecessary edges
+            for (Object y : col) {
+                //Log.d("Hi", "Thin out " + y + " from column " + colIndex);
+                // Change to red to see which edges were removed from thinning
+                ImageManipulation.colourArea(fineBMP, colIndex, (int) y, Color.BLACK, fineWidth, fineHeight);
+            }
+
+            // Keep track of the column number
+            return colIndex + fineWidth;
+        } else {
+            Log.e("Hi", "No edges in column " + colIndex);
+            return -1;
+        }
     }
 }

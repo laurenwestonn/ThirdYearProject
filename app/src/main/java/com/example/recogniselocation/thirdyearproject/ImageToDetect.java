@@ -21,6 +21,8 @@ import java.util.List;
 public class ImageToDetect extends Activity {
 
     public static boolean useCoarse = false;
+    public static boolean useThinning = false;
+
     boolean sdDetail = true;    // Want to draw SD and log info about standard deviation under "sd"?
     int distFromCentre = 25;    //TODO: CHANGE THIS TO CHANGE THE SPEED/CLARITY
     public static List<List<Integer>> edgeCoords;
@@ -99,8 +101,9 @@ public class ImageToDetect extends Activity {
 
             ///////////////////// FINE MASK //////////////////
 
-            //  1   1   1
-            //  -1  -1  -1
+            //  1   0   1   0   1
+            //  0   0   0   0   0
+            //  -1  0   -1  0   -1
 
             // Get the original photo again, as we've coloured in the other bitmap we were using
             Bitmap fineBMP = bmp.copy(bmp.getConfig(), true);
@@ -117,49 +120,24 @@ public class ImageToDetect extends Activity {
             for(int y = coarseSD.minRange + 1; y <= coarseSD.maxRange - fineHeightFromCentre; y+= fineHeight)
                 for (int x = fineWidthFromCentre; x < fineBMP.getWidth() - fineWidthFromCentre; x+= fineWidth) {
 
-                    // Want to add a new list to store each column, only need to add for the first row
-                    if (y == coarseSD.minRange + 1)
+                    if (y == coarseSD.minRange + 1) // Want to add a new list for every column
                         edgeCoords.add(new ArrayList<Integer>());
+
+                    /////// NEIGHBOURING THRESHOLD ///////
                     // Is this a edge?
                     relevantEdge = ImageManipulation.colourFineMaskPoint(fineBMP, x, y, fineWidth, fineHeight);
                     if (relevantEdge) {
-                        //ysOfEdges.add(y);
-
                         // This should hold the location of every edge found with the fine mask
                         edgeCoords.get(x/fineWidth).add(y);
                     }
                 }
 
-            int colIndex = fineWidthFromCentre;
-            for (List col : edgeCoords) {
-
-                // Skip any columns that don't have edges
-                int noOfEdgesInCol = col.size();
-                if (noOfEdgesInCol > 0) {
-                    // The middle edge in the column is most likely to be accurate, keep it
-                    int mostAccurateEdgeInCol = noOfEdgesInCol / 2;
-
-                    Collections.sort(col);
-                    Log.d("Hi", "In column " + colIndex + " there are edges at " + col + ". Keep edge (" + colIndex + ", " + col.get(mostAccurateEdgeInCol) + ")");
-
-                    // Change to yellow to show the result of thinning more clearly
-                    ImageManipulation.colourArea(fineBMP, colIndex, (int) col.get(mostAccurateEdgeInCol), Color.WHITE, fineWidth, fineHeight);
-
-                    // Only hold the edges we don't want in col, we want to show the most accurate
-                    col.remove(mostAccurateEdgeInCol);
-
-                    // Clear the unnecessary edges
-                    for (Object y : col) {
-                        Log.d("Hi", "Thin out " + y + " from column " + colIndex);
-                        // Change to red to see which edges were removed from thinning
-                        ImageManipulation.colourArea(fineBMP, colIndex, (int) y, Color.BLACK, fineWidth, fineHeight);
-                    }
-                } else {
-                    Log.d("Hi", "No edges in column " + colIndex);
+            //// THINNING ////
+            if (useThinning) {
+                int colIndex = fineWidthFromCentre;
+                for (List col : edgeCoords) {
+                    colIndex = ImageManipulation.thinColumn(fineBMP, col, colIndex, fineWidth, fineHeight);
                 }
-
-                // Keep track of the column number
-                colIndex+= fineWidth;
             }
 
 
@@ -174,4 +152,5 @@ public class ImageToDetect extends Activity {
             Log.d("Hi", "Couldn't find a bitmap! :'(");
         }
     }
+
 }
