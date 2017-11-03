@@ -246,7 +246,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 new RetrieveURLTask().execute(urls);
             }
         } catch (Exception e) {
-            Log.d("Hi", "Failed " + e);
+            Log.d("Hi", "Failed: " + e);
             e.printStackTrace();
         }
     }
