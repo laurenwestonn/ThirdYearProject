@@ -32,7 +32,7 @@ public class ImageManipulation {
 
     }
 
-    public static boolean colourFineMaskPoint(Bitmap bmp, int i, int j, int fineWidth, int fineHeight, int loThresh, int hiThresh) {
+    static boolean colourFineMaskPoint(Bitmap bmp, int i, int j, int fineWidth, int fineHeight, int loThresh, int hiThresh) {
 
         int widthFromCentre = (fineWidth - 1) / 2;
         int heightFromCentre = (fineHeight - 1) / 2;
@@ -248,7 +248,7 @@ public class ImageManipulation {
     }
 
     // Colour a wxh block of pixels around (i,j) in the requested colour
-    public static void colourArea(Bitmap bmp, int i, int j, int colour, int width, int height) {
+    static void colourArea(Bitmap bmp, int i, int j, int colour, int width, int height) {
 
         // setPixels needs an int array of colours
         int[] colours = new int[width * height];
@@ -264,7 +264,7 @@ public class ImageManipulation {
     }
 
     // Reduce the number of edges in this column to one. Pick the middle one.
-    public static int thinColumn(Bitmap fineBMP, List col, int colIndex, int fineWidth, int fineHeight) {
+    static int thinColumn(Bitmap fineBMP, List col, int colIndex, int fineWidth, int fineHeight) {
 
         // Skip any columns that don't have edges
         int noOfEdgesInCol = col.size();

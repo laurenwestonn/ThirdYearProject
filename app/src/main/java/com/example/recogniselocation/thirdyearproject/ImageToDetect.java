@@ -41,12 +41,12 @@ public class ImageToDetect extends Activity {
         if ((bmp = ((BitmapDrawable)imageButton.getDrawable()).getBitmap()) != null) {
 
             // Save orig bitmap and make it mutable so we can mess with it
-            Bitmap coarseBMP = bmp.copy(bmp.getConfig(), true);;
+            Bitmap coarseBMP = bmp.copy(bmp.getConfig(), true);
 
             //Check no of times we loop around
             int testCount = 0;
 
-            List ysOfEdges = new ArrayList();
+            List<Integer> ysOfEdges = new ArrayList<>();
 
             distFromCentre = bmp.getHeight() / 17;
 
@@ -121,7 +121,7 @@ public class ImageToDetect extends Activity {
             int fineHeight = fineHeightFromCentre * 2 + 1; // Total height of the fine mask
 
             boolean relevantEdge;
-            edgeCoords = new ArrayList<List<Integer>>();
+            edgeCoords = new ArrayList<>();
 
             // Use a fine mask on the area found to be the horizon by the useCoarse mask
             for(int y = coarseSD.minRange + fineHeightFromCentre; y <= coarseSD.maxRange - fineHeightFromCentre; y+= fineHeight)
@@ -148,7 +148,7 @@ public class ImageToDetect extends Activity {
             //// THINNING ////
             if (useThinning) {
                 int colIndex = fineWidthFromCentre;
-                for (List col : edgeCoords) {
+                for (List<Integer> col : edgeCoords) {
                     colIndex = ImageManipulation.thinColumn(fineBMP, col, colIndex, fineWidth, fineHeight);
                 }
             }

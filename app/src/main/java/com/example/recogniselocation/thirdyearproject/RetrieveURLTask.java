@@ -135,7 +135,7 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
             highPoint.setDifference(diffFromFirst(firstAng, highPoint.getDistance(), highPoint.getElevation()));
     }
 
-    public void findHighestVisiblePoint(Response results) {
+    private void findHighestVisiblePoint(Response results) {
         // Find the highest visible point
         double hiLat, hiLng, hiEl, hiDis;
         hiLat = hiLng = hiEl = hiDis = 0;
