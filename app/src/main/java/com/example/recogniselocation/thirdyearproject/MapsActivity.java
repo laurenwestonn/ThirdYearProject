@@ -35,7 +35,7 @@ import java.util.List;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
-    int demo = 0;   // 0: Your location. 1: Sydney. 2: Kinder Scout. 3:
+    int demo = 4;   // 0: Your location. 1: Sydney. 2: Kinder Scout. 3:?, 4:Blencathra
 
     private TextView textView;
     private LocationManager locationManager;
@@ -48,9 +48,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     //ToDo: Make these configurable
     public static int noOfPaths = 20;
-    public static int widthOfSearch = 45;
+    public static int widthOfSearch = 90;
     int noOfSamples = 20;
     double lengthOfSearch = 0.1;  // radius of the search
+    double yourDirection = 60; // Due East anticlockwise
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,6 +89,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     case 3:
                         xPos = 54.426385;
                         yPos = -3.3186308;
+                        break;
+                    case 4: // Blencathra
+                        xPos = 54.6486243;
+                        yPos = -3.0915329;
+                        yourDirection = 240;
                         break;
                     default:
                         // Save your co-ordinates
@@ -139,7 +145,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             Manifest.permission.INTERNET
                     }, 10);
                 } else {
-                    locationManager.requestLocationUpdates("gps", 1000, 5, locationListener);
+                    locationManager.requestLocationUpdates("gps", 1000, 5, locationListener); // It's this that takes ages
                 }
             }
         });
@@ -180,7 +186,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     Manifest.permission.INTERNET
             }, 10);
         } else {
-            locationManager.requestLocationUpdates("gps", 1000, 5, locationListener);
+            locationManager.requestLocationUpdates("gps", 0, 10, locationListener);
         }
     }
 
@@ -200,16 +206,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void getVisiblePeaks() {
+        Log.d("Hi", "Getting visible peaks");
         double step = widthOfSearch / (noOfPaths - 1);
-        double yourDirection = 30;
-        double start = yourDirection - (step * 2);
+        double start = yourDirection + step/2 + step*(noOfPaths/2-1);
         List<LatLng> endCoords = new ArrayList<>();
         List<LatLng> startCoords = new ArrayList<>();
 
         // Build up the coordinates of the start and the end of each path
         for (int i = 0; i < noOfPaths; i++) {
-            double sinOfThisStep = Math.sin(Math.toRadians(start + i * step));
-            double cosOfThisStep = Math.cos(Math.toRadians(start + i * step));
+            double sinOfThisStep = Math.sin(Math.toRadians(((start - i * step) % 360 + 360) % 360));
+            double cosOfThisStep = Math.cos(Math.toRadians(((start - i * step) % 360 + 360) % 360));
             // Start from the first position away from you in each direction
             startCoords.add(new LatLng(
                                     xPos + lengthOfSearch / noOfSamples * sinOfThisStep,

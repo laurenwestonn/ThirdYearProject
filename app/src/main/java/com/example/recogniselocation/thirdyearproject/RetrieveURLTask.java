@@ -28,7 +28,6 @@ import static com.example.recogniselocation.thirdyearproject.MapsActivity.yPos;
 
 public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
 
-    private Exception e;
     private double yourElevation;
     private List<Result> highPoints= new ArrayList<>(MapsActivity.noOfPaths);
     LineGraphSeries<DataPoint> series = new LineGraphSeries<>();
