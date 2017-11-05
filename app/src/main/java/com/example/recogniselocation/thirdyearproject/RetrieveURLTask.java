@@ -129,10 +129,11 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
     }
 
     private void findDifferenceBetweenPoints(List<Result> highPoints) {
-        double firstAng = highPoints.get(0).getAngle();
+        double firstDistance = highPoints.get(0).getDistance();
+        double firstElevation = firstDistance * Math.tan(highPoints.get(0).getAngle());
 
         for (Result highPoint : highPoints)
-            highPoint.setDifference(diffFromFirst(firstAng, highPoint.getDistance(), highPoint.getElevation()));
+            highPoint.setDifference(diffFromFirst(firstDistance, highPoint.getAngle(), firstElevation));
     }
 
     private void findHighestVisiblePoint(Response results) {
@@ -224,11 +225,14 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
         MapsActivity.googleMap.addPolyline(polylineOptions);
     }
 
-    private double diffFromFirst(double comparisonAngle, double thisPeaksDistance, double thisElevation) {
-        double perceivedHeight = thisPeaksDistance * Math.tan(comparisonAngle);
-        Log.d("Hi", "perceived height, got from a distance of " + thisPeaksDistance + " and an angle of " + comparisonAngle + " was calculated as " + perceivedHeight
-        + "\nThis elevation is " + thisElevation + ", therefore, the difference is " + (thisElevation-perceivedHeight));
-        return thisElevation - perceivedHeight;
+    private double diffFromFirst(double comparisonDistance, double thisPeaksAngle, double firstElevation) {
+        // If this peak was at the distance of the first one, how big would it be?
+        double perceivedElevation = comparisonDistance * Math.tan(thisPeaksAngle);
+
+        //double perceivedElevation = thisPeaksDistance * Math.tan(comparisonAngle);
+        Log.d("Hi", "Perceived height, got from a distance of " + comparisonDistance + " and an angle of " + thisPeaksAngle + " was calculated as " + perceivedElevation
+        + ". The first elevation is " + firstElevation + ", therefore, the difference is " + (perceivedElevation-firstElevation));
+        return perceivedElevation - firstElevation;
     }
 
     private void drawOnGraph(List<Result> points) {
