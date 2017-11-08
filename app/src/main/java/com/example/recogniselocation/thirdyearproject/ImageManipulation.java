@@ -169,7 +169,7 @@ public class ImageManipulation {
     }
 
     private static boolean checkUnseenNbour(Bitmap bmp, int x, int y, int width, int height, int minThreshold, int maxThreshold) {
-        if (ImageToDetect.useCoarse == true) {
+        if (ImageToDetect.showCoarse == true) {
             if (getCoarseEdgeness(bmp, x, y, (width-1)/2) > minThreshold) {
                 //Log.d("Hi", "Neighbour (" + x + ", " + y + ") had a worthy edge of " + getCoarseEdgeness(bmp, x, y, (width-1)/2));
                 if (getCoarseEdgeness(bmp, x, y, (width-1)/2) < maxThreshold) {
@@ -222,6 +222,8 @@ public class ImageManipulation {
     }
 
     private static boolean checkSeenNbour(Bitmap bmp, int x, int y, int width, int height) {
+        int widthFromCentre = (width-1) / 2;
+
         // Get the colour of this point we've already set
         int neighCol = bmp.getPixel(x, y);
 
@@ -236,8 +238,8 @@ public class ImageManipulation {
             colourArea(bmp, x, y, Color.BLUE, width, height);
             // New edge that we've already gone past so will not revisit
             // will have to add this to edgeCoords manually
-            if (ImageToDetect.edgeCoords != null)
-                ImageToDetect.edgeCoords.get(x / width).add(y);
+            if (ImageToDetect.edgeCoords != null)   // If it has been set (should be at this point)
+                ImageToDetect.edgeCoords.get((x-widthFromCentre) / width).add(y);
             // Next time this point is checked it will be blue so we wouldn't enter
             // this area of code so the same coords can't be added twice
             return true;
@@ -265,33 +267,75 @@ public class ImageManipulation {
 
     // Reduce the number of edges in this column to one. Pick the middle one.
     static int thinColumn(Bitmap fineBMP, List col, int colIndex, int fineWidth, int fineHeight) {
-
         // Skip any columns that don't have edges
         int noOfEdgesInCol = col.size();
         if (noOfEdgesInCol > 0) {
-            // The middle edge in the column is most likely to be accurate, keep it
-            int mostAccurateEdgeInCol = noOfEdgesInCol / 2;
-
+            // The middle edge in the column is most likely to be accurate so use this.
             Collections.sort(col);
-            //Log.d("Hi", "In column " + colIndex + " there are edges at " + col + ". Keep edge (" + colIndex + ", " + col.get(mostAccurateEdgeInCol) + ")");
-
-            // Colour in the only edge we want in this column as white, and ensure that
-            // col only holds edges in this column that we want to black out
-            // (Change to yellow to show the result of thinning more clearly)
-            ImageManipulation.colourArea(fineBMP, colIndex, (int) col.get(mostAccurateEdgeInCol), Color.WHITE, fineWidth, fineHeight);
+            int mostAccurateEdgeInCol = noOfEdgesInCol / 2;
+            int yToUse = (int)col.get(mostAccurateEdgeInCol);
+            // Have col hold only the edges we wont consider
             col.remove(mostAccurateEdgeInCol);
 
-            // Clear the unnecessary edges
-            for (Object y : col) {
-                //Log.d("Hi", "Thin out " + y + " from column " + colIndex);
-                // Change to red to see which edges were removed from thinning
-                ImageManipulation.colourArea(fineBMP, colIndex, (int) y, Color.BLACK, fineWidth, fineHeight);
-            }
+            //Log.d("Hi", "In column " + colIndex + " there are edges at " + col + ". Keep edge (" + colIndex + ", " + yToUse + ")");
+
+            if (!ImageToDetect.showEdgeOnly) {
+                // In this column, colour in the only edge we want as white, the rest as black
+                // ~Change to yellow to show the result of thinning more clearly~
+
+                ImageManipulation.colourArea(fineBMP, colIndex, yToUse,
+                        Color.WHITE, fineWidth, fineHeight);
+
+                for (Object y : col) {
+                    // ~Change to red to see which edges were removed from thinning~
+                    //Log.d("Hi", "Thin out " + y + " from column " + colIndex);
+                    ImageManipulation.colourArea(fineBMP, colIndex, (int) y, Color.BLACK, fineWidth, fineHeight);
+                }
+            } // No need to colour in fineBMP if we're only showing the horizon on the bitmap
+
+            return yToUse;
 
         } else {
-            Log.e("Hi", "No edges in column " + colIndex);
+            Log.d("Hi", "No edges in column " + colIndex);
+            return -1;
         }
-        // Keep track of the column number
-        return colIndex + fineWidth;
+    }
+
+    public static List<List<Integer>> thinBitmap(Bitmap fineBMP, List<List<Integer>> edgeCoords,
+                                  int fineWidth, int fineHeight, int fineWidthFromCentre)
+    {
+        // Start at the centre of the first point
+        int colIndex = fineWidthFromCentre;
+
+        // Go through each of the edge coords
+        for (int i = 0; i < edgeCoords.size(); i++) {
+            int yToUse = thinColumn(fineBMP, edgeCoords.get(i), colIndex, fineWidth, fineHeight);
+
+            if(ImageToDetect.showEdgeOnly) {
+                // Have each column hold the 1 edge (if exists) found through thinning
+                if (yToUse != -1) {
+                    edgeCoords.get(i).clear();
+                    edgeCoords.get(i).add(yToUse);
+                    //Log.d("Hi", "Col " + colIndex + " now only holds: " + edgeCoords.get(i));
+                } else {
+                    //Log.d("Hi", "Col " + colIndex + " didn't have any edges, make it null" );
+                    // No edges in column colIndex, make it null
+                    edgeCoords.get(i).clear();
+                }
+            }
+            colIndex += fineWidth;
+        }
+
+        return edgeCoords;
+    }
+
+    public static void colourFineBitmap(Bitmap bmp, List<List<Integer>> edgeCoords,
+                                    int width, int height, int widthFromCentre) {
+
+        for (int i = 0; i < edgeCoords.size(); i++)
+            for (int j = 0; j < edgeCoords.get(i).size(); j++)
+                // from x = widthFromCentre, then x = widthFrCe + width, until x = bmpwidth-
+                colourArea(bmp, i * width + widthFromCentre, edgeCoords.get(i).get(j),
+                        Color.YELLOW, width, height);
     }
 }

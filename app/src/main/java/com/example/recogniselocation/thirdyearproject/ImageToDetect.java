@@ -19,10 +19,11 @@ import java.util.List;
 
 public class ImageToDetect extends Activity {
 
-    public static boolean useCoarse = true;
-    public static boolean useThinning = false;
+    public static boolean showCoarse = false;    // Show results of the coarse or the fine?
+    public static boolean useThinning = true;  // Thin to have only one point per column?
+    public static boolean showEdgeOnly = true;  // Colour in just the edge, or all searched area?
+    public static boolean sdDetail = false;      // Want to draw SD and log info about standard deviation under "sd"?
 
-    boolean sdDetail = true;    // Want to draw SD and log info about standard deviation under "sd"?
     int distFromCentre;    //TODO: CHANGE THIS TO CHANGE THE SPEED/CLARITY
     public static List<List<Integer>> edgeCoords;
 
@@ -114,6 +115,7 @@ public class ImageToDetect extends Activity {
 
             // Get the original photo again, as we've coloured in the other bitmap we were using
             Bitmap fineBMP = bmp.copy(bmp.getConfig(), true);
+            Bitmap edgeBMP = null;
 
             int fineWidthFromCentre = fineBMP.getWidth() / 250; // 1 would make a mask of width 3, 2 would give width 5
             int fineWidth = fineWidthFromCentre * 2 + 1; // Total width of the fine mask
@@ -123,7 +125,7 @@ public class ImageToDetect extends Activity {
             boolean relevantEdge;
             edgeCoords = new ArrayList<>();
 
-            // Use a fine mask on the area found to be the horizon by the useCoarse mask
+            // Use a fine mask on the area found to be the horizon by the coarse mask
             for(int y = coarseSD.minRange + fineHeightFromCentre; y <= coarseSD.maxRange - fineHeightFromCentre; y+= fineHeight)
                 for (int x = fineWidthFromCentre; x < fineBMP.getWidth() - fineWidthFromCentre; x+= fineWidth) {
 
@@ -135,30 +137,40 @@ public class ImageToDetect extends Activity {
                     // Thresholds
                     int pointThreshold = bmp.getHeight() / 25; // The threshold to determine an edge for a point
                     int neighbThreshold = (int) (pointThreshold * 0.9); // A point that is neighbouring an edge's threshold
-                    Log.d("Hi", "Fine threshold of " + pointThreshold + ". Neighbouring threshold at " + neighbThreshold);
 
                     // Is this a edge?
                     relevantEdge = ImageManipulation.colourFineMaskPoint(fineBMP, x, y, fineWidth, fineHeight, pointThreshold, neighbThreshold);
                     if (relevantEdge) {
                         // This should hold the location of every edge found with the fine mask
-                        edgeCoords.get(x/fineWidth).add(y);
+                        edgeCoords.get((x-fineWidthFromCentre)/fineWidth).add(y);
                     }
                 }
 
             //// THINNING ////
+
             if (useThinning) {
-                int colIndex = fineWidthFromCentre;
-                for (List<Integer> col : edgeCoords) {
-                    colIndex = ImageManipulation.thinColumn(fineBMP, col, colIndex, fineWidth, fineHeight);
-                }
+                //Log.d("Hi", "Going to thin out edgeCoords: " + edgeCoords.toString());
+                // Unsure if finebmp and edgecoords get updated here
+                edgeCoords = ImageManipulation.thinBitmap(fineBMP, edgeCoords, fineWidth, fineHeight, fineWidthFromCentre);
+                //Log.d("Hi", "Have thinned out edgeCoords:  " + edgeCoords.toString());
+            }
+
+            if (showEdgeOnly) {
+                edgeBMP = bmp.copy(bmp.getConfig(), true);
+                ImageManipulation.colourFineBitmap(edgeBMP, edgeCoords,
+                        fineWidth, fineHeight, fineWidthFromCentre);
             }
 
 
 
-            if (useCoarse)
+            if (showCoarse)
                 imageButton.setImageBitmap(coarseBMP);
+            else if (edgeBMP != null && showEdgeOnly) {
+                Log.d("Hi", "Showing the edge on the button");
+                imageButton.setImageBitmap(edgeBMP);
+            }
             else
-                imageButton.setImageBitmap(fineBMP);
+            imageButton.setImageBitmap(fineBMP);
             Log.d("Hi", "Put the bitmap on the buttonImage");
 
         } else {
