@@ -19,6 +19,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.example.recogniselocation.thirdyearproject.MapsActivity.googleMap;
+import static com.example.recogniselocation.thirdyearproject.MapsActivity.noOfPaths;
+import static com.example.recogniselocation.thirdyearproject.MapsActivity.widthOfSearch;
 import static com.example.recogniselocation.thirdyearproject.MapsActivity.xPos;
 import static com.example.recogniselocation.thirdyearproject.MapsActivity.yPos;
 
@@ -29,7 +31,7 @@ import static com.example.recogniselocation.thirdyearproject.MapsActivity.yPos;
 public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
 
     private double yourElevation;
-    private List<Result> highPoints= new ArrayList<>(MapsActivity.noOfPaths);
+    private List<Result> highPoints= new ArrayList<>(noOfPaths);
     LineGraphSeries<DataPoint> series = new LineGraphSeries<>();
 
     protected List<String> doInBackground(String... urls) {
@@ -46,7 +48,7 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
             Log.d("Hi", "URL: " + url);
         }
 
-        List<String> responseList = new ArrayList<>(MapsActivity.noOfPaths);
+        List<String> responseList = new ArrayList<>(noOfPaths);
 
         String inputLine;
         HttpURLConnection con = null;
@@ -115,25 +117,48 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
             }
         }
 
+        /*
         Log.d("Hi", "Got all highest points:");
         for (Result highPoint : highPoints)
             Log.d("Hi", highPoint.toString());
+        */
 
-        findDifferenceBetweenPoints(highPoints);
+
+        findDifferenceBetweenPoints(highPoints, findClosestPoint(highPoints));
 
         plotPoints(googleMap, highPoints, xPos, yPos);
 
         // Draw the horizon
-        drawOnGraph(highPoints);
+        Log.d("Hi", "Distance between points is now " + findDistanceBetweenPlots(findClosestPoint(highPoints)));
+        drawOnGraph(highPoints, findDistanceBetweenPlots(findClosestPoint(highPoints)));
 
     }
 
-    private void findDifferenceBetweenPoints(List<Result> highPoints) {
-        double firstDistance = highPoints.get(0).getDistance();
-        double firstElevation = firstDistance * Math.tan(highPoints.get(0).getAngle());
+    private double findDistanceBetweenPlots(Result closestPoint) {
+        double step = widthOfSearch / (noOfPaths - 1);
+        // 111,111 is roughly maybe possibly the conversion of lon lat to metres
+        double distanceToFirstPeakInMetres = 111111 * closestPoint.getDistance();
+
+        return distanceToFirstPeakInMetres / Math.sin(Math.toRadians((180-step) / 2))
+                * Math.sin(Math.toRadians(step));
+    }
+
+    private Result findClosestPoint(List<Result> highPoints) {
+        Result closestPoint = highPoints.get(0);
+        for (Result point : highPoints) {
+            if (point.getDistance() < closestPoint.getDistance())
+                closestPoint = point;
+        }
+        Log.d("Hi", "Nearest point is " + closestPoint);
+        return closestPoint;
+    }
+
+    private void findDifferenceBetweenPoints(List<Result> highPoints, Result closestPoint) {
+        double closestDistance = closestPoint.getDistance();
+        double closestElevation = closestDistance * Math.tan(closestPoint.getAngle());
 
         for (Result highPoint : highPoints)
-            highPoint.setDifference(diffFromFirst(firstDistance, highPoint.getAngle(), firstElevation));
+            highPoint.setDifference(diffFromNearest(closestDistance, highPoint.getAngle(), closestElevation) + closestElevation);
     }
 
     private void findHighestVisiblePoint(Response results) {
@@ -179,10 +204,10 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
     private void plotPoints(GoogleMap map, List<Result> highPoints, double x, double y) {
         // Centre the camera around the middle of the points and your location
         double avLat = (x
-                + highPoints.get(MapsActivity.noOfPaths / 2).getLocation().getLat())
+                + highPoints.get(noOfPaths / 2).getLocation().getLat())
                 / 2;
         double avLng = (y
-                + highPoints.get(MapsActivity.noOfPaths / 2).getLocation().getLng())
+                + highPoints.get(noOfPaths / 2).getLocation().getLng())
                 / 2;
         MapsActivity.goToLocation(avLat, avLng, 12);
 
@@ -218,34 +243,34 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
 
             // Show a marker at each peak if there aren't many
             //  - Many markers looks cluttered
-            if (MapsActivity.noOfPaths <= 15)
+            if (noOfPaths <= 15)
                 addMarkerAt(MapsActivity.googleMap, highPoint.getLocation().getLat(), highPoint.getLocation().getLng());
 
         }
         MapsActivity.googleMap.addPolyline(polylineOptions);
     }
 
-    private double diffFromFirst(double comparisonDistance, double thisPeaksAngle, double firstElevation) {
+    private double diffFromNearest(double comparisonDistance, double thisPeaksAngle, double comparisonElevation) {
         // If this peak was at the distance of the first one, how big would it be?
         double perceivedElevation = comparisonDistance * Math.tan(thisPeaksAngle);
 
         //double perceivedElevation = thisPeaksDistance * Math.tan(comparisonAngle);
         Log.d("Hi", "Perceived height, got from a distance of " + comparisonDistance + " and an angle of " + thisPeaksAngle + " was calculated as " + perceivedElevation
-        + ". The first elevation is " + firstElevation + ", therefore, the difference is " + (perceivedElevation-firstElevation));
-        return perceivedElevation - firstElevation;
+        + ". The first elevation is " + comparisonElevation + ", therefore, the difference is " + (perceivedElevation-comparisonElevation));
+        return perceivedElevation - comparisonElevation;
     }
 
-    private void drawOnGraph(List<Result> points) {
-        double distanceBetweenPlots = 5;
-        int count = 0;
+    private void drawOnGraph(List<Result> points, double distanceBetweenPlots) {
+        int count = -1;
 
-        Log.d("Hi", "The first result should be at 0,0.. should it? Think about it");
         for (Result highPoint : points) {
-            double x = count++ * distanceBetweenPlots;
+            double x = ++count * distanceBetweenPlots;
             double y = highPoint.getDifference();
             Log.d("Hi", "Plotting at " + x + ", " + y);
             series.appendData(new DataPoint(x,y), true, points.size());
         }
+        MapsActivity.graph.getViewport().setXAxisBoundsManual(true);
+        MapsActivity.graph.getViewport().setMaxX(count * distanceBetweenPlots);
         MapsActivity.graph.addSeries(series);
     }
 }

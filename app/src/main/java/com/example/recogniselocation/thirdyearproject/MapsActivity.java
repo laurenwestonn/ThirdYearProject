@@ -26,8 +26,6 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.jjoe64.graphview.GraphView;
-import com.jjoe64.graphview.series.DataPoint;
-import com.jjoe64.graphview.series.LineGraphSeries;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -48,9 +46,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     //ToDo: Make these configurable
     public static int noOfPaths = 20;
-    public static int widthOfSearch = 135;
+    public static int widthOfSearch = 90;
     int noOfSamples = 20;
-    double lengthOfSearch = 0.1;  // radius of the search
+    public static double lengthOfSearch = 0.1;  // radius of the search
     double yourDirection = 60; // Due East anticlockwise
 
     @Override
@@ -68,6 +66,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
         graph = (GraphView) findViewById(R.id.graph);
+
         Button button = (Button) findViewById(R.id.button);
         textView = (TextView) findViewById(R.id.text);
 
@@ -94,7 +93,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     case 4: // Blencathra
                         xPos = 54.6486243;
                         yPos = -3.0915329;
-                        yourDirection = 240;
+                        yourDirection = 235;
                         break;
                     default:
                         // Save your co-ordinates
