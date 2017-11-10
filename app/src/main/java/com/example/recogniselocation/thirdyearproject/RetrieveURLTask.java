@@ -8,6 +8,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.gson.Gson;
+import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
@@ -17,6 +18,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static com.example.recogniselocation.thirdyearproject.MapsActivity.googleMap;
 import static com.example.recogniselocation.thirdyearproject.MapsActivity.noOfPaths;
@@ -30,6 +32,7 @@ import static com.example.recogniselocation.thirdyearproject.MapsActivity.yPos;
 
 public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
 
+    private static final int LONLAT_TO_METRES = 111111; // roughly
     private double yourElevation;
     private List<Result> highPoints= new ArrayList<>(noOfPaths);
     LineGraphSeries<DataPoint> series = new LineGraphSeries<>();
@@ -124,7 +127,7 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
         */
 
 
-        findDifferenceBetweenPoints(highPoints);
+        findDiffBetweenElevations(highPoints);
 
         plotPoints(googleMap, highPoints, xPos, yPos);
 
@@ -136,14 +139,13 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
 
     private double findDistanceBetweenPlots(Result comparisonPoint) {
         double step = widthOfSearch / (noOfPaths - 1);
-        // 111,111 is roughly maybe possibly the conversion of lon lat to metres
-        double distanceToFirstPeakInMetres = 111111 * comparisonPoint.getDistance();
+        double distanceToFirstPeakInMetres = comparisonPoint.getDistance();
 
         return distanceToFirstPeakInMetres / Math.sin(Math.toRadians((180-step) / 2))
                 * Math.sin(Math.toRadians(step));
     }
 
-    private void findDifferenceBetweenPoints(List<Result> highPoints) {
+    private void findDiffBetweenElevations(List<Result> highPoints) {
         double firstDistance = highPoints.get(0).getDistance();
         double firstElevation = firstDistance * Math.tan(highPoints.get(0).getAngle());
 
@@ -165,7 +167,8 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
         int loopCount = 1;
         for(Result r : results) {
             if (loopCount > 1) {    //We're comparing the first against the rest
-                double thisOnesDistance = 0.1 * loopCount / 10; //Fraction of path length we're at now
+                //Fraction of path length we're at now
+                double thisOnesDistance = (0.1 * LONLAT_TO_METRES) * loopCount / 10; // Rough conversion from lon lat to metres
                 double angleOfThisElevation = Math.atan(
                         (r.getElevation() - yourElevation) /
                                 thisOnesDistance);  // Distance of the first one away
@@ -252,15 +255,36 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
 
     private void drawOnGraph(List<Result> points, double distanceBetweenPlots) {
         int count = -1;
-
-        for (Result highPoint : points) {
-            double x = ++count * distanceBetweenPlots;
-            double y = highPoint.getDifference();
+        double x, y;
+        x = 0;
+        Result maxYPoint, minYPoint;
+        maxYPoint = minYPoint = points.get(0);
+        
+        for (Result point : points) {
+            x = ++count * distanceBetweenPlots;
+            y = point.getDifference();
             Log.d("Hi", "Plotting at " + x + ", " + y);
             series.appendData(new DataPoint(x,y), true, points.size());
+            
+            // Get max and min y coordinates so we can set y axis bounds
+            if (point.getDifference() > maxYPoint.getDifference())
+                maxYPoint = point;
+            else if (point.getDifference() < minYPoint.getDifference())
+                minYPoint = point;
         }
-        MapsActivity.graph.getViewport().setXAxisBoundsManual(true);
-        MapsActivity.graph.getViewport().setMaxX(count * distanceBetweenPlots);
+        
         MapsActivity.graph.addSeries(series);
+        setBounds(MapsActivity.graph,0,  x, minYPoint.getDifference(), maxYPoint.getDifference());
+    }
+
+    private void setBounds(GraphView graph, double minX, double maxX, double minY, double maxY) {
+        // Set bounds on the x axis
+        graph.getViewport().setXAxisBoundsManual(true);
+        graph.getViewport().setMinX(minX);
+        graph.getViewport().setMaxX(maxX);
+        // Set bounds on the y axis
+        graph.getViewport().setYAxisBoundsManual(true);
+        graph.getViewport().setMinY(minY);
+        graph.getViewport().setMaxY(maxY);
     }
 }

@@ -46,7 +46,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     //ToDo: Make these configurable
     public static int noOfPaths = 20;
-    public static int widthOfSearch = 90;
+    public static int widthOfSearch = 135;
     int noOfSamples = 20;
     public static double lengthOfSearch = 0.1;  // radius of the search
     double yourDirection = 60; // Due East anticlockwise
@@ -93,7 +93,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     case 4: // Blencathra
                         xPos = 54.6486243;
                         yPos = -3.0915329;
-                        yourDirection = 235;
+                        yourDirection = 215;
                         break;
                     default:
                         // Save your co-ordinates
