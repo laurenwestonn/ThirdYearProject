@@ -124,41 +124,31 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
         */
 
 
-        findDifferenceBetweenPoints(highPoints, findClosestPoint(highPoints));
+        findDifferenceBetweenPoints(highPoints);
 
         plotPoints(googleMap, highPoints, xPos, yPos);
 
         // Draw the horizon
-        Log.d("Hi", "Distance between points is now " + findDistanceBetweenPlots(findClosestPoint(highPoints)));
-        drawOnGraph(highPoints, findDistanceBetweenPlots(findClosestPoint(highPoints)));
+        Log.d("Hi", "Distance between points is now " + findDistanceBetweenPlots(highPoints.get(0)));
+        drawOnGraph(highPoints, findDistanceBetweenPlots(highPoints.get(0)));
 
     }
 
-    private double findDistanceBetweenPlots(Result closestPoint) {
+    private double findDistanceBetweenPlots(Result comparisonPoint) {
         double step = widthOfSearch / (noOfPaths - 1);
         // 111,111 is roughly maybe possibly the conversion of lon lat to metres
-        double distanceToFirstPeakInMetres = 111111 * closestPoint.getDistance();
+        double distanceToFirstPeakInMetres = 111111 * comparisonPoint.getDistance();
 
         return distanceToFirstPeakInMetres / Math.sin(Math.toRadians((180-step) / 2))
                 * Math.sin(Math.toRadians(step));
     }
 
-    private Result findClosestPoint(List<Result> highPoints) {
-        Result closestPoint = highPoints.get(0);
-        for (Result point : highPoints) {
-            if (point.getDistance() < closestPoint.getDistance())
-                closestPoint = point;
-        }
-        Log.d("Hi", "Nearest point is " + closestPoint);
-        return closestPoint;
-    }
-
-    private void findDifferenceBetweenPoints(List<Result> highPoints, Result closestPoint) {
-        double closestDistance = closestPoint.getDistance();
-        double closestElevation = closestDistance * Math.tan(closestPoint.getAngle());
+    private void findDifferenceBetweenPoints(List<Result> highPoints) {
+        double firstDistance = highPoints.get(0).getDistance();
+        double firstElevation = firstDistance * Math.tan(highPoints.get(0).getAngle());
 
         for (Result highPoint : highPoints)
-            highPoint.setDifference(diffFromNearest(closestDistance, highPoint.getAngle(), closestElevation) + closestElevation);
+            highPoint.setDifference(diffFromFirst(firstDistance, highPoint.getAngle(), firstElevation) + firstElevation);
     }
 
     private void findHighestVisiblePoint(Response results) {
@@ -250,7 +240,7 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
         MapsActivity.googleMap.addPolyline(polylineOptions);
     }
 
-    private double diffFromNearest(double comparisonDistance, double thisPeaksAngle, double comparisonElevation) {
+    private double diffFromFirst(double comparisonDistance, double thisPeaksAngle, double comparisonElevation) {
         // If this peak was at the distance of the first one, how big would it be?
         double perceivedElevation = comparisonDistance * Math.tan(thisPeaksAngle);
 
