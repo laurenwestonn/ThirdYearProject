@@ -68,7 +68,7 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
                     con.setRequestMethod("GET");
                     con.connect();
 
-                    //Todo: Check that I did get all 10 results
+                    //Todo: Check that I did get all 10 results!
 
                     // Build up the response in a string
                     StringBuilder response = new StringBuilder();
