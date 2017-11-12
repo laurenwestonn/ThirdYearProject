@@ -53,7 +53,7 @@
         </activity>
 
         <activity
-            android:name=".Map"
+            android:name=".MapFunctions"
             android:label="@string/title_map"
             android:screenOrientation="landscape">
         </activity>

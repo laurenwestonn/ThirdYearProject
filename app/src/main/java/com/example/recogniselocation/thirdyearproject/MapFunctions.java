@@ -17,13 +17,13 @@ import static com.example.recogniselocation.thirdyearproject.MapsActivity.widthO
  * Created by LaUrE on 12/11/2017.
  */
 
-public class Map extends Activity {
+public class MapFunctions extends Activity {
 
     public int Ltest = 1;
     private static final int LONLAT_TO_METRES = 111111; // roughly
 
     // Draw a line around the points, add a marker to where you are
-    public void plotPoints(GoogleMap map, List<Result> highPoints, double x, double y)
+    public static void plotPoints(GoogleMap map, List<Result> highPoints, double x, double y)
     {
         // Centre the camera around the middle of the points and your location
         double avLat = (x
@@ -41,7 +41,7 @@ public class Map extends Activity {
     }
 
     // Add marker to map at  x and y that says the string
-    public void addMarkerAt(GoogleMap map, double x, double y, String msg)
+    public static void addMarkerAt(GoogleMap map, double x, double y, String msg)
     {
         map.addMarker(new MarkerOptions()
                 .title(msg)
@@ -49,14 +49,14 @@ public class Map extends Activity {
     }
 
     // Add marker to map at  x and y with no message
-    public void addMarkerAt(GoogleMap map, double x, double y)
+    public static void addMarkerAt(GoogleMap map, double x, double y)
     {
         map.addMarker(new MarkerOptions()
                 .title("You are here!")
                 .position(new com.google.android.gms.maps.model.LatLng(x, y)));
     }
 
-    public void showVisiblePeaks(List<Result> highPoints)
+    public static void showVisiblePeaks(List<Result> highPoints)
     {
         PolylineOptions polylineOptions = new PolylineOptions();
         polylineOptions.color(Color.YELLOW);
@@ -76,7 +76,7 @@ public class Map extends Activity {
         MapsActivity.googleMap.addPolyline(polylineOptions);
     }
 
-    public double findDistanceBetweenPlots(Result comparisonPoint)
+    public static double findDistanceBetweenPlots(Result comparisonPoint)
     {
         double step = widthOfSearch / (noOfPaths - 1);
         double distanceToFirstPeakInMetres = comparisonPoint.getDistance();
@@ -85,7 +85,7 @@ public class Map extends Activity {
                 * Math.sin(Math.toRadians(step));
     }
 
-    private double diffFromFirst(double comparisonDistance, double thisPeaksAngle, double comparisonElevation)
+    private static double diffFromFirst(double comparisonDistance, double thisPeaksAngle, double comparisonElevation)
     {
         // If this peak was at the distance of the first one, how big would it be?
         double perceivedElevation = comparisonDistance * Math.tan(thisPeaksAngle);
@@ -96,7 +96,7 @@ public class Map extends Activity {
         return perceivedElevation - comparisonElevation;
     }
 
-    public void findDiffBetweenElevations(List<Result> highPoints)
+    public static void findDiffBetweenElevations(List<Result> highPoints)
     {
         double firstDistance = highPoints.get(0).getDistance();
         double firstElevation = firstDistance * Math.tan(highPoints.get(0).getAngle());

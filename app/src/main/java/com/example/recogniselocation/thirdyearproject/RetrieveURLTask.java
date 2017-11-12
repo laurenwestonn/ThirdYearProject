@@ -2,14 +2,9 @@ package com.example.recogniselocation.thirdyearproject;
 
 import android.app.Activity;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.os.AsyncTask;
-import android.support.v4.content.res.ResourcesCompat;
 import android.util.Log;
 
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.gson.Gson;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
@@ -21,11 +16,9 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static com.example.recogniselocation.thirdyearproject.MapsActivity.googleMap;
 import static com.example.recogniselocation.thirdyearproject.MapsActivity.noOfPaths;
-import static com.example.recogniselocation.thirdyearproject.MapsActivity.widthOfSearch;
 import static com.example.recogniselocation.thirdyearproject.MapsActivity.xPos;
 import static com.example.recogniselocation.thirdyearproject.MapsActivity.yPos;
 
@@ -123,7 +116,7 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
                             isFirstResponse = 0; // Treat the others differently, they are paths
                             yourElevation = results.getResults().get(0).getElevation();
                         } else
-                            Map.findHighestVisiblePoint(results, yourElevation, highPoints);
+                            MapFunctions.findHighestVisiblePoint(results, yourElevation, highPoints);
                     }
                 } catch(Exception e){
                     Log.d("Hi", "On post execute failure\n" + e);
@@ -138,20 +131,44 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
             Log.d("Hi", highPoint.toString());
         */
 
-        Map.findDiffBetweenElevations(highPoints);
+        MapFunctions.findDiffBetweenElevations(highPoints);
 
-        Map.plotPoints(googleMap, highPoints, xPos, yPos);
+        MapFunctions.plotPoints(googleMap, highPoints, xPos, yPos);
 
         // Draw the horizon
-        Log.d("Hi", "Distance between points is now " + Map.findDistanceBetweenPlots(highPoints.get(0)));
-        drawOnGraph(highPoints, Map.findDistanceBetweenPlots(highPoints.get(0)));
+        Log.d("Hi", "Distance between points is now " + MapFunctions.findDistanceBetweenPlots(highPoints.get(0)));
+        drawOnGraph(highPoints, MapFunctions.findDistanceBetweenPlots(highPoints.get(0)));
 
         EdgeDetection edgeDetection;
         List<List<Integer>> edgeCoords;
         edgeDetection = ImageToDetect.detectEdge(BitmapFactory.decodeResource(activity.getResources(), R.drawable.blencathra));
         edgeCoords = edgeDetection.coords;
 
-        Log.d("Hi", "Got edge coords " + edgeCoords.toString());
+
+        List<Integer> horizonCoords = seriesToList(series);
+        Log.d("Hi", "Flipped from " + series);
+        convertCoordSystem(horizonCoords);
+        Log.d("Hi", "to           " + series);
+    }
+
+    private List<Integer> convertCoordSystem(List<Integer> coords)
+    {
+        // From right up being positive to right down
+        // Flip the y coords
+
+        // Get max y
+        int maxY = 0;
+        for (Integer y : coords) {
+            if (y > maxY)
+                maxY = y;
+        }
+
+        // Now we know how wide the y axis can go Todo: does this work for negative values?
+        // we can convert the coordinate system
+        for (int i = 0; i < coords.size(); i++)
+            coords.set(i, maxY - coords.get(i));
+
+        return coords;
     }
 
     private void drawOnGraph(List<Result> points, double distanceBetweenPlots)
