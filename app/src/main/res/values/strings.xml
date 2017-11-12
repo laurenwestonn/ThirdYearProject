@@ -2,6 +2,7 @@
     <string name="app_name">Third Year Project</string>
     <string name="title_activity_maps">Map</string>
     <string name="title_image_to_detect">Image</string>
+    <string name="title_map">Map</string>
     <string name="image_button_description">Button with the horizon to detect on it</string>
 
 
