@@ -47,11 +47,13 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
         this.activity = a;
     }
 
-    protected List<String> doInBackground(String... urls) {
+    protected List<String> doInBackground(String... urls)
+    {
         return connectToURL(urls[0]);
     }
 
-    private List<String> connectToURL(String urls) {
+    private List<String> connectToURL(String urls)
+    {
         // As we appended "url," every time, we need to remove the last splitter
         urls = urls.substring(0, urls.length() - 1);
 
@@ -104,7 +106,8 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
         return responseList;
     }
 
-    protected void onPostExecute(List<String> responses) {
+    protected void onPostExecute(List<String> responses)
+    {
         int isFirstResponse = 1;
 
         for (String response : responses) {
@@ -145,10 +148,16 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
         Log.d("Hi", "Distance between points is now " + findDistanceBetweenPlots(highPoints.get(0)));
         drawOnGraph(highPoints, findDistanceBetweenPlots(highPoints.get(0)));
 
-        ImageToDetect.detectEdge(BitmapFactory.decodeResource(activity.getResources(), R.drawable.blencathra));
+        EdgeDetection edgeDetection;
+        List<List<Integer>> edgeCoords;
+        edgeDetection = ImageToDetect.detectEdge(BitmapFactory.decodeResource(activity.getResources(), R.drawable.blencathra));
+        edgeCoords = edgeDetection.coords;
+
+        Log.d("Hi", "Got edge coords " + edgeCoords.toString());
     }
 
-    private double findDistanceBetweenPlots(Result comparisonPoint) {
+    private double findDistanceBetweenPlots(Result comparisonPoint)
+    {
         double step = widthOfSearch / (noOfPaths - 1);
         double distanceToFirstPeakInMetres = comparisonPoint.getDistance();
 
@@ -156,7 +165,8 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
                 * Math.sin(Math.toRadians(step));
     }
 
-    private void findDiffBetweenElevations(List<Result> highPoints) {
+    private void findDiffBetweenElevations(List<Result> highPoints)
+    {
         double firstDistance = highPoints.get(0).getDistance();
         double firstElevation = firstDistance * Math.tan(highPoints.get(0).getAngle());
 
@@ -164,7 +174,8 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
             highPoint.setDifference(diffFromFirst(firstDistance, highPoint.getAngle(), firstElevation) + firstElevation);
     }
 
-    private void findHighestVisiblePoint(Response results) {
+    private void findHighestVisiblePoint(Response results)
+    {
         // Find the highest visible point
         double hiLat, hiLng, hiEl, hiDis;
         hiLat = hiLng = hiEl = hiDis = 0;
@@ -205,7 +216,8 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
     }
 
     // Draw a line around the points, add a marker to where you are
-    private void plotPoints(GoogleMap map, List<Result> highPoints, double x, double y) {
+    private void plotPoints(GoogleMap map, List<Result> highPoints, double x, double y)
+    {
         // Centre the camera around the middle of the points and your location
         double avLat = (x
                 + highPoints.get(noOfPaths / 2).getLocation().getLat())
@@ -222,20 +234,23 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
     }
 
     // Add marker to map at  x and y that says the string
-    private void addMarkerAt(GoogleMap map, double x, double y, String msg) {
+    private void addMarkerAt(GoogleMap map, double x, double y, String msg)
+    {
         map.addMarker(new MarkerOptions()
                 .title(msg)
                 .position(new com.google.android.gms.maps.model.LatLng(x, y)));
     }
 
     // Add marker to map at  x and y with no message
-    private void addMarkerAt(GoogleMap map, double x, double y) {
+    private void addMarkerAt(GoogleMap map, double x, double y)
+    {
         map.addMarker(new MarkerOptions()
                 .title("You are here!")
                 .position(new com.google.android.gms.maps.model.LatLng(x, y)));
     }
 
-    private void showVisiblePeaks(List<Result> highPoints) {
+    private void showVisiblePeaks(List<Result> highPoints)
+    {
         PolylineOptions polylineOptions = new PolylineOptions();
         polylineOptions.color(Color.YELLOW);
 
@@ -254,7 +269,8 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
         MapsActivity.googleMap.addPolyline(polylineOptions);
     }
 
-    private double diffFromFirst(double comparisonDistance, double thisPeaksAngle, double comparisonElevation) {
+    private double diffFromFirst(double comparisonDistance, double thisPeaksAngle, double comparisonElevation)
+    {
         // If this peak was at the distance of the first one, how big would it be?
         double perceivedElevation = comparisonDistance * Math.tan(thisPeaksAngle);
 
@@ -264,7 +280,8 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
         return perceivedElevation - comparisonElevation;
     }
 
-    private void drawOnGraph(List<Result> points, double distanceBetweenPlots) {
+    private void drawOnGraph(List<Result> points, double distanceBetweenPlots)
+    {
         int count = -1;
         double x, y;
         x = 0;
@@ -288,7 +305,8 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
         setBounds(MapsActivity.graph,0,  x, minYPoint.getDifference(), maxYPoint.getDifference());
     }
 
-    private void setBounds(GraphView graph, double minX, double maxX, double minY, double maxY) {
+    private void setBounds(GraphView graph, double minX, double maxX, double minY, double maxY)
+    {
         // Set bounds on the x axis
         graph.getViewport().setXAxisBoundsManual(true);
         graph.getViewport().setMinX(minX);

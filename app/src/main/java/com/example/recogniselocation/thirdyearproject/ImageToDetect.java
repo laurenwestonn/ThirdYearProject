@@ -34,16 +34,18 @@ public class ImageToDetect extends Activity {
 
     public void clickedImage(View view) {
         ImageButton imageButton = (ImageButton) view;
-        Bitmap bmp;
+        Bitmap bmp = ((BitmapDrawable)imageButton.getDrawable()).getBitmap();
+        EdgeDetection edgeDetection = null;
 
         // Get the image off the button as a bitmap
-        if ((bmp = ((BitmapDrawable)imageButton.getDrawable()).getBitmap()) != null)
-            bmp = detectEdge(bmp);
+        if (bmp != null)
+            edgeDetection = detectEdge(bmp);
 
-        ((ImageButton) view).setImageBitmap(bmp);
+        if (edgeDetection != null)
+            ((ImageButton) view).setImageBitmap(edgeDetection.bmp);
     }
 
-    public static Bitmap detectEdge(Bitmap bmp) {
+    public static EdgeDetection detectEdge(Bitmap bmp) {
         Log.d("Hi", "Going to detect the edge");
 
         // Copy it (mutable) into new bitmap, which will be used for the coarse mask
@@ -174,11 +176,11 @@ public class ImageToDetect extends Activity {
 
 
         if (showCoarse)
-            return coarseBMP;
+            return new EdgeDetection(edgeCoords, coarseBMP);
         else if (edgeBMP != null && showEdgeOnly)
-            return edgeBMP;
+            return new EdgeDetection(edgeCoords, edgeBMP);
         else
-            return fineBMP;
+            return new EdgeDetection(edgeCoords, fineBMP);
 
     }
 
