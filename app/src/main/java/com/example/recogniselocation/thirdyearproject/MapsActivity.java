@@ -243,7 +243,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         + "&samples=" + noOfSamples
                         + "&key=" + getString(R.string.google_maps_key) + "!";
             if (!urls.equals("")) {
-                new RetrieveURLTask().execute(urls);
+                new RetrieveURLTask(this).execute(urls);
             }
         } catch (Exception e) {
             Log.d("Hi", "Failed: " + e);

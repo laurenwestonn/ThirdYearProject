@@ -1,7 +1,10 @@
 package com.example.recogniselocation.thirdyearproject;
 
+import android.app.Activity;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.AsyncTask;
+import android.support.v4.content.res.ResourcesCompat;
 import android.util.Log;
 
 import com.google.android.gms.maps.GoogleMap;
@@ -36,6 +39,13 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
     private double yourElevation;
     private List<Result> highPoints= new ArrayList<>(noOfPaths);
     LineGraphSeries<DataPoint> series = new LineGraphSeries<>();
+
+    public Activity activity;
+
+    public RetrieveURLTask(Activity a)
+    {
+        this.activity = a;
+    }
 
     protected List<String> doInBackground(String... urls) {
         return connectToURL(urls[0]);
@@ -135,6 +145,7 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
         Log.d("Hi", "Distance between points is now " + findDistanceBetweenPlots(highPoints.get(0)));
         drawOnGraph(highPoints, findDistanceBetweenPlots(highPoints.get(0)));
 
+        ImageToDetect.detectEdge(BitmapFactory.decodeResource(activity.getResources(), R.drawable.blencathra));
     }
 
     private double findDistanceBetweenPlots(Result comparisonPoint) {
