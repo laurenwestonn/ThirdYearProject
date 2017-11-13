@@ -30,7 +30,6 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
 
     private double yourElevation;
     private List<Result> highPoints= new ArrayList<>(noOfPaths);
-    LineGraphSeries<DataPoint> series = new LineGraphSeries<>();
 
     public Activity activity;
 
@@ -101,7 +100,7 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
     protected void onPostExecute(List<String> responses)
     {
         int isFirstResponse = 1;
-
+        int loop = 1;
         for (String response : responses) {
             // If we got a response, parse it
             if (response != null) {
@@ -115,14 +114,19 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
                         if (isFirstResponse == 1) {
                             isFirstResponse = 0; // Treat the others differently, they are paths
                             yourElevation = results.getResults().get(0).getElevation();
-                        } else
+                        } else {
                             MapFunctions.findHighestVisiblePoint(results, yourElevation, highPoints);
+                        }
+                    } else {
+                        Log.e("Hi", "Results didn't come back correctly for " + loop);
                     }
                 } catch(Exception e){
-                    Log.d("Hi", "On post execute failure\n" + e);
+                    Log.e("Hi", "On post execute failure\n" + e);
                 }
-
+            } else {
+                Log.e("Hi", "Response " + loop + " was null");
             }
+            loop++;
         }
 
         /*
@@ -137,18 +141,17 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
 
         // Draw the horizon
         Log.d("Hi", "Distance between points is now " + MapFunctions.findDistanceBetweenPlots(highPoints.get(0)));
-        drawOnGraph(highPoints, MapFunctions.findDistanceBetweenPlots(highPoints.get(0)));
+        List<Integer> horizonCoords = new ArrayList<>();
+        drawOnGraph(highPoints, MapFunctions.findDistanceBetweenPlots(highPoints.get(0)), horizonCoords);
 
         EdgeDetection edgeDetection;
         List<List<Integer>> edgeCoords;
         edgeDetection = ImageToDetect.detectEdge(BitmapFactory.decodeResource(activity.getResources(), R.drawable.blencathra));
         edgeCoords = edgeDetection.coords;
 
-
-        List<Integer> horizonCoords = seriesToList(series);
-        Log.d("Hi", "Flipped from " + series);
-        convertCoordSystem(horizonCoords);
-        Log.d("Hi", "to           " + series);
+        Log.d("Hi", "Flipped from " + horizonCoords);
+        horizonCoords = convertCoordSystem(horizonCoords);
+        Log.d("Hi", "to           " + horizonCoords);
     }
 
     private List<Integer> convertCoordSystem(List<Integer> coords)
@@ -171,29 +174,25 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
         return coords;
     }
 
-    private void drawOnGraph(List<Result> points, double distanceBetweenPlots)
+    private void drawOnGraph(List<Result> points, double distanceBetweenPlots, List<Integer> horizonCoords)
     {
+        LineGraphSeries<DataPoint> series = new LineGraphSeries<>();
         int count = -1;
         double x, y;
         x = 0;
-        Result maxYPoint, minYPoint;
-        maxYPoint = minYPoint = points.get(0);
         
         for (Result point : points) {
             x = ++count * distanceBetweenPlots;
             y = point.getDifference();
+
+            horizonCoords.add((int)y);
+
             Log.d("Hi", "Plotting at " + x + ", " + y);
             series.appendData(new DataPoint(x,y), true, points.size());
-            
-            // Get max and min y coordinates so we can set y axis bounds
-            if (point.getDifference() > maxYPoint.getDifference())
-                maxYPoint = point;
-            else if (point.getDifference() < minYPoint.getDifference())
-                minYPoint = point;
         }
         
         MapsActivity.graph.addSeries(series);
-        setBounds(MapsActivity.graph,0,  x, minYPoint.getDifference(), maxYPoint.getDifference());
+        setBounds(MapsActivity.graph,0,  x, series.getLowestValueY(), series.getHighestValueY());
     }
 
     private void setBounds(GraphView graph, double minX, double maxX, double minY, double maxY)

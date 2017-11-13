@@ -91,8 +91,7 @@ public class MapFunctions extends Activity {
         double perceivedElevation = comparisonDistance * Math.tan(thisPeaksAngle);
 
         //double perceivedElevation = thisPeaksDistance * Math.tan(comparisonAngle);
-        Log.d("Hi", "Perceived height, got from a distance of " + comparisonDistance + " and an angle of " + thisPeaksAngle + " was calculated as " + perceivedElevation
-                + ". The first elevation is " + comparisonElevation + ", therefore, the difference is " + (perceivedElevation-comparisonElevation));
+        Log.d("Hi", "Perceived height, got from a distance of " + comparisonDistance + " and an angle of " + thisPeaksAngle + " was calculated as " + perceivedElevation);
         return perceivedElevation - comparisonElevation;
     }
 
@@ -110,39 +109,37 @@ public class MapFunctions extends Activity {
         // Find the highest visible point
         double hiLat, hiLng, hiEl, hiDis;
         hiLat = hiLng = hiEl = hiDis = 0;
-        // Say that the current highest is the first, compare with the rest
-        double currentHighestAng = Math.atan(
-                (results.getResults().get(0).getElevation() - yourElevation) /    // First one away
-                        0.1 * (1.0 / 10.0));                                // from you, i.e. step
 
+        // Initial 'highest' value is small so that it will get overridden
+        double currentHighestAng = 0;
 
         // Go through each result to see if you can see any that are higher
         int loopCount = 1;
         for(Result r : results) {
-            if (loopCount > 1) {    //We're comparing the first against the rest
-                //Fraction of path length we're at now
-                double thisOnesDistance = (0.1 * LONLAT_TO_METRES) * loopCount / 10; // Rough conversion from lon lat to metres
-                double angleOfThisElevation = Math.atan(
-                        (r.getElevation() - yourElevation) /
-                                thisOnesDistance);  // Distance of the first one away
-                // from you, i.e. step
-                if (angleOfThisElevation > currentHighestAng) {
-                    hiEl = r.getElevation() - yourElevation;
-                    hiLat = r.getLocation().getLat();
-                    hiLng = r.getLocation().getLng();
-                    hiDis = thisOnesDistance;
-                    currentHighestAng = angleOfThisElevation;   //ToDo: do I need to set all these?
-                }
+            //Fraction of path length we're at now
+            double thisOnesDistance = (MapsActivity.lengthOfSearch * LONLAT_TO_METRES) * loopCount / MapsActivity.noOfSamples;
+            double angleOfThisElevation = Math.atan(
+                    (r.getElevation() - yourElevation) / thisOnesDistance);  // Distance of the first one away
+            // from you, i.e. step
+            if (angleOfThisElevation > currentHighestAng) {
+                hiLat = r.getLocation().getLat();
+                hiLng = r.getLocation().getLng();
+                hiEl = r.getElevation() - yourElevation;
+                hiDis = thisOnesDistance;
+                currentHighestAng = angleOfThisElevation;
             }
             loopCount++;
         }
-        if (hiDis != 0) { // If we found a highest visible peak
+        double highestAngle = currentHighestAng;
+        if (highestAngle != 0) { // If we found a highest visible peak
             highPoints.add(new Result(
                     new LatLng(hiLat, hiLng),
                     hiEl,
                     hiDis,
-                    currentHighestAng,
+                    highestAngle,
                     0));
+        } else {
+            Log.e("Hi", "Didn't find a high point, don't add to highPoints");
         }
     }
 }

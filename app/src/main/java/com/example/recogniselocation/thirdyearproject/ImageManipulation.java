@@ -314,7 +314,7 @@ public class ImageManipulation {
             return yToUse;
 
         } else {
-            Log.d("Hi", "No edges in column " + colIndex);
+            //Log.d("Hi", "No edges in column " + colIndex);
             return -1;
         }
     }
