@@ -25,6 +25,8 @@ public class ImageToDetect extends Activity {
     public static boolean sdDetail = false;      // Want to draw SD and log info about standard deviation under "sd"?
 
     public static List<List<Integer>> edgeCoords;
+    public static int fineWidthFromCentre;
+    public static int fineWidth;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -126,8 +128,8 @@ public class ImageToDetect extends Activity {
         // Get a copy of the original photo to use the fine mask on
         Bitmap fineBMP = bmp.copy(bmp.getConfig(), true);
 
-        int fineWidthFromCentre = fineBMP.getWidth() / 250; // 1 would make a mask of width 3, 2 would give width 5
-        int fineWidth = fineWidthFromCentre * 2 + 1; // Total width of the fine mask
+        fineWidthFromCentre = fineBMP.getWidth() / 250; // 1 would make a mask of width 3, 2 would give width 5
+        fineWidth = fineWidthFromCentre * 2 + 1; // Total width of the fine mask
         int fineHeightFromCentre = fineBMP.getHeight() / 200;
         int fineHeight = fineHeightFromCentre * 2 + 1; // Total height of the fine mask
 
