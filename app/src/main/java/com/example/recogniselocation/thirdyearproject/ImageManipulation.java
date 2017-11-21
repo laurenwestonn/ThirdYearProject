@@ -36,7 +36,7 @@ public class ImageManipulation {
     private static int getCoarseEdgeness(Bitmap bmp, int i, int j, int d) {
         int top, bottom;
         try {
-            top = Color.blue(bmp.getPixel(i - d / 3, j - d)) //ToDo: get rid of these darn plus ones
+            top = Color.blue(bmp.getPixel(i - d / 3, j - d))
                     + Color.blue(bmp.getPixel(i + 0, j - d)) * 2
                     + Color.blue(bmp.getPixel(i + d / 3, j - d))
 

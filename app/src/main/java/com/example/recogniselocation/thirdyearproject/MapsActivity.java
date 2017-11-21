@@ -29,6 +29,7 @@ import com.jjoe64.graphview.GraphView;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
@@ -54,6 +55,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // just testing new method
+        Log.d("Hi", HorizonMatching.findMaximaMinima(Arrays.asList(1,2,3,4,5,5,5,2,1), 1, 3).toString());
 
         if (googleServicesAvailable()) {
             Toast.makeText(this, "Connected to google services", Toast.LENGTH_LONG).show();
