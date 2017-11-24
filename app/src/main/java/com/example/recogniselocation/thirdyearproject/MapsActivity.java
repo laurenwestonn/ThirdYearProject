@@ -56,8 +56,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // just testing new method
-        Log.d("Hi", HorizonMatching.findMaximaMinima(Arrays.asList(1,2,3,4,5,5,5,2,1), 1, 3).toString());
+
+/*      Uncomment to test finding maxima/minima
+        Log.d("Hi", HorizonMatching.findMaximaMinima(Arrays.asList(1,1,2,1), 0, 2).toString());
+        Log.d("Hi", HorizonMatching.findMaximaMinima(Arrays.asList(2,1,2,2), 0, 2).toString());
+        Log.d("Hi", HorizonMatching.findMaximaMinima(Arrays.asList(2,1,1,2), 0, 2).toString());
+        Log.d("Hi", HorizonMatching.findMaximaMinima(Arrays.asList(1,1,2,2,1,1,2,3,2,1), 0, 2).toString());
+*/
 
         if (googleServicesAvailable()) {
             Toast.makeText(this, "Connected to google services", Toast.LENGTH_LONG).show();
