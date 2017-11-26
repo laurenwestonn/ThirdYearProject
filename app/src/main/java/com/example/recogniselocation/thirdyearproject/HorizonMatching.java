@@ -20,12 +20,11 @@ public class HorizonMatching {
         List<Point> elevationMMs = findMaximaMinima(elevationCoords, 20, 50);
 
         // Find best minima maxima pair for the photo - i.e. the biggest difference in height
-        // If the first in the photo is a maxima, the first two in photoMM will hold max and min
-        // If first in photo is minima, the first will be null, the next two will be min then max
+        // If the first in photo is a maxima, the first two in photoMM will hold max then min
+        // If first in photo is minima, first index will be null, next two will be min then max
         List<Point> photoMM = findBestMaximaMinima(photoMMs);
 
         for (int i = 0; i < elevationMMs.size() - 1; i += 2) {
-
             // Store this elevation maxima minima pair into elevationMM
             // As with the photoMM, this could hold 2 or three values
             List<Point> elevationMM = new ArrayList<>();
@@ -56,6 +55,35 @@ public class HorizonMatching {
         // Find the best matched up set, mark on the map
 
 
+    }
+
+    // maximasMinimas is a list of the positions of maximas and minimas
+    // Even indexes represent maximum points, odd; minimas
+    // The 'best' is the greatest difference in height
+    private List<Point> findBestMaximaMinima(List<Point> maximasMinimas)
+    {
+        List<Point> bestMaximaMinima = new ArrayList<>();
+
+        double maxYDiff, thisYDiff;
+        maxYDiff = -1;  // Low number so it gets updated by any height
+        int bestIndex = -1;
+        int i = (maximasMinimas.get(0) == null) ? 1 : 0; // skip null index
+
+        // For each pair of max-min / min-max find the greatest difference in height
+        for (; i < maximasMinimas.size() - 1; i += 2) {
+            if ((thisYDiff = Math.abs(maximasMinimas.get(i).getY() - maximasMinimas.get(i+1).getY())) > maxYDiff) {
+                maxYDiff = thisYDiff;
+                bestIndex = i;
+            }
+        }
+
+        if (maximasMinimas.get(0) == null)
+            maximasMinimas.add(null);   // Pad out first position, as starts with min
+
+        bestMaximaMinima.add(maximasMinimas.get(bestIndex));
+        bestMaximaMinima.add(maximasMinimas.get(bestIndex+1));
+
+        return bestMaximaMinima;
     }
 
     // Gets the average difference in y between the next 'width' coords
