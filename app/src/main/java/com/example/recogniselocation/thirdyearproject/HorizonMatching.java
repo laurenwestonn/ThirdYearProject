@@ -2,6 +2,8 @@ package com.example.recogniselocation.thirdyearproject;
 
 import android.util.Log;
 
+import com.jjoe64.graphview.series.OnDataPointTapListener;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,25 +13,75 @@ import java.util.List;
 
 public class HorizonMatching {
 
+    void matchUpHorizons(List<Integer> photoCoords, List<Integer> elevationCoords)
+    {
+        // Find all minimas and maximas of both horizons
+        List<Point> photoMMs = findMaximaMinima(photoCoords,20, 50);
+        List<Point> elevationMMs = findMaximaMinima(elevationCoords, 20, 50);
+
+        // Find best minima maxima pair for the photo - i.e. the biggest difference in height
+        // If the first in the photo is a maxima, the first two in photoMM will hold max and min
+        // If first in photo is minima, the first will be null, the next two will be min then max
+        List<Point> photoMM = findBestMaximaMinima(photoMMs);
+
+        for (int i = 0; i < elevationMMs.size() - 1; i += 2) {
+
+            // Store this elevation maxima minima pair into elevationMM
+            // As with the photoMM, this could hold 2 or three values
+            List<Point> elevationMM = new ArrayList<>();
+            if (i == 0 && photoMM.size() == 2) { // Find elevation's first maxima, then minima
+                // Elevation's first max is from index 0 unless the elevations started with
+                // a minima
+                if (elevationMMs.get(0) == null)
+                    i = 2;
+
+            } else if (i == 0 && photoMM.size() == 3) { // Find elevation's first minima, then maxima
+                i = 1;                  // Start at the first min
+                elevationMM.add(null);  // 'null' the first even index as it represents maxima
+            }
+
+            elevationMM.add(elevationMMs.get(i));       // add the first max/min
+            elevationMM.add(elevationMMs.get(i + 1));   // add the first min/max after the max/min
+
+
+            // Transform the photo coords to match each
+            transformCoords(photoMM, elevationMM, photoCoords);
+                // Find scale value
+                // Find translation value
+                // Transform each of the photo coords
+
+            // Find difference in y between the same x coords of both horizons
+        }
+
+        // Find the best matched up set, mark on the map
+
+
+    }
+
     // Gets the average difference in y between the next 'width' coords
     private static int gradientAhead(List<Integer> coords, int startingIndex, int width)
     {
         if (startingIndex + width - 1 > coords.size())
             Log.e("Hi", "Wont be able to access " + width + " spaces from index " +
-                    startingIndex + " when the width of the coords is " + coords.size());
+                    startingIndex + " when there are " + coords.size() + " coords");
 
         int sum = 0;
         for (int count = 0; count < width - 1; count++) {
-            Log.d("gradient", "Diff between " + coords.get(startingIndex+1+count) + " and "
-                    + coords.get(startingIndex+count) + " is "
-                    + (coords.get(startingIndex + 1+count) - coords.get(startingIndex+count)));
-            sum +=  coords.get(startingIndex + 1 + count) - coords.get(startingIndex + count);
+            int thisY = coords.get(startingIndex + count);
+            int nextY = coords.get(startingIndex + count + 1);
+
+            Log.d("gradient", "Diff in height between "
+                    + nextY + " and " + thisY + " is "
+                    + (nextY - thisY));
+
+            sum +=  nextY - thisY;
         }
         return sum;
     }
 
     // Maxima in even numbers, Minima in odd
-    public static List<Point> findMaximaMinima(List<Integer> coords, int noiseThreshold, int searchWidth) {
+    public static List<Point> findMaximaMinima(List<Integer> coords, int noiseThreshold,
+                                               int searchWidth) {
         int x = 0;
         int nextGradient = 99999;
         List<Point> maxMin = new ArrayList<>();
@@ -110,7 +162,7 @@ public class HorizonMatching {
 
     private static boolean addAnyMaximaMinima(List<Integer> coords, int xOfMaxOrMin, List<Point> maxMin, boolean wereGoingUp, int nextGradient)
     {
-                                                        //  MAXIMA   _______
+        //  MAXIMA   _______
         if (wereGoingUp && nextGradient > 0) {          //          /       \
             Log.d("gradient", "Maxima found at " + xOfMaxOrMin + ", " + coords.get(xOfMaxOrMin));
             wereGoingUp = !wereGoingUp; // Bug fix to avoid adding duplicate pointy points
@@ -121,7 +173,7 @@ public class HorizonMatching {
 
             maxMin.add(new Point(xOfMaxOrMin, coords.get(xOfMaxOrMin)));
 
-                                                            //  MINIMA
+            //  MINIMA
         } else if (!wereGoingUp && nextGradient < 0) {      //          \_______/
             Log.d("gradient", "Minima found at " + xOfMaxOrMin + ", " + coords.get(xOfMaxOrMin));
             wereGoingUp = !wereGoingUp; // Bug fix to avoid adding duplicate pointy points
@@ -132,7 +184,7 @@ public class HorizonMatching {
 
             maxMin.add(new Point(xOfMaxOrMin, coords.get(xOfMaxOrMin)));
 
-                            // \_____   or    _____/
+            // \_____   or    _____/
         } else              //       \       /
             Log.d("gradient", "The gradient after is " + nextGradient
                     +  " which doesn't make a max or min considering that before,"
