@@ -65,6 +65,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         Log.d("Hi", HorizonMatching.findMaximaMinima(Arrays.asList(1,1,2,2,1,1,2,3,2,1), 0, 2).toString());
 */
 
+        HorizonMatching.matchUpHorizons(Arrays.asList(1,1,2,2,1,1,2,3,2,1),Arrays.asList(1,1,2,2,1,1,2,3,2,1));
+
 
         if (googleServicesAvailable()) {
             Toast.makeText(this, "Connected to google services", Toast.LENGTH_LONG).show();

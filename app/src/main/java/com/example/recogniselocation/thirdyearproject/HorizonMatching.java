@@ -7,34 +7,44 @@ import com.jjoe64.graphview.series.OnDataPointTapListener;
 import java.util.ArrayList;
 import java.util.List;
 
+import static android.content.ContentValues.TAG;
+
 /**
  * Created by LaUrE on 21/11/2017.
  */
 
 public class HorizonMatching {
 
-    void matchUpHorizons(List<Integer> photoCoords, List<Integer> elevationCoords)
+    static void matchUpHorizons(List<Integer> photoCoords, List<Integer> elevationCoords)
     {
         // Find all minimas and maximas of both horizons
-        List<Point> photoMMs = findMaximaMinima(photoCoords,20, 50);
-        List<Point> elevationMMs = findMaximaMinima(elevationCoords, 20, 50);
+        List<Point> photoMMs = findMaximaMinima(photoCoords,0, 2);
+        List<Point> elevationMMs = findMaximaMinima(elevationCoords, 0, 2);
+
+        Log.d(TAG, "matchUpHorizons: photo max mins" + photoMMs);
+        Log.d(TAG, "matchUpHorizons: eleva max mins" + elevationMMs);
 
         // Find best minima maxima pair for the photo - i.e. the biggest difference in height
         // If the first in photo is a maxima, the first two in photoMM will hold max then min
         // If first in photo is minima, first index will be null, next two will be min then max
         List<Point> photoMM = findBestMaximaMinima(photoMMs);
 
+        Log.d("matching", "Best maxima minima of " + photoMMs + "is ");
+        Log.d("matching",  "" + photoMM);
+
+        // Go through each maxima minima pair from the elevations
         for (int i = 0; i < elevationMMs.size() - 1; i += 2) {
             // Store this elevation maxima minima pair into elevationMM
             // As with the photoMM, this could hold 2 or three values
             List<Point> elevationMM = new ArrayList<>();
-            if (i == 0 && photoMM.size() == 2) { // Find elevation's first maxima, then minima
+
+            if (i == 0 && photoMM.size() == 2) { // From the photo we found a maxima then minima
                 // Elevation's first max is from index 0 unless the elevations started with
                 // a minima
                 if (elevationMMs.get(0) == null)
                     i = 2;
 
-            } else if (i == 0 && photoMM.size() == 3) { // Find elevation's first minima, then maxima
+            } else if (i == 0 && photoMM.size() == 3) { // Photo had a minima then maxima
                 i = 1;                  // Start at the first min
                 elevationMM.add(null);  // 'null' the first even index as it represents maxima
             }
@@ -42,9 +52,10 @@ public class HorizonMatching {
             elevationMM.add(elevationMMs.get(i));       // add the first max/min
             elevationMM.add(elevationMMs.get(i + 1));   // add the first min/max after the max/min
 
+            Log.d("matching", "Checking elevation max min " + elevationMM);
 
             // Transform the photo coords to match each
-            transformCoords(photoMM, elevationMM, photoCoords);
+            //transformCoords(photoMM, elevationMM, photoCoords);
                 // Find scale value
                 // Find translation value
                 // Transform each of the photo coords
@@ -60,7 +71,7 @@ public class HorizonMatching {
     // maximasMinimas is a list of the positions of maximas and minimas
     // Even indexes represent maximum points, odd; minimas
     // The 'best' is the greatest difference in height
-    private List<Point> findBestMaximaMinima(List<Point> maximasMinimas)
+    private static List<Point> findBestMaximaMinima(List<Point> maximasMinimas)
     {
         List<Point> bestMaximaMinima = new ArrayList<>();
 
@@ -70,15 +81,19 @@ public class HorizonMatching {
         int i = (maximasMinimas.get(0) == null) ? 1 : 0; // skip null index
 
         // For each pair of max-min / min-max find the greatest difference in height
-        for (; i < maximasMinimas.size() - 1; i += 2) {
+        for (; i < maximasMinimas.size() - 1; i++) {
+            Log.d(TAG, "findBestMaximaMinima: Checking pair " + maximasMinimas.get(i)
+                                                            + " and " + maximasMinimas.get(i+1));
             if ((thisYDiff = Math.abs(maximasMinimas.get(i).getY() - maximasMinimas.get(i+1).getY())) > maxYDiff) {
+                Log.d(TAG, "findBestMaximaMinima: Yes this difference (" + thisYDiff + ") is bigger than our current max difference " + maxYDiff);
                 maxYDiff = thisYDiff;
                 bestIndex = i;
             }
         }
 
-        if (maximasMinimas.get(0) == null)
-            maximasMinimas.add(null);   // Pad out first position, as starts with min
+        // If the best index is of a minima, pad out the first even index of the result
+        if (bestIndex % 2 == 1)
+            bestMaximaMinima.add(null);
 
         bestMaximaMinima.add(maximasMinimas.get(bestIndex));
         bestMaximaMinima.add(maximasMinimas.get(bestIndex+1));
@@ -114,7 +129,6 @@ public class HorizonMatching {
         int nextGradient = 99999;
         List<Point> maxMin = new ArrayList<>();
         boolean wereGoingUp = true;    //  Whether the hill is heading up or down. Updated.
-
 
         while ((x + searchWidth - 1) < coords.size()) {
             Log.d("gradient", " ");
