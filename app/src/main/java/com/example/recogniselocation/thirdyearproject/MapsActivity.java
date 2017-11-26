@@ -64,8 +64,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         Log.d("Hi", HorizonMatching.findMaximaMinima(Arrays.asList(2,1,1,2), 0, 2).toString());
         Log.d("Hi", HorizonMatching.findMaximaMinima(Arrays.asList(1,1,2,2,1,1,2,3,2,1), 0, 2).toString());
 */
-
-        HorizonMatching.matchUpHorizons(Arrays.asList(1,1,2,2,1,1,2,3,2,1),Arrays.asList(1,1,2,2,1,1,2,3,2,1));
+        // Uncomment to test matching up two horizons
+/*
+        HorizonMatching.matchUpHorizons(Arrays.asList(1,1,2,2,1,1,2,3,2,1),Arrays.asList(1,1,2,2,1,1,2,4,2,1));
+        HorizonMatching.matchUpHorizons(Arrays.asList(1,1,2,2,1,1,2,3,2,1),Arrays.asList(1,2,2,2,1,1,2,3,2,1));
+*/
 
 
         if (googleServicesAvailable()) {

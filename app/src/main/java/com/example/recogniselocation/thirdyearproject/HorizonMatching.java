@@ -55,10 +55,7 @@ public class HorizonMatching {
             Log.d("matching", "Checking elevation max min " + elevationMM);
 
             // Transform the photo coords to match each
-            //transformCoords(photoMM, elevationMM, photoCoords);
-                // Find scale value
-                // Find translation value
-                // Transform each of the photo coords
+            howWellMatched(photoMM, elevationMM, photoCoords, elevationCoords);
 
             // Find difference in y between the same x coords of both horizons
         }
@@ -66,6 +63,46 @@ public class HorizonMatching {
         // Find the best matched up set, mark on the map
 
 
+    }
+
+    // Transforms coordinate system so that transformMM matches with baseMM
+    private static double howWellMatched(List<Point> transformMM, List<Point> baseMM, List<Integer> transformCoords, List<Integer> baseCoords)
+    {
+        double scaleX, scaleY, translateX, translateY;
+
+        // Start from index 1 if this is a minima - maxima pair
+        int i = (baseMM.get(0) == null) ? 1 : 0;
+
+        /////////////SCALE//////////////
+        scaleX = (baseMM.get(i).getX() - baseMM.get(i+1).getX())
+                / (transformMM.get(i).getX() - transformMM.get(i+1).getX());
+        scaleY = (baseMM.get(i).getY() - baseMM.get(i+1).getY())
+                / (transformMM.get(i).getY() - transformMM.get(i+1).getY());
+
+        ///////////TRANSLATE///////////
+        translateX = baseMM.get(i).getX() - transformMM.get(i).getX() * scaleX;
+        translateY = baseMM.get(i).getY() - transformMM.get(i).getY() * scaleY;
+
+
+        Log.d("matching", "Scale x by " + scaleX + " and translate by " + translateX);
+        Log.d("matching", "Scale y by " + scaleY + " and translate by " + translateY);
+
+        double diffSum = 0;
+
+        for (i = 0; i < transformCoords.size(); i++) {
+            double tX = i * scaleX + translateX;
+            double tY = transformCoords.get(i) * scaleY + translateY;
+
+            // Assuming this value is within the elevation coordinates
+
+            // Find the difference between this y and the y of the relevant base coordinates
+            diffSum += Math.abs(baseCoords.get((int)tX) - tY);
+            Log.d(TAG, "howWellMatched: " + i + ": Diff between " + baseCoords.get((int)tX) + " and " + tY +  " is " + Math.abs(baseCoords.get((int)tX) - tY));
+        }
+
+        Log.d("matching", "howWellMatched: Difference of " + diffSum);
+
+        return diffSum;
     }
 
     // maximasMinimas is a list of the positions of maximas and minimas
