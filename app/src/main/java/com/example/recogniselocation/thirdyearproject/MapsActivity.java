@@ -70,7 +70,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         HorizonMatching.matchUpHorizons(Arrays.asList(1,1,2,2,1,1,2,3,2,1),Arrays.asList(1,2,2,2,1,1,2,3,2,1));
 */
 
-
         if (googleServicesAvailable()) {
             Toast.makeText(this, "Connected to google services", Toast.LENGTH_LONG).show();
             setContentView(R.layout.activity_maps);
@@ -151,18 +150,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onClick(View v) {
                 Log.d("hi", "Button was clicked. Check permissions");
 
-                if (ActivityCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)
-                        != PackageManager.PERMISSION_GRANTED
-                        && ActivityCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION)
-                        != PackageManager.PERMISSION_GRANTED) {
-                    requestPermissions(new String[] {
+                int ALLOWED = PackageManager.PERMISSION_GRANTED;
+
+                if (ActivityCompat.checkSelfPermission(MapsActivity.this,
+                        Manifest.permission.ACCESS_FINE_LOCATION) == ALLOWED
+                        && ActivityCompat.checkSelfPermission(MapsActivity.this,
+                        Manifest.permission.ACCESS_COARSE_LOCATION) == ALLOWED )
+                    locationManager.requestLocationUpdates("gps", 1000, 5, locationListener); // It's this that takes ages
+                else
+                    ActivityCompat.requestPermissions(MapsActivity.this, new String[] {
                             Manifest.permission.ACCESS_FINE_LOCATION,
                             Manifest.permission.ACCESS_COARSE_LOCATION,
                             Manifest.permission.INTERNET
                     }, 10);
-                } else {
-                    locationManager.requestLocationUpdates("gps", 1000, 5, locationListener); // It's this that takes ages
-                }
             }
         });
     }
@@ -192,17 +192,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     public void loadLocation() {
-        if (ActivityCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(MapsActivity.this,
+                Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(MapsActivity.this,
+                Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            locationManager.requestLocationUpdates("gps", 0, 10, locationListener);
+        } else {
             requestPermissions(new String[] {
                     Manifest.permission.ACCESS_FINE_LOCATION,
                     Manifest.permission.ACCESS_COARSE_LOCATION,
                     Manifest.permission.INTERNET
             }, 10);
-        } else {
-            locationManager.requestLocationUpdates("gps", 0, 10, locationListener);
         }
     }
 
@@ -215,8 +215,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 else
                     requestPermissions(new String[] {
                             Manifest.permission.ACCESS_FINE_LOCATION,
-                            Manifest.permission.ACCESS_COARSE_LOCATION,
-                            Manifest.permission.INTERNET
+                            Manifest.permission.ACCESS_COARSE_LOCATION
                     }, 10);
         }
     }

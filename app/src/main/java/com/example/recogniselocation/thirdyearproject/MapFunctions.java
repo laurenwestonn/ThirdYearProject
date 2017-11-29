@@ -8,30 +8,23 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.example.recogniselocation.thirdyearproject.MapsActivity.noOfPaths;
 import static com.example.recogniselocation.thirdyearproject.MapsActivity.widthOfSearch;
 
-/**
- * Created by LaUrE on 12/11/2017.
- */
-
 public class MapFunctions extends Activity {
 
-    public int Ltest = 1;
     private static final int LONLAT_TO_METRES = 111111; // roughly
 
     // Draw a line around the points, add a marker to where you are
-    public static void plotPoints(GoogleMap map, List<Result> highPoints, double x, double y)
+    public static void showPointsOnMap(GoogleMap map, List<Result> highPoints, double x, double y)
     {
         // Centre the camera around the middle of the points and your location
-        double avLat = (x
-                + highPoints.get(noOfPaths / 2).getLocation().getLat())
-                / 2;
-        double avLng = (y
-                + highPoints.get(noOfPaths / 2).getLocation().getLng())
-                / 2;
+        LatLng midHorizon = highPoints.get(noOfPaths / 2).getLocation();
+        double avLat = (x + midHorizon.getLat()) / 2;
+        double avLng = (y + midHorizon.getLng()) / 2;
         MapsActivity.goToLocation(avLat, avLng, 12);
 
         addMarkerAt(map, x, y, "You are here!");
@@ -95,16 +88,18 @@ public class MapFunctions extends Activity {
         return perceivedElevation - comparisonElevation;
     }
 
-    public static void findDiffBetweenElevations(List<Result> highPoints)
+    public static List<Result> findDiffBetweenElevations(List<Result> highPoints)
     {
         double firstDistance = highPoints.get(0).getDistance();
         double firstElevation = firstDistance * Math.tan(highPoints.get(0).getAngle());
 
         for (Result highPoint : highPoints)
             highPoint.setDifference(diffFromFirst(firstDistance, highPoint.getAngle(), firstElevation) + firstElevation);
+
+        return highPoints;
     }
 
-    public static void findHighestVisiblePoint(Response results, double yourElevation, List<Result> highPoints)
+    public static Result findHighestVisiblePoint(Response results, double yourElevation)
     {
         // Find the highest visible point
         double hiLat, hiLng, hiEl, hiDis;
@@ -117,7 +112,7 @@ public class MapFunctions extends Activity {
         int loopCount = 1;
         for(Result r : results) {
             //Fraction of path length we're at now
-            double thisOnesDistance = (MapsActivity.lengthOfSearch * LONLAT_TO_METRES) * loopCount / MapsActivity.noOfSamples;
+            double thisOnesDistance = (MapsActivity.lengthOfSearch * LONLAT_TO_METRES) * loopCount++ / MapsActivity.noOfSamples;
             double angleOfThisElevation = Math.atan(
                     (r.getElevation() - yourElevation) / thisOnesDistance);  // Distance of the first one away
             // from you, i.e. step
@@ -128,18 +123,14 @@ public class MapFunctions extends Activity {
                 hiDis = thisOnesDistance;
                 currentHighestAng = angleOfThisElevation;
             }
-            loopCount++;
         }
         double highestAngle = currentHighestAng;
-        if (highestAngle != 0) { // If we found a highest visible peak
-            highPoints.add(new Result(
-                    new LatLng(hiLat, hiLng),
-                    hiEl,
-                    hiDis,
-                    highestAngle,
-                    0));
-        } else {
-            Log.e("Hi", "Didn't find a high point, don't add to highPoints");
+
+        if (highestAngle != 0) // If we found a highest visible peak
+            return new Result(new LatLng(hiLat, hiLng),hiEl, hiDis, highestAngle,0 );
+        else {
+            Log.e("Hi", "Didn't find a high point here, don't add to highPoints");
+            return null;
         }
     }
 }

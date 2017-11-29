@@ -1,5 +1,6 @@
 package com.example.recogniselocation.thirdyearproject;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.graphics.BitmapFactory;
 import android.media.Image;
@@ -18,23 +19,18 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import static android.content.ContentValues.TAG;
 import static com.example.recogniselocation.thirdyearproject.MapsActivity.googleMap;
 import static com.example.recogniselocation.thirdyearproject.MapsActivity.noOfPaths;
 import static com.example.recogniselocation.thirdyearproject.MapsActivity.xPos;
 import static com.example.recogniselocation.thirdyearproject.MapsActivity.yPos;
 
-/**
- * Created by LaUrE on 07/10/2017.
- */
-
 public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
 
-    private double yourElevation;
-    private List<Result> highPoints= new ArrayList<>(noOfPaths);
+    @SuppressLint("StaticFieldLeak")
+    private Activity activity;
 
-    public Activity activity;
-
-    public RetrieveURLTask(Activity a)
+    RetrieveURLTask(Activity a)
     {
         this.activity = a;
     }
@@ -46,104 +42,47 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
 
     private List<String> connectToURL(String urls)
     {
-        // As we appended "url," every time, we need to remove the last splitter
+        // "!" was appended to the end of every URL. Get an array of the URLs
         urls = urls.substring(0, urls.length() - 1);
-
-        // The URLs are comma separated. Split and do the same for each
         String[] urlArr = urls.split("!");
-        for (String url : urlArr) {
-            Log.d("Hi", "URL: " + url);
-        }
 
-        List<String> responseList = new ArrayList<>(noOfPaths);
-
-        String inputLine;
-        HttpURLConnection con = null;
-        BufferedReader in;
-
-        for (String url : urlArr) {
-            try {
-                URL urlObj = new URL(url);
-                con = (HttpURLConnection) urlObj.openConnection();
-
-                // If the connection was successful
-                if (con.getResponseCode() == 200) {
-                    // Get the response
-                    con.setRequestMethod("GET");
-                    con.connect();
-
-                    //Todo: Check that I did get all 10 results!
-
-                    // Build up the response in a string
-                    StringBuilder response = new StringBuilder();
-                    in = new BufferedReader(
-                            new InputStreamReader(con.getInputStream()));
-
-                    while ((inputLine = in.readLine()) != null) {
-                        response.append(inputLine);
-                    }
-
-                    in.close();
-                    responseList.add(response.toString());
-                } else {
-                    Log.d("Hi", "The connection wasn't successful: " + con.getResponseMessage());
-                }
-            } catch(Exception e) {
-                Log.d("Hi", "Problem connecting to URL: " + e.toString());
-            } finally {
-                if (con != null)
-                    con.disconnect();
-            }
-        }
-        return responseList;
+        return Elevation.interpretURLResponses(urlArr);
     }
 
     protected void onPostExecute(List<String> responses)
     {
-        int isFirstResponse = 1;
-        int loop = 1;
-        for (String response : responses) {
-            // If we got a response, parse it
-            if (response != null) {
-                try {
-                    // Parse the JSON response
-                    Gson gson = new Gson();
-                    Response results = gson.fromJson(response, Response.class);
+        List<Result> highPoints= new ArrayList<>();
+        boolean isFirstResponse = true;
+        double yourElevation = 0;
 
-                    // If the results came back correctly
+        // Parse any responses, find highest visible point in each path
+        for (String response : responses)
+            if (response != null)
+                try {
+                    Response results = new Gson().fromJson(response, Response.class);
                     if (results != null) {
-                        if (isFirstResponse == 1) {
-                            isFirstResponse = 0; // Treat the others differently, they are paths
+                        if (isFirstResponse) {  //Treat first differently, is just your elevation
+                            isFirstResponse = false;
                             yourElevation = results.getResults().get(0).getElevation();
-                        } else {
-                            MapFunctions.findHighestVisiblePoint(results, yourElevation, highPoints);
-                        }
-                    } else {
-                        Log.e("Hi", "Results didn't come back correctly for " + loop);
-                    }
+
+                        } else  // Response is a path of elevations
+                            highPoints.add(MapFunctions.findHighestVisiblePoint(results, yourElevation));
+                    } else
+                        Log.e("Hi", "Results didn't come back correctly");
                 } catch(Exception e){
                     Log.e("Hi", "On post execute failure\n" + e);
                 }
-            } else {
-                Log.e("Hi", "Response " + loop + " was null");
-            }
-            loop++;
-        }
+            else  Log.e("Hi", "Response was null");
 
-        /*
-        Log.d("Hi", "Got all highest points:");
-        for (Result highPoint : highPoints)
-            Log.d("Hi", highPoint.toString());
-        */
-
-        MapFunctions.findDiffBetweenElevations(highPoints);
-
-        MapFunctions.plotPoints(googleMap, highPoints, xPos, yPos);
+        // We now have the highest peaks in all directions ahead.
+        // Find the differences between these so we can show the horizon on the map
+        highPoints = MapFunctions.findDiffBetweenElevations(highPoints);
+        MapFunctions.showPointsOnMap(googleMap, highPoints, xPos, yPos);
 
         // Draw the horizon
-        Log.d("Hi", "Distance between points is now " + MapFunctions.findDistanceBetweenPlots(highPoints.get(0)));
         List<Integer> horizonCoords = new ArrayList<>();
         double distanceBetweenPlots = MapFunctions.findDistanceBetweenPlots(highPoints.get(0));
+        Log.d("Hi", "Distance between points is now " + distanceBetweenPlots);
         drawOnGraph(highPoints, distanceBetweenPlots, horizonCoords);
 
         // Convert these coordinates to be in line with the bitmaps coordinate system
@@ -151,11 +90,16 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
 
         // Detect the edge from an image
         EdgeDetection edgeDetection;
-        List<List<Integer>> edgeCoords;
         edgeDetection = ImageToDetect.detectEdge(BitmapFactory.decodeResource(activity.getResources(), R.drawable.blencathra));
-        edgeCoords = edgeDetection.coords;
+        List<List<Integer>> edgeCoords2D = edgeDetection.coords;
 
+        // Quick fix to simplify coordinates
+        // It is originally a list of a list, to take into account many points in one column
+        // but as thinning should have been used (but we may not have it 'on' to test
+        // other algorithms) there should only be one point per column, so List<Int> will do
+        List<Integer> edgeCoords = HorizonMatching.removeDimensionFromCoords(edgeCoords2D);
 
+/*
         // Find the peak coordinates for the
         // constructed elevation horizon and the edge detected points
         Point elevationPeak = getElevPeak(horizonCoords, distanceBetweenPlots);
@@ -171,7 +115,7 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
         for (int i = 0; i < horizonCoords.size(); i++)  // Allowing for the peak, which is 0
             horizonCoords.set(i, (int)(horizonCoords.get(i) * diffY));
         Log.d("Hi", "Multiplied the y of elevation coords " + horizonCoords.toString());
-
+*/
 
     }
 

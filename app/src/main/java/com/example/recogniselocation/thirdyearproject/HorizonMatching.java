@@ -9,10 +9,6 @@ import java.util.List;
 
 import static android.content.ContentValues.TAG;
 
-/**
- * Created by LaUrE on 21/11/2017.
- */
-
 public class HorizonMatching {
 
     static void matchUpHorizons(List<Integer> photoCoords, List<Integer> elevationCoords)
@@ -296,5 +292,16 @@ public class HorizonMatching {
             // This one is flat too, carry on
             x += searchWidth;
         return x;
+    }
+
+    public static List<Integer> removeDimensionFromCoords(List<List<Integer>> coords2D) {
+        List<Integer> coords1D = new ArrayList<>();
+
+        for (List<Integer> col : coords2D)
+            if (col.size() > 0)
+                coords1D.add(col.get(0));
+            else
+                coords1D.add(null);
+        return coords1D;
     }
 }
