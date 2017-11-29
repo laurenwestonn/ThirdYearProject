@@ -137,6 +137,10 @@ public class HorizonMatching {
     // Gets the average difference in y between the next 'width' coords
     private static int gradientAhead(List<Integer> coords, int startingIndex, int width)
     {
+        // If there are no coordinates ahead, say that there is no gradient
+        if (!aheadExists(coords, startingIndex, width))
+            return 0;
+
         if (startingIndex + width - 1 > coords.size())
             Log.e("Hi", "Wont be able to access " + width + " spaces from index " +
                     startingIndex + " when there are " + coords.size() + " coords");
@@ -146,10 +150,11 @@ public class HorizonMatching {
             int thisY = coords.get(startingIndex + count);
             int nextY = coords.get(startingIndex + count + 1);
 
+            /*
             Log.d("gradient", "Diff in height between "
                     + nextY + " and " + thisY + " is "
                     + (nextY - thisY));
-
+*/
             sum +=  nextY - thisY;
         }
         return sum;
@@ -294,6 +299,14 @@ public class HorizonMatching {
         return x;
     }
 
+    // True if the next 'searchWidth' coords from 'x' are all there (i.e. not set to -1)
+    private static boolean aheadExists(List<Integer> coords, int x, int searchWidth) {
+        for (int i = x; i < x + searchWidth; i++)
+            if (coords.get(i) == -1)
+                return false;
+        return true;
+    }
+
     public static List<Integer> removeDimensionFromCoords(List<List<Integer>> coords2D) {
         List<Integer> coords1D = new ArrayList<>();
 
@@ -301,7 +314,7 @@ public class HorizonMatching {
             if (col.size() > 0)
                 coords1D.add(col.get(0));
             else
-                coords1D.add(null);
+                coords1D.add(-1);
         return coords1D;
     }
 }

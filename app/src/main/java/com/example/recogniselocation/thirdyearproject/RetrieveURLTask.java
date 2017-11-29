@@ -99,6 +99,10 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
         // other algorithms) there should only be one point per column, so List<Int> will do
         List<Integer> edgeCoords = HorizonMatching.removeDimensionFromCoords(edgeCoords2D);
 
+        Log.d(TAG, "onPostExecute: edgeCoords: " + edgeCoords);
+        Log.d("Hi", HorizonMatching.findMaximaMinima(edgeCoords, 15, 10).toString());
+        Log.d("Hi", HorizonMatching.findMaximaMinima(horizonCoords, 15, 3).toString()); // Only has 20 x coords, search only 3 at a time
+
 /*
         // Find the peak coordinates for the
         // constructed elevation horizon and the edge detected points
