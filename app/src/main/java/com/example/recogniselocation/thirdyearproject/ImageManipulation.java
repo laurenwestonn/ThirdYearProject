@@ -8,10 +8,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * Created by LaUrE on 28/10/2017.
- */
-
 public class ImageManipulation {
 
     /////////////////////// COARSE /////

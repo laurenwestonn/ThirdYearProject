@@ -13,10 +13,6 @@ import android.widget.ImageButton;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by LaUrE on 20/10/2017.
- */
-
 public class ImageToDetect extends Activity {
 
     public static boolean showCoarse = false;    // Show results of the coarse or the fine?
@@ -27,6 +23,7 @@ public class ImageToDetect extends Activity {
     public static List<List<Integer>> edgeCoords;
     public static int fineWidthFromCentre;
     public static int fineWidth;
+    public static int fineHeight;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -131,7 +128,7 @@ public class ImageToDetect extends Activity {
         fineWidthFromCentre = fineBMP.getWidth() / 250; // 1 would make a mask of width 3, 2 would give width 5
         fineWidth = fineWidthFromCentre * 2 + 1; // Total width of the fine mask
         int fineHeightFromCentre = fineBMP.getHeight() / 200;
-        int fineHeight = fineHeightFromCentre * 2 + 1; // Total height of the fine mask
+        fineHeight = fineHeightFromCentre * 2 + 1; // Total height of the fine mask
 
         boolean relevantEdge;
         edgeCoords = new ArrayList<>();

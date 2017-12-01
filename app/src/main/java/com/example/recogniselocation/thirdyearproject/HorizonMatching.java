@@ -1,8 +1,11 @@
 package com.example.recogniselocation.thirdyearproject;
 
+import android.app.Activity;
+import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
 import android.util.Log;
-
-import com.jjoe64.graphview.series.OnDataPointTapListener;
+import android.widget.ImageButton;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,11 +14,15 @@ import static android.content.ContentValues.TAG;
 
 public class HorizonMatching {
 
-    static void matchUpHorizons(List<Integer> photoCoords, List<Integer> elevationCoords)
+    private static int width = ImageToDetect.fineWidth;
+    private static int height = ImageToDetect.fineHeight;
+
+    static void matchUpHorizons(List<Integer> photoCoords, List<Integer> elevationCoords,
+                                                                        Bitmap bmp, Activity a)
     {
         // Find all minimas and maximas of both horizons
-        List<Point> photoMMs = findMaximaMinima(photoCoords,0, 2);
-        List<Point> elevationMMs = findMaximaMinima(elevationCoords, 0, 2);
+        List<Point> photoMMs = findMaximaMinima(photoCoords,15, 5);
+        List<Point> elevationMMs = findMaximaMinima(elevationCoords, 15, 3);
 
         Log.d(TAG, "matchUpHorizons: photo max mins" + photoMMs);
         Log.d(TAG, "matchUpHorizons: eleva max mins" + elevationMMs);
@@ -26,7 +33,10 @@ public class HorizonMatching {
         List<Point> photoMM = findBestMaximaMinima(photoMMs);
 
         Log.d("matching", "Best maxima minima of " + photoMMs + "is ");
-        Log.d("matching",  "" + photoMM);
+        Log.d("matching",  "\t\t\t\t\t" + photoMM);
+
+        // Mark these best ones on the image
+        markMaximaMinimaOnPhoto(photoMM, bmp, a);
 
         // Go through each maxima minima pair from the elevations
         for (int i = 0; i < elevationMMs.size() - 1; i += 2) {
@@ -61,6 +71,25 @@ public class HorizonMatching {
 
     }
 
+    // Colour maxima in red, minima in blue
+    private static void markMaximaMinimaOnPhoto(List<Point> photoMM, Bitmap bmp, Activity a)
+    {
+        // If the first is a maxima, start from the first index
+        int maxInd = photoMM.size() == 2 ? 0 : 2;
+
+        ImageManipulation.colourArea(bmp,   (int) photoMM.get(maxInd).getX(),
+                                            (int) photoMM.get(maxInd).getY(),
+                                            Color.RED, width * 2, height * 2);
+        ImageManipulation.colourArea(bmp,   (int) photoMM.get(1).getX(),
+                                            (int) photoMM.get(1).getY(),
+                                            Color.BLUE, width * 2, height * 2);
+
+        // Put this on the image button
+        ImageButton imageButton = (ImageButton) a.findViewById(R.id.edgeDetection);
+        BitmapDrawable drawable = new BitmapDrawable(a.getResources(), bmp);
+        imageButton.setBackground(drawable);
+    }
+
     // Transforms coordinate system so that transformMM matches with baseMM
     private static double howWellMatched(List<Point> transformMM, List<Point> baseMM, List<Integer> transformCoords, List<Integer> baseCoords)
     {
@@ -86,14 +115,25 @@ public class HorizonMatching {
         double diffSum = 0;
 
         for (i = 0; i < transformCoords.size(); i++) {
-            double tX = i * scaleX + translateX;
-            double tY = transformCoords.get(i) * scaleY + translateY;
+            if (transformCoords.get(i) != -1) { // Only check where an edge was detected
+                double actualX = i * width + (width-1)/2;   // coords were scaled down to save space
 
-            // Assuming this value is within the elevation coordinates
+                double tX = actualX * scaleX + translateX;
+                double tY = transformCoords.get(i) * scaleY + translateY;
 
-            // Find the difference between this y and the y of the relevant base coordinates
-            diffSum += Math.abs(baseCoords.get((int)tX) - tY);
-            Log.d(TAG, "howWellMatched: " + i + ": Diff between " + baseCoords.get((int)tX) + " and " + tY +  " is " + Math.abs(baseCoords.get((int)tX) - tY));
+                // If these transformed coords are within the base coords
+                // Todo: They should be, check this
+                if (tX >= 0 && tX < baseCoords.size())
+                {
+                    Log.d(TAG, "howWellMatched: Translated (" + i + ", " + transformCoords.get(i)
+                            + ") to (" + tX + ", " + tY + ")");
+
+                    // Find the difference between this y and the y of the relevant base coordinates
+                    diffSum += Math.abs(baseCoords.get((int)tX) - tY);
+                    Log.d(TAG, "howWellMatched: " + i + ": Diff between " + baseCoords.get((int)tX) + " and " + tY +  " is " + Math.abs(baseCoords.get((int)tX) - tY));
+
+                }
+            }
         }
 
         Log.d("matching", "howWellMatched: Difference of " + diffSum);
@@ -196,6 +236,7 @@ public class HorizonMatching {
                 Log.d("gradient", "Gradient ahead of index " + (x - searchWidth + 1)
                         + " is " + nextGradient + " so check what it is from " + x + " if possible.");
                 wereGoingUp = (nextGradient < 0);   // y coords are +ve downwards for bitmaps
+                Log.d("gradient", "Now we're going " + (wereGoingUp ? "up" : "down"));
             }
 
             // If this is too close to the edge that we can't see the next gradient, exit
@@ -251,7 +292,7 @@ public class HorizonMatching {
             if (maxMin.size() % 2 == 1)
                 maxMin.add(null);
 
-            maxMin.add(new Point(xOfMaxOrMin, coords.get(xOfMaxOrMin)));
+            maxMin.add(new Point(xOfMaxOrMin * width + (width-1)/2, coords.get(xOfMaxOrMin)));
 
             //  MINIMA
         } else if (!wereGoingUp && nextGradient < 0) {      //          \_______/
@@ -262,7 +303,7 @@ public class HorizonMatching {
             if (maxMin.size() % 2 == 0)
                 maxMin.add(null);
 
-            maxMin.add(new Point(xOfMaxOrMin, coords.get(xOfMaxOrMin)));
+            maxMin.add(new Point(xOfMaxOrMin * width + (width-1)/2, coords.get(xOfMaxOrMin)));
 
             // \_____   or    _____/
         } else              //       \       /
@@ -279,13 +320,13 @@ public class HorizonMatching {
             Log.d("gradient", "Adding Pointy maxima");
             if (maxMin.size() % 2 == 1) // Done this so that maximas are even
                 maxMin.add(null);
-            maxMin.add(new Point(x, coords.get(x)));
+            maxMin.add(new Point(x * width + (width-1)/2, coords.get(x)));
         }
         else if (!wereGoingUp & nextGradient < 0){
             Log.d("gradient", "Adding Pointy minima");
             if (maxMin.size() % 2 == 0) // Done this so that minima are odd
                 maxMin.add(null);
-            maxMin.add(new Point(x, coords.get(x)));
+            maxMin.add(new Point(x * width + (width-1)/2, coords.get(x)));
         }
     }
 

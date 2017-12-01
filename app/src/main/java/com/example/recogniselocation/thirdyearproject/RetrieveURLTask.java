@@ -3,27 +3,18 @@ package com.example.recogniselocation.thirdyearproject;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
-import android.media.Image;
 import android.os.AsyncTask;
 import android.util.Log;
-import android.widget.ImageButton;
 
 import com.google.gson.Gson;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import static android.content.ContentValues.TAG;
 import static com.example.recogniselocation.thirdyearproject.MapsActivity.googleMap;
-import static com.example.recogniselocation.thirdyearproject.MapsActivity.noOfPaths;
 import static com.example.recogniselocation.thirdyearproject.MapsActivity.xPos;
 import static com.example.recogniselocation.thirdyearproject.MapsActivity.yPos;
 
@@ -82,23 +73,18 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
         MapFunctions.showPointsOnMap(googleMap, highPoints, xPos, yPos);
 
         // Draw the horizon
-        List<Integer> horizonCoords = new ArrayList<>();
+        List<Integer> elevationsCoords = new ArrayList<>();
         double distanceBetweenPlots = MapFunctions.findDistanceBetweenPlots(highPoints.get(0));
         Log.d("Hi", "Distance between points is now " + distanceBetweenPlots);
-        drawOnGraph(highPoints, distanceBetweenPlots, horizonCoords);
+        drawOnGraph(highPoints, distanceBetweenPlots, elevationsCoords);
 
         // Convert these coordinates to be in line with the bitmaps coordinate system
-        horizonCoords = convertCoordSystem(horizonCoords);
+        elevationsCoords = convertCoordSystem(elevationsCoords);
 
         // Detect the edge from an image
         EdgeDetection edgeDetection;
         edgeDetection = ImageToDetect.detectEdge(BitmapFactory.decodeResource(activity.getResources(), R.drawable.blencathra));
         List<List<Integer>> edgeCoords2D = edgeDetection.coords;
-
-        // Put this on the image button
-        ImageButton imageButton = (ImageButton) activity.findViewById(R.id.edgeDetection);
-        BitmapDrawable drawable = new BitmapDrawable(activity.getResources(), edgeDetection.bmp);
-        imageButton.setBackground(drawable);
 
         // Quick fix to simplify coordinates
         // It is originally a list of a list, to take into account many points in one column
@@ -106,24 +92,8 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
         // other algorithms) there should only be one point per column, so List<Int> will do
         List<Integer> edgeCoords = HorizonMatching.removeDimensionFromCoords(edgeCoords2D);
 
-        // Find the peak and valley coordinates for the
-        // constructed elevation horizon and the edge detected points
-        Log.d(TAG, "onPostExecute: edgeCoords: " + edgeCoords);
-        Log.d("Hi", HorizonMatching.findMaximaMinima(edgeCoords, 15, 10).toString());
-        Log.d("Hi", HorizonMatching.findMaximaMinima(horizonCoords, 15, 3).toString()); // Only has 20 x coords, search only 3 at a time
-
-        // TRANSFORM
-/*
-        double diffX = detectedPeak.getX() / elevationPeak.getX();
-        double diffY = detectedPeak.getY() / elevationPeak.getY();
-
-        Log.d("Hi", "Elevation coords " + horizonCoords.toString());
-        Log.d("Hi", "Multiply all the elevation coords by " + diffX + " and " + diffY);
-        for (int i = 0; i < horizonCoords.size(); i++)  // Allowing for the peak, which is 0
-            horizonCoords.set(i, (int)(horizonCoords.get(i) * diffY));
-        Log.d("Hi", "Multiplied the y of elevation coords " + horizonCoords.toString());
-*/
-
+        // Match up the horizons
+        HorizonMatching.matchUpHorizons(edgeCoords, elevationsCoords, edgeDetection.bmp, activity);
     }
 
     // From right up being positive to right down
