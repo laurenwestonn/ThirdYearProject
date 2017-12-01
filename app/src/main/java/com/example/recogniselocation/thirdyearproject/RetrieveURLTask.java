@@ -3,9 +3,11 @@ package com.example.recogniselocation.thirdyearproject;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.media.Image;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.widget.ImageButton;
 
 import com.google.gson.Gson;
 import com.jjoe64.graphview.GraphView;
@@ -93,24 +95,25 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
         edgeDetection = ImageToDetect.detectEdge(BitmapFactory.decodeResource(activity.getResources(), R.drawable.blencathra));
         List<List<Integer>> edgeCoords2D = edgeDetection.coords;
 
+        // Put this on the image button
+        ImageButton imageButton = (ImageButton) activity.findViewById(R.id.edgeDetection);
+        BitmapDrawable drawable = new BitmapDrawable(activity.getResources(), edgeDetection.bmp);
+        imageButton.setBackground(drawable);
+
         // Quick fix to simplify coordinates
         // It is originally a list of a list, to take into account many points in one column
         // but as thinning should have been used (but we may not have it 'on' to test
         // other algorithms) there should only be one point per column, so List<Int> will do
         List<Integer> edgeCoords = HorizonMatching.removeDimensionFromCoords(edgeCoords2D);
 
+        // Find the peak and valley coordinates for the
+        // constructed elevation horizon and the edge detected points
         Log.d(TAG, "onPostExecute: edgeCoords: " + edgeCoords);
         Log.d("Hi", HorizonMatching.findMaximaMinima(edgeCoords, 15, 10).toString());
         Log.d("Hi", HorizonMatching.findMaximaMinima(horizonCoords, 15, 3).toString()); // Only has 20 x coords, search only 3 at a time
 
+        // TRANSFORM
 /*
-        // Find the peak coordinates for the
-        // constructed elevation horizon and the edge detected points
-        Point elevationPeak = getElevPeak(horizonCoords, distanceBetweenPlots);
-        Point detectedPeak = getDetectedPeak(edgeCoords);
-        Log.d("Hi", "Peak of the elevations is " + elevationPeak.getX()+ ", " + elevationPeak.getY());
-        Log.d("Hi", "Peak of edge detection is " + detectedPeak.getX() + ", " + detectedPeak.getY());   // Todo: This one doesn't seem right
-
         double diffX = detectedPeak.getX() / elevationPeak.getX();
         double diffY = detectedPeak.getY() / elevationPeak.getY();
 
@@ -121,39 +124,6 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
         Log.d("Hi", "Multiplied the y of elevation coords " + horizonCoords.toString());
 */
 
-    }
-
-    private Point getDetectedPeak(List<List<Integer>> edgeCoords) {
-        // Find coordinates of the edge detected peak
-        // edgeCoords now is a list of the y coords for each column
-        // if thinning has been done, there will only be one entry in each column list
-        // Todo: Should we assume thinning has been done and use only a List<Integer>?
-        // The spacing of the lists are incremental by one, to save space
-        // but they represent points that are fineWidth apart (plus fineWidthFromCentre)
-        int detectedPeakY, count, peakIndex;
-        count = peakIndex = 0;
-        detectedPeakY = 100000000;  // Initialise to massive value so that we can find smaller
-        for (List<Integer> col : edgeCoords) {
-            //Assuming thinning has been done, only one y coord per col
-            if(col.size() > 0 && col.get(0) < detectedPeakY) {
-                detectedPeakY = col.get(0);
-                peakIndex = count;
-            }
-            count++;
-        }
-        int detectedPeakX = (peakIndex * ImageToDetect.fineWidth + ImageToDetect.fineWidthFromCentre);
-
-        return new Point(detectedPeakX, detectedPeakY);
-    }
-
-    private Point getElevPeak(List<Integer> horizonCoords, double distanceBetweenPlots) {
-        // Find the coordinates of the elevations peak (assuming there's only one)
-        // The conversion of the coord system would have set the highest y as 1
-        int elevPeakY = 1;
-        // Coords are without the distance between, to save space. Consider it here
-        int elevPeakX = (int) (horizonCoords.indexOf(elevPeakY) * distanceBetweenPlots);
-
-        return new Point(elevPeakX, elevPeakY);
     }
 
     // From right up being positive to right down

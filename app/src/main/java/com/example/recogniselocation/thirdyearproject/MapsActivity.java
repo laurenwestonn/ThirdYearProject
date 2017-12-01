@@ -287,6 +287,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 Intent intent = new Intent(this.getString(R.string.CUSTOM_ACTION_IMAGETODETECT));
                 startActivity(intent);
             }
+            case R.id.edgeDetection: {
+                Intent intent = new Intent(this.getString(R.string.CUSTOM_ACTION_IMAGETODETECT));
+                startActivity(intent);
+            }
         }
     }
 }
