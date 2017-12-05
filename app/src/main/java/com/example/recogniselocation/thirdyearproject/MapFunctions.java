@@ -11,6 +11,7 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import java.util.ArrayList;
 import java.util.List;
 
+import static android.content.ContentValues.TAG;
 import static com.example.recogniselocation.thirdyearproject.MapsActivity.noOfPaths;
 import static com.example.recogniselocation.thirdyearproject.MapsActivity.widthOfSearch;
 
@@ -105,16 +106,19 @@ public class MapFunctions extends Activity {
         double hiLat, hiLng, hiEl, hiDis;
         hiLat = hiLng = hiEl = hiDis = 0;
 
-        // Initial 'highest' value is small so that it will get overridden
-        double currentHighestAng = 0;
+        // Initial 'highest' value is small so that it will get overridden even by -ve angles
+        double currentHighestAng = Integer.MIN_VALUE;
+
 
         // Go through each result to see if you can see any that are higher
         int loopCount = 1;
         for(Result r : results) {
+
             //Fraction of path length we're at now
             double thisOnesDistance = (MapsActivity.lengthOfSearch * LONLAT_TO_METRES) * loopCount++ / MapsActivity.noOfSamples;
             double angleOfThisElevation = Math.atan(
                     (r.getElevation() - yourElevation) / thisOnesDistance);  // Distance of the first one away
+
             // from you, i.e. step
             if (angleOfThisElevation > currentHighestAng) {
                 hiLat = r.getLocation().getLat();
@@ -126,7 +130,7 @@ public class MapFunctions extends Activity {
         }
         double highestAngle = currentHighestAng;
 
-        if (highestAngle != 0) // If we found a highest visible peak
+        if (highestAngle != Integer.MIN_VALUE) // If we found a highest visible peak
             return new Result(new LatLng(hiLat, hiLng),hiEl, hiDis, highestAngle,0 );
         else {
             Log.e("Hi", "Didn't find a high point here, don't add to highPoints");

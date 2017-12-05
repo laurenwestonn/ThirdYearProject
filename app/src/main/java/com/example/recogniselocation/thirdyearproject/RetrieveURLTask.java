@@ -14,6 +14,7 @@ import com.jjoe64.graphview.series.LineGraphSeries;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.example.recogniselocation.thirdyearproject.ImageToDetect.fineWidth;
 import static com.example.recogniselocation.thirdyearproject.MapsActivity.googleMap;
 import static com.example.recogniselocation.thirdyearproject.MapsActivity.xPos;
 import static com.example.recogniselocation.thirdyearproject.MapsActivity.yPos;
@@ -22,6 +23,7 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
 
     @SuppressLint("StaticFieldLeak")
     private Activity activity;
+    private int photoID = R.drawable.blencathra;
 
     RetrieveURLTask(Activity a)
     {
@@ -73,71 +75,79 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
         MapFunctions.showPointsOnMap(googleMap, highPoints, xPos, yPos);
 
         // Draw the horizon
-        List<Integer> elevationsCoords = new ArrayList<>();
         double distanceBetweenPlots = MapFunctions.findDistanceBetweenPlots(highPoints.get(0));
-        Log.d("Hi", "Distance between points is now " + distanceBetweenPlots);
-        drawOnGraph(highPoints, distanceBetweenPlots, elevationsCoords);
+        Log.d("Hi", "Distance between points is now " + distanceBetweenPlots 
+                + " and as there are " + MapsActivity.noOfPaths + " paths, x axis goes up to " 
+                + distanceBetweenPlots * MapsActivity.noOfPaths);
+        List<Point> elevationsCoords = drawOnGraph(highPoints, distanceBetweenPlots);
 
         // Convert these coordinates to be in line with the bitmaps coordinate system
         elevationsCoords = convertCoordSystem(elevationsCoords);
 
         // Detect the edge from an image
         EdgeDetection edgeDetection;
-        edgeDetection = ImageToDetect.detectEdge(BitmapFactory.decodeResource(activity.getResources(), R.drawable.blencathra));
+        edgeDetection = ImageToDetect.detectEdge(BitmapFactory.decodeResource(activity.getResources(), photoID));
         List<List<Integer>> edgeCoords2D = edgeDetection.coords;
 
         // Quick fix to simplify coordinates
         // It is originally a list of a list, to take into account many points in one column
         // but as thinning should have been used (but we may not have it 'on' to test
         // other algorithms) there should only be one point per column, so List<Int> will do
-        List<Integer> edgeCoords = HorizonMatching.removeDimensionFromCoords(edgeCoords2D);
+        List<Integer> edgeCoordsIntegers = HorizonMatching.removeDimensionFromCoords(edgeCoords2D);
+
+        List<Point> edgeCoords = HorizonMatching.convertToPoints(edgeCoordsIntegers, fineWidth);
 
         // Match up the horizons
         HorizonMatching.matchUpHorizons(edgeCoords, elevationsCoords, edgeDetection.bmp, activity);
     }
 
     // From right up being positive to right down
-    private List<Integer> convertCoordSystem(List<Integer> coords)
+    private List<Point> convertCoordSystem(List<Point> coords)
     {
-        int maxY = findMaxY(coords);
+        Point maxPoint = findMaxPoint(coords);
 
         // Now we know how tall the y axis can go we can convert the coordinate system
         // by flipping the y coordinates
         for (int i = 0; i < coords.size(); i++)
-            coords.set(i, maxY - coords.get(i) + 1);    // +1 deals with divide by zero issues
-
+            coords.set(i, new Point(coords.get(i).getX(),
+                        maxPoint.getY() - coords.get(i).getY() + 1)); // +1 deals with / 0
         return coords;
     }
 
-    private int findMaxY(List<Integer> coords) {
-        // Get max y
-        int maxY = 0;
-        for (Integer y : coords) {
-            if (y > maxY)
-                maxY = y;
+    private Point findMaxPoint(List<Point> coords) {
+        Point maxPoint = coords.get(0);
+
+        for (Point p : coords) {
+            if (p.getY() > maxPoint.getY())
+                maxPoint = p;
         }
-        return maxY;
+        return maxPoint;
     }
 
-    private void drawOnGraph(List<Result> points, double distanceBetweenPlots, List<Integer> horizonCoords)
+    private List<Point> drawOnGraph(List<Result> points, double distanceBetweenPlots)
     {
+        List<Point> horizonCoords = new ArrayList<>();
+        
         LineGraphSeries<DataPoint> series = new LineGraphSeries<>();
         int count = -1;
-        double x, y;
+        int x;
+        double y;
         x = 0;
         
         for (Result point : points) {
-            x = ++count * distanceBetweenPlots;
+            x = ++count * (int)distanceBetweenPlots;
             y = point.getDifference();
 
-            horizonCoords.add((int)y);
+            horizonCoords.add(new Point(x,y));
 
-            Log.d("Hi", "Plotting at " + x + ", " + y);
+            //Log.d("Hi", "Plotting at " + x + ", " + y);
             series.appendData(new DataPoint(x,y), true, points.size());
         }
         
         MapsActivity.graph.addSeries(series);
         setBounds(MapsActivity.graph,0,  x, series.getLowestValueY(), series.getHighestValueY());
+        
+        return horizonCoords;
     }
 
     private void setBounds(GraphView graph, double minX, double maxX, double minY, double maxY)

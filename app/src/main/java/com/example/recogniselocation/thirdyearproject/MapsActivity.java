@@ -46,8 +46,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public static double xPos, yPos;
 
     //ToDo: Make these configurable
-    public static int noOfPaths = 20;
-    public static int widthOfSearch = 90;
+    public static int noOfPaths = 60;
+    public static int widthOfSearch = 180;
     public static int noOfSamples = 20;
     public static double lengthOfSearch = 0.1;  // radius of the search
     double yourDirection = 60; // Due East anticlockwise
@@ -56,18 +56,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-
         // Uncomment to test finding maxima/minima
 /*
         Log.d("Hi", HorizonMatching.findMaximaMinima(Arrays.asList(1,1,2,1), 0, 2).toString());
         Log.d("Hi", HorizonMatching.findMaximaMinima(Arrays.asList(2,1,2,2), 0, 2).toString());
         Log.d("Hi", HorizonMatching.findMaximaMinima(Arrays.asList(2,1,1,2), 0, 2).toString());
         Log.d("Hi", HorizonMatching.findMaximaMinima(Arrays.asList(1,1,2,2,1,1,2,3,2,1), 0, 2).toString());
-*/
-        // Uncomment to test matching up two horizons
-/*
-        HorizonMatching.matchUpHorizons(Arrays.asList(1,1,2,2,1,1,2,3,2,1),Arrays.asList(1,1,2,2,1,1,2,4,2,1));
-        HorizonMatching.matchUpHorizons(Arrays.asList(1,1,2,2,1,1,2,3,2,1),Arrays.asList(1,2,2,2,1,1,2,3,2,1));
 */
 
         if (googleServicesAvailable()) {
