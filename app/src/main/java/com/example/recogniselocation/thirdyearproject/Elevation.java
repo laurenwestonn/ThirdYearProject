@@ -11,9 +11,9 @@ import java.util.List;
 
 import static com.example.recogniselocation.thirdyearproject.MapsActivity.noOfPaths;
 
-public class Elevation {
+class Elevation {
 
-    public static List<String> interpretURLResponses(String[] urlArr) {
+    static List<String> interpretURLResponses(String[] urlArr) {
 
         List<String> responseList = new ArrayList<>(noOfPaths);
 

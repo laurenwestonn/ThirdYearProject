@@ -8,10 +8,8 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import static android.content.ContentValues.TAG;
 import static com.example.recogniselocation.thirdyearproject.MapsActivity.noOfPaths;
 import static com.example.recogniselocation.thirdyearproject.MapsActivity.widthOfSearch;
 
