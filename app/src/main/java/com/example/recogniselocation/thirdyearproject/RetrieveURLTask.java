@@ -150,7 +150,7 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
         return horizonCoords;
     }
 
-    private void setBounds(GraphView graph, double minX, double maxX, double minY, double maxY)
+    static void setBounds(GraphView graph, double minX, double maxX, double minY, double maxY)
     {
         // Set bounds on the x axis
         graph.getViewport().setXAxisBoundsManual(true);

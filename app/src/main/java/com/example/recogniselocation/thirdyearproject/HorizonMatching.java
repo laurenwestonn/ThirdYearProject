@@ -7,6 +7,9 @@ import android.graphics.drawable.BitmapDrawable;
 import android.util.Log;
 import android.widget.ImageButton;
 
+import com.jjoe64.graphview.series.DataPoint;
+import com.jjoe64.graphview.series.LineGraphSeries;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,6 +41,9 @@ class HorizonMatching {
         // Mark these best ones on the image
         markMaximaMinimaOnPhoto(photoMM, bmp, a);
 
+        // Store how accurate each min max pairing is
+        List<Matching> allMatchings = new ArrayList<>();
+
         // Go through each maxima minima pair from the elevations
         for (int i = 0; i < elevationMMs.size() - 1; i += 2) {
             // Store this elevation maxima minima pair into elevationMM
@@ -59,14 +65,27 @@ class HorizonMatching {
             elevationMM.add(elevationMMs.get(i + 1));   // add the first min/max after the max/min
 
             Log.d("matching", "Checking elevation max min " + elevationMM);
-
-            double diff = howWellMatched(photoMM, elevationMM, photoCoords, elevationCoords);
-            Log.d("matching", "howWellMatched: Each point had an average diff of "
-                    + diff);
+            Log.d(TAG, "matchUpHorizons: Adding to allMatchings for min max " + elevationMM);
+            allMatchings.add(howWellMatched(photoMM, elevationMM, photoCoords, elevationCoords));
+            Log.d(TAG, "matchUpHorizons: Most recently added matching is " + allMatchings.get(allMatchings.size()-1));
         }
 
-        // Find the best matched up set, mark on the map
+        Log.d(TAG, "matchUpHorizons: All matchings: " + allMatchings.toString());
 
+        // Find the best matching
+        Matching bestMatching = allMatchings.get(0);
+
+        for (int i = 1; i < allMatchings.size(); i++)
+            if (allMatchings.get(i).getDifference() > bestMatching.getDifference())
+                bestMatching = allMatchings.get(i);
+
+        Log.d(TAG, "matchUpHorizons: The best matching is " + bestMatching);
+        MapsActivity.graph.addSeries(bestMatching.getSeries());
+        /*RetrieveURLTask.setBounds(MapsActivity.graph,bestMatching.getSeries().getLowestValueX(),
+                bestMatching.getSeries().getHighestValueX(),
+                bestMatching.getSeries().getLowestValueY(),
+                bestMatching.getSeries().getHighestValueY());
+*/
 
     }
 
@@ -90,7 +109,7 @@ class HorizonMatching {
     }
 
     // Transforms coordinate system so that transformMM matches with baseMM
-    private static double howWellMatched(List<Point> transformMM, List<Point> baseMM, List<Point> transformCoords, List<Point> baseCoords)
+    private static Matching howWellMatched(List<Point> transformMM, List<Point> baseMM, List<Point> transformCoords, List<Point> baseCoords)
     {
         double scaleX, scaleY, translateX, translateY;
 
@@ -114,28 +133,34 @@ class HorizonMatching {
 
         int numMatched = 0;
         double diffSum = 0;
+        LineGraphSeries<DataPoint> series = new LineGraphSeries<>();
 
-        for (Point coord : transformCoords)
-            if (coord.getY() != -1) { // Only check where an edge was detected
+        for (Point c : transformCoords)
+            if (c.getY() != -1) { // Only check where an edge was detected
 
-                int tX = (int)(coord.getX() * scaleX + translateX);
-                double tY = coord.getY() * scaleY + translateY;
-                Log.d(TAG, "howWellMatched: Translated " + coord + " to (" + tX + ", " + tY + ")");
+                // Transform this coordinate
+                int tX = (int) (c.getX() * scaleX + translateX);
+                double tY = c.getY() * scaleY + translateY;
+                //Log.d(TAG, "howWellMatched:Translated " + c + " to " + transformCoords.get(i));
 
-                Point matchingBasePoint;
-
-                // If this transformed coords can be found in the other coordinate system
                 // Todo: Photo coords should all be within the elevation coords, check this
-                if (tX >= 0 && tX < baseCoords.get(baseCoords.size()-1).getX() && (matchingBasePoint = findPointWithX(baseCoords, tX)) != null) {
+                // Get diff in height if this transformed coords can be found in the other coords
+                Point matchingBasePoint;
+                if (tX >= 0 && tX < baseCoords.get(baseCoords.size() - 1).getX()
+                        && (matchingBasePoint = findPointWithX(baseCoords, tX)) != null) {
                     // Find the difference between the heights of both points with common x values
                     diffSum += Math.abs(matchingBasePoint.getY() - tY);
-                    Log.d(TAG, "howWellMatched: Diff between " + matchingBasePoint.getY() + " and " + tY + " is " + Math.abs(matchingBasePoint.getY() - tY));
+                    //Log.d(TAG, "howWellMatched: Diff between " + matchingBasePoint.getY() + " and " + tY + " is " + Math.abs(matchingBasePoint.getY() - tY));
 
                     numMatched++;
                 }
+
+                // Build up a series to plot
+                series.appendData(new DataPoint(tX, tY), true, transformCoords.size());
+                series.setColor(Color.BLACK);
             }
 
-        return diffSum / numMatched;
+        return new Matching(series, diffSum / numMatched);
     }
 
     // Return the coordinate that has this x value
@@ -144,7 +169,7 @@ class HorizonMatching {
             if ((int)coord.getX() >= x - 10 && (int)coord.getX() <= x + 10)
                 return coord;
 
-        Log.e(TAG, "findPointWithX: Can't find a coordinate with an x of " + x + " in " + coords.toString());
+        //Log.e(TAG, "findPointWithX: Can't find a coordinate with an x of " + x + " in " + coords.toString());
         return null;
     }
 
@@ -243,7 +268,7 @@ class HorizonMatching {
                         + coords.get(arrayIndex + searchWidth - 1) + " if possible.");
                 arrayIndex += searchWidth - 1;
                 wereGoingUp = (nextGradient < 0);   // y coords are +ve downwards for bitmaps
-                Log.d("gradient", "We've just gone " + (wereGoingUp ? "up" : "down"));
+                //Log.d("gradient", "We've just gone " + (wereGoingUp ? "up" : "down"));
             }
 
             // If this is too close to the edge that we can't see the next gradient, exit
