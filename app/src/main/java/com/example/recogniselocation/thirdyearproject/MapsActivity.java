@@ -33,7 +33,7 @@ import java.util.List;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
-    int demo = 4;   // 0: Your location. 1: Sydney. 2: Kinder Scout. 3:?, 4:Blencathra
+    int demo = 4;   // 0: Your location. 1: Sydney. 2: Kinder Scout. 3:Wast Water, 4:Blencathra
 
     private TextView textView;
     private LocationManager locationManager;

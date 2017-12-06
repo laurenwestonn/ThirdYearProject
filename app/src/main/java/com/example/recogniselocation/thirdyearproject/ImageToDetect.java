@@ -13,6 +13,8 @@ import android.widget.ImageButton;
 import java.util.ArrayList;
 import java.util.List;
 
+import static android.content.ContentValues.TAG;
+
 public class ImageToDetect extends Activity {
 
     public static boolean showCoarse = false;    // Show results of the coarse or the fine?
@@ -21,7 +23,6 @@ public class ImageToDetect extends Activity {
     public static boolean sdDetail = false;      // Want to draw SD and log info about standard deviation under "sd"?
 
     public static List<List<Integer>> edgeCoords;
-    public static int fineWidthFromCentre;
     public static int fineWidth;
     public static int fineHeight;
 
@@ -56,7 +57,7 @@ public class ImageToDetect extends Activity {
         List<Integer> ysOfEdges = new ArrayList<>();
 
         // The number of pixels to the left/right/above/below of the centre pixel
-        int distFromCentre = bmp.getHeight() / 18;
+        int distFromCentre = bmp.getHeight() / 17;
         // The number of pixels for the width/height
         int widthToColourAtOnce = distFromCentre * 2 + 1;
 
@@ -125,7 +126,7 @@ public class ImageToDetect extends Activity {
         // Get a copy of the original photo to use the fine mask on
         Bitmap fineBMP = bmp.copy(bmp.getConfig(), true);
 
-        fineWidthFromCentre = fineBMP.getWidth() / 250; // 1 would make a mask of width 3, 2 would give width 5
+        int fineWidthFromCentre = fineBMP.getWidth() / 250; // 1 would make a mask of width 3, 2 would give width 5
         fineWidth = fineWidthFromCentre * 2 + 1; // Total width of the fine mask
         int fineHeightFromCentre = fineBMP.getHeight() / 200;
         fineHeight = fineHeightFromCentre * 2 + 1; // Total height of the fine mask

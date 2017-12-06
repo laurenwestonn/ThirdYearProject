@@ -16,9 +16,6 @@ import java.util.List;
 import static android.content.ContentValues.TAG;
 
 class HorizonMatching {
-
-    private static int width = ImageToDetect.fineWidth;
-    private static int height = ImageToDetect.fineHeight;
     static double graphHeight;
 
     static void matchUpHorizons(List<Point> photoCoords, List<Point> elevationCoords,
@@ -92,13 +89,12 @@ class HorizonMatching {
     {
         // If the first is a maxima, start from the first index
         int maxInd = photoMM.size() == 2 ? 0 : 2;
-
         ImageManipulation.colourArea(bmp,   (int) photoMM.get(maxInd).getX(),
                                             (int) photoMM.get(maxInd).getY(),
-                                            Color.RED, width * 2, height * 2);
+                                            Color.RED, 40, 40);
         ImageManipulation.colourArea(bmp,   (int) photoMM.get(1).getX(),
                                             (int) photoMM.get(1).getY(),
-                                            Color.BLUE, width * 2, height * 2);
+                                            Color.BLUE, 40, 40);
 
         // Put this on the image button
         ImageButton imageButton = (ImageButton) a.findViewById(R.id.edgeDetection);
@@ -139,9 +135,8 @@ class HorizonMatching {
                 // Transform this coordinate
                 int tX = (int) (c.getX() * scaleX + translateX);
                 double tY = c.getY() * scaleY + translateY;
-                Log.d(TAG, "howWellMatched:Translated " + c + " to " + transformCoords.get(i));
+                Log.d(TAG, "howWellMatched:Translated " + c + " to " + tX + ", " + tY);
 
-                // Todo: Photo coords should all be within the elevation coords, check this
                 // Get diff in height if this transformed coords can be found in the other coords
                 Point matchingBasePoint;
                 if (tX >= 0 && tX < baseCoords.get(baseCoords.size() - 1).getX()

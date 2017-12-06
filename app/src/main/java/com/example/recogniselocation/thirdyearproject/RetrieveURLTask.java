@@ -146,7 +146,7 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
         
         MapsActivity.graph.addSeries(series);
         setBounds(MapsActivity.graph,0,  x, series.getLowestValueY(), series.getHighestValueY());
-        HorizonMatching.graphHeight =  series.getHighestValueY() - series.getLowestValueY();
+        HorizonMatching.graphHeight =  series.getHighestValueY();
         
         return horizonCoords;
     }

@@ -297,13 +297,13 @@ public class ImageManipulation {
                 // In this column, colour in the only edge we want as white, the rest as black
                 // ~Change to yellow to show the result of thinning more clearly~
 
-                ImageManipulation.colourArea(fineBMP, colIndex, yToUse,
+                colourArea(fineBMP, colIndex, yToUse,
                         Color.WHITE, fineWidth, fineHeight);
 
                 for (Object y : col) {
                     // ~Change to red to see which edges were removed from thinning~
                     //Log.d("Hi", "Thin out " + y + " from column " + colIndex);
-                    ImageManipulation.colourArea(fineBMP, colIndex, (int) y, Color.BLACK, fineWidth, fineHeight);
+                    colourArea(fineBMP, colIndex, (int) y, Color.BLACK, fineWidth, fineHeight);
                 }
             } // No need to colour in fineBMP if we're only showing the horizon on the bitmap
 
