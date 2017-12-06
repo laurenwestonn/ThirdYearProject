@@ -19,6 +19,7 @@ class HorizonMatching {
 
     private static int width = ImageToDetect.fineWidth;
     private static int height = ImageToDetect.fineHeight;
+    static double graphHeight;
 
     static void matchUpHorizons(List<Point> photoCoords, List<Point> elevationCoords,
                                                                         Bitmap bmp, Activity a)
@@ -51,8 +52,7 @@ class HorizonMatching {
             List<Point> elevationMM = new ArrayList<>();
 
             if (i == 0 && photoMM.size() == 2) { // From the photo we found a maxima then minima
-                // Elevation's first max is from index 0 unless the elevations started with
-                // a minima
+                // Elevation's 1st max is index 0, unless elevations started with a minima
                 if (elevationMMs.get(0) == null)
                     i = 2;
 
@@ -65,9 +65,7 @@ class HorizonMatching {
             elevationMM.add(elevationMMs.get(i + 1));   // add the first min/max after the max/min
 
             Log.d("matching", "Checking elevation max min " + elevationMM);
-            Log.d(TAG, "matchUpHorizons: Adding to allMatchings for min max " + elevationMM);
             allMatchings.add(howWellMatched(photoMM, elevationMM, photoCoords, elevationCoords));
-            Log.d(TAG, "matchUpHorizons: Most recently added matching is " + allMatchings.get(allMatchings.size()-1));
         }
 
         Log.d(TAG, "matchUpHorizons: All matchings: " + allMatchings.toString());
@@ -76,7 +74,7 @@ class HorizonMatching {
         Matching bestMatching = allMatchings.get(0);
 
         for (int i = 1; i < allMatchings.size(); i++)
-            if (allMatchings.get(i).getDifference() > bestMatching.getDifference())
+            if (allMatchings.get(i).getDifference() < bestMatching.getDifference())
                 bestMatching = allMatchings.get(i);
 
         Log.d(TAG, "matchUpHorizons: The best matching is " + bestMatching);
@@ -141,7 +139,7 @@ class HorizonMatching {
                 // Transform this coordinate
                 int tX = (int) (c.getX() * scaleX + translateX);
                 double tY = c.getY() * scaleY + translateY;
-                //Log.d(TAG, "howWellMatched:Translated " + c + " to " + transformCoords.get(i));
+                Log.d(TAG, "howWellMatched:Translated " + c + " to " + transformCoords.get(i));
 
                 // Todo: Photo coords should all be within the elevation coords, check this
                 // Get diff in height if this transformed coords can be found in the other coords
@@ -155,8 +153,10 @@ class HorizonMatching {
                     numMatched++;
                 }
 
+                double diffFromCentre = tY - graphHeight / 2;
+
                 // Build up a series to plot
-                series.appendData(new DataPoint(tX, tY), true, transformCoords.size());
+                series.appendData(new DataPoint(tX, tY - diffFromCentre * 2), true, transformCoords.size());
                 series.setColor(Color.BLACK);
             }
 

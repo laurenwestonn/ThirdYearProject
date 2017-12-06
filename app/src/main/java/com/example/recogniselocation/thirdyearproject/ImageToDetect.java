@@ -56,7 +56,7 @@ public class ImageToDetect extends Activity {
         List<Integer> ysOfEdges = new ArrayList<>();
 
         // The number of pixels to the left/right/above/below of the centre pixel
-        int distFromCentre = bmp.getHeight() / 17;
+        int distFromCentre = bmp.getHeight() / 18;
         // The number of pixels for the width/height
         int widthToColourAtOnce = distFromCentre * 2 + 1;
 
