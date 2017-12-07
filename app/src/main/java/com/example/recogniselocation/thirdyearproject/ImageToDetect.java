@@ -19,7 +19,7 @@ public class ImageToDetect extends Activity {
 
     public static boolean showCoarse = false;   // Show results of the coarse or the fine?
     public static boolean sdDetail = false;     // Want to draw SD and log info under tag "sd"?
-    public static boolean useThinning = false;   // Thin to have only one point per column?
+    public static boolean useThinning = true;   // Thin to have only one point per column?
     public static boolean showEdgeOnly = true;  // Colour in just the edge, or all searched area?
 
     public static List<List<Integer>> edgeCoords;
@@ -130,7 +130,7 @@ public class ImageToDetect extends Activity {
 
         int fineWidthRadius = fineBMP.getWidth() / 250; // 1 would make a mask of width 3, 2 would give width 5
         fineWidth = fineWidthRadius * 2 + 1; // Total width of the fine mask
-        int fineHeightRadius = fineBMP.getHeight() / 200;
+        int fineHeightRadius = fineBMP.getHeight() / 120;
         fineHeight = fineHeightRadius * 2 + 1; // Total height of the fine mask
 
         boolean relevantEdge;
@@ -147,7 +147,7 @@ public class ImageToDetect extends Activity {
                 /////// NEIGHBOURING THRESHOLD ///////
 
                 // Thresholds
-                int pointThreshold = bmp.getHeight() / 25; // The threshold to determine an edge for a point
+                int pointThreshold = bmp.getHeight() / 35; // The threshold to determine an edge for a point
                 int neighbThreshold = (int) (pointThreshold * 0.9); // A point that is neighbouring an edge's threshold
 
                 // Is this a edge?

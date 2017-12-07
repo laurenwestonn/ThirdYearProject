@@ -87,10 +87,11 @@ public class ImageManipulation {
         int edgeness = 0;
 
         for (int y = j - heightRadius; y <= j + heightRadius; y += heightRadius + heightRadius)
-            for (int x = i - widthRadius; x <= i + widthRadius; x+= widthRadius) {
-                if (x == i) // If this is a centre point, weigh it twice as heavily
+            for (int x = i - widthRadius; x <= i + widthRadius; x+= widthRadius)
+                if (x < bmp.getWidth() && y < bmp.getHeight()) {
+                    if (x == i) // If this is a centre point, weigh it twice as heavily
+                        edgeness += Color.blue(bmp.getPixel(x, y)) * ((y == j + heightRadius) ? -1 : 1);
                     edgeness += Color.blue(bmp.getPixel(x, y)) * ((y == j + heightRadius) ? -1 : 1);
-                edgeness += Color.blue(bmp.getPixel(x, y)) * ((y == j + heightRadius) ? -1 : 1);
             }
         edgeness /= 4; // Max could be 3 * 255
 
