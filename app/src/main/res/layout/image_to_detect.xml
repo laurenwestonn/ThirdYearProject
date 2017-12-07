@@ -12,7 +12,7 @@
         android:contentDescription="@string/image_button_description"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:src="@drawable/blencathra"
+        android:src="@drawable/rocky_mountains"
         android:onClick="clickedImage"
         android:scaleType="fitCenter"/>
 </LinearLayout>

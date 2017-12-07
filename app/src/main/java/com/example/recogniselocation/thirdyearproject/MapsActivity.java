@@ -33,7 +33,7 @@ import java.util.List;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
-    int demo = 4;   // 0: Your location. 1: Sydney. 2: Kinder Scout. 3:Wast Water, 4:Blencathra
+    int demo = 5;   // 0: Your location. 1: Sydney. 2: Kinder Scout. 3:Wast Water, 4:Blencathra, 5: Rocky Mountains
 
     private TextView textView;
     private LocationManager locationManager;
@@ -103,6 +103,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         yPos = -3.0915329;
                         yourDirection = 215;
                         break;
+                    case 5: // Rocky Mountains
+                        xPos =  51.6776886;
+                        yPos = -116.4657593;
+                        yourDirection = 140;
                     default:
                         // Save your co-ordinates
                         xPos = location.getLatitude();

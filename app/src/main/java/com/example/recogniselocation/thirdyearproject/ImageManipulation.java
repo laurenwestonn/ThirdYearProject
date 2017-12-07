@@ -83,13 +83,16 @@ public class ImageManipulation {
         return determineColour(bmp, edgeness, hiThresh, loThresh, i, j, fineWidth, fineHeight);
     }
 
-    private static int getFineEdgeness(Bitmap bmp, int i, int j, int widthFromCentre, int heightFromCentre) {
+    private static int getFineEdgeness(Bitmap bmp, int i, int j, int widthRadius, int heightRadius) {
         int edgeness = 0;
 
-        for (int y = j - heightFromCentre; y <= j + heightFromCentre; y = y + heightFromCentre + heightFromCentre)
-            for (int x = i - widthFromCentre; x <= i + widthFromCentre; x+= widthFromCentre)
-                edgeness += Color.blue(bmp.getPixel(x, y)) * ((y == j + heightFromCentre) ? -1 : 1);
-        edgeness /= 3; // Max could be 3 * 255
+        for (int y = j - heightRadius; y <= j + heightRadius; y += heightRadius + heightRadius)
+            for (int x = i - widthRadius; x <= i + widthRadius; x+= widthRadius) {
+                if (x == i) // If this is a centre point, weigh it twice as heavily
+                    edgeness += Color.blue(bmp.getPixel(x, y)) * ((y == j + heightRadius) ? -1 : 1);
+                edgeness += Color.blue(bmp.getPixel(x, y)) * ((y == j + heightRadius) ? -1 : 1);
+            }
+        edgeness /= 4; // Max could be 3 * 255
 
         return edgeness > 0 ? edgeness : 0; // Edges with dark on top are -ve, ignore these
     }
@@ -145,13 +148,32 @@ public class ImageManipulation {
         int[] colours = new int[width * height];
         Arrays.fill(colours, colour);
 
-        //Log.d("Hi", "Trying to colour from " + (i - (width-1) / 2) + ", " + (j - (height-1) / 2) + ". Width x height: " + width + "x" + height + " BMP: " + bmp.getWidth() + ", " + bmp.getHeight());
+        // The top left coordinate of the area to colour
+        int x = i - (width-1) / 2;
+        int y = j - (height-1) / 2;
+
+        // Don't try colour in areas outside of the image
+        if (x < 0) {
+            width += x;
+            x = 0;
+        }
+        else if (x + width >= bmp.getWidth())
+            width = bmp.getWidth() - x - 1;
+
+        if (y < 0) {
+            height += y;
+            y = 0;
+        } else if (y + height >= bmp.getHeight())
+            height = bmp.getHeight() - y - 1;
+
+        //Log.d("Hi", "Trying to colour from " + x + ", " + y + ". Width x height: "
+          //      + width + "x" + height + " BMP: " + bmp.getWidth() + ", " + bmp.getHeight());
         bmp.setPixels(colours, 0,       // array to colour in this area, no offset
-                width,    // stride, width of what you wanna colour in
-                i - (width-1) / 2, // x co-ord of first pixel to colour
-                j - (height-1) / 2, // y co-ord of first pixel to colour
-                width,    // width of area to colour
-                height);   // height of area to colour
+                width,      // stride, width of what you wanna colour in
+                x,          // x co-ord of first pixel to colour
+                y,          // y co-ord of first pixel to colour
+                width,      // width of area to colour
+                height);    // height of area to colour
     }
 
 
@@ -286,7 +308,7 @@ public class ImageManipulation {
         if (noOfEdgesInCol > 0) {
             // The middle edge in the column is most likely to be accurate so use this.
             Collections.sort(col);
-            int mostAccurateEdgeInCol = noOfEdgesInCol / 2;
+            int mostAccurateEdgeInCol = 0;//noOfEdgesInCol / 2; Changed this to check if I should be getting the top value, as the horizon is at the top
             int yToUse = (int)col.get(mostAccurateEdgeInCol);
             // Have col hold only the edges we wont consider
             col.remove(mostAccurateEdgeInCol);

@@ -17,10 +17,10 @@ import static android.content.ContentValues.TAG;
 
 public class ImageToDetect extends Activity {
 
-    public static boolean showCoarse = false;    // Show results of the coarse or the fine?
-    public static boolean useThinning = true;  // Thin to have only one point per column?
+    public static boolean showCoarse = false;   // Show results of the coarse or the fine?
+    public static boolean sdDetail = false;     // Want to draw SD and log info under tag "sd"?
+    public static boolean useThinning = false;   // Thin to have only one point per column?
     public static boolean showEdgeOnly = true;  // Colour in just the edge, or all searched area?
-    public static boolean sdDetail = false;      // Want to draw SD and log info about standard deviation under "sd"?
 
     public static List<List<Integer>> edgeCoords;
     public static int fineWidth;
@@ -45,64 +45,66 @@ public class ImageToDetect extends Activity {
             ((ImageButton) view).setImageBitmap(edgeDetection.bmp);
     }
 
+    public static Bitmap getThreshold(Bitmap bmp) {
+
+        // The number of pixels to the left/right/above/below of the centre pixel
+        int pointRadius = bmp.getHeight() / 17;
+        // The number of pixels for the width/height, the diameter
+        int pointDiamm = pointRadius * 2 + 1;
+
+        // Make a mutable copy of the bitmap to threshold
+        Bitmap thresholdBMP = bmp.copy(bmp.getConfig(), true);
+
+        for (int y = pointRadius + 1; y < thresholdBMP.getHeight(); y += pointDiamm)
+            for (int x = pointRadius + 1; x < thresholdBMP.getWidth(); x += pointDiamm) {
+                int threshold = 100;
+                int brightness = Color.blue(thresholdBMP.getPixel(x, y));
+
+                // Colour point in white if edge, black if not
+                int colour = (brightness > threshold) ? Color.WHITE : Color.BLACK;
+
+                ImageManipulation.colourArea(thresholdBMP, x, y, colour, pointDiamm, pointDiamm);
+            }
+
+        return thresholdBMP;
+    }
+
     public static EdgeDetection detectEdge(Bitmap bmp) {
         Log.d("Hi", "Going to detect the edge");
 
-        // Copy it (mutable) into new bitmap, which will be used for the coarse mask
-        Bitmap coarseBMP = bmp.copy(bmp.getConfig(), true);
-
-        // Check number of times we loop around for efficiency
-        int testCount = 0;
-
-        List<Integer> ysOfEdges = new ArrayList<>();
-
         // The number of pixels to the left/right/above/below of the centre pixel
-        int distFromCentre = bmp.getHeight() / 17;
-        // The number of pixels for the width/height
-        int widthToColourAtOnce = distFromCentre * 2 + 1;
+        int coarseRadius = bmp.getHeight() / 17;
+        // The number of pixels for the width/height, the diameter
+        int coarseDiam = coarseRadius * 2 + 1;
 
         ////////////// Coarse Mask /////////////////
-        for (int j = distFromCentre+1;
-             j < coarseBMP.getHeight()-distFromCentre;
-             j += widthToColourAtOnce)
-            for (int i = distFromCentre+1;
-                 i < coarseBMP.getWidth()-distFromCentre;
-                 i += widthToColourAtOnce) {
+        List<Integer> ysOfEdges = new ArrayList<>();
+        // Make a mutable copy of the bitmap to be used for the coarse mask
+        Bitmap coarseBMP = bmp.copy(bmp.getConfig(), true);
 
-                testCount++;
-                int colour;
+        for (int y = coarseRadius+1;
+             y < coarseBMP.getHeight();
+             y += coarseDiam)
+            for (int x = coarseRadius+1;
+                 x < coarseBMP.getWidth();
+                 x += coarseDiam) {
 
-                // 1: Threshold
-                // 2: Masking
-                int method = 2;
+                // The threshold to determine if a point is an edge
+                int pointThreshold = coarseBMP.getHeight() / 23;
+                // The looser threshold for a point that is neighbouring an edge
+                int neighbThreshold = (int) (pointThreshold * 0.8);
 
-                if (method == 1) {
-                    int threshold = 100;
-                    int brightness = Color.blue(coarseBMP.getPixel(i,j));
-                    colour = (brightness > threshold) ? Color.WHITE : Color.BLACK;
-                    // Colour in the square around this pixel
-                    ImageManipulation.colourArea(coarseBMP, i, j, colour, widthToColourAtOnce, widthToColourAtOnce);
-                } else if (method == 2) {
-                    // The threshold to determine if a point is an edge
-                    int pointThreshold = coarseBMP.getHeight() / 23;
-                    // The looser threshold for a point that is neighbouring an edge
-                    int neighbThreshold = (int) (pointThreshold * 0.8);
-
-                    // Check if this point is determined an edge with the coarse mask
-                    boolean relevantEdge = ImageManipulation.colourCoarseMaskPoint(coarseBMP, i, j, distFromCentre, pointThreshold, neighbThreshold);
-                    // If it is, remember it so we can narrow the area we use our fine mask in
-                    if (relevantEdge)
-                        ysOfEdges.add(j);
-                }
+                // Check if this point is determined an edge with the coarse mask
+                boolean relevantEdge = ImageManipulation.colourCoarseMaskPoint(coarseBMP, x, y, coarseRadius, pointThreshold, neighbThreshold);
+                // If it is, remember it so we can narrow the area we use our fine mask in
+                if (relevantEdge)
+                    ysOfEdges.add(y);
             }
-
-        Log.d("Hi", "The image was " + coarseBMP.getWidth() + " x " + coarseBMP.getHeight());
-        Log.d("Hi", "Looped " + testCount + " times.");
 
         ///////////// Standard Deviation //////////////
         // Here we work out the standard deviation of the edges found using the coarse mask
         // We need this so we can narrow down the area to search using the fine mask
-        StandardDeviation coarseSD = new StandardDeviation(ysOfEdges, distFromCentre);
+        StandardDeviation coarseSD = new StandardDeviation(ysOfEdges, coarseRadius);
 
         // Enable sdDetail if you want to print info and draw mean/sd lines on the image
         if (sdDetail) {
@@ -126,19 +128,20 @@ public class ImageToDetect extends Activity {
         // Get a copy of the original photo to use the fine mask on
         Bitmap fineBMP = bmp.copy(bmp.getConfig(), true);
 
-        int fineWidthFromCentre = fineBMP.getWidth() / 250; // 1 would make a mask of width 3, 2 would give width 5
-        fineWidth = fineWidthFromCentre * 2 + 1; // Total width of the fine mask
-        int fineHeightFromCentre = fineBMP.getHeight() / 200;
-        fineHeight = fineHeightFromCentre * 2 + 1; // Total height of the fine mask
+        int fineWidthRadius = fineBMP.getWidth() / 250; // 1 would make a mask of width 3, 2 would give width 5
+        fineWidth = fineWidthRadius * 2 + 1; // Total width of the fine mask
+        int fineHeightRadius = fineBMP.getHeight() / 200;
+        fineHeight = fineHeightRadius * 2 + 1; // Total height of the fine mask
 
         boolean relevantEdge;
         edgeCoords = new ArrayList<>();
 
         // Use a fine mask on the area found to be the horizon by the coarse mask
-        for(int y = coarseSD.minRange + fineHeightFromCentre; y <= coarseSD.maxRange - fineHeightFromCentre; y+= fineHeight)
-            for (int x = fineWidthFromCentre; x < fineBMP.getWidth() - fineWidthFromCentre; x+= fineWidth) {
+        for(int y = coarseSD.minRange + fineHeightRadius; y <= coarseSD.maxRange; y+= fineHeight)
+            for (int x = fineWidthRadius; x < fineBMP.getWidth(); x+= fineWidth) {
 
-                if (y == coarseSD.minRange + fineHeightFromCentre) // Want to add a new list for every column
+                // Have a list for each column
+                if (y == coarseSD.minRange + fineHeightRadius)
                     edgeCoords.add(new ArrayList<Integer>());
 
                 /////// NEIGHBOURING THRESHOLD ///////
@@ -151,7 +154,7 @@ public class ImageToDetect extends Activity {
                 relevantEdge = ImageManipulation.colourFineMaskPoint(fineBMP, x, y, fineWidth, fineHeight, pointThreshold, neighbThreshold);
                 if (relevantEdge) {
                     // This should hold the location of every edge found with the fine mask
-                    edgeCoords.get((x-fineWidthFromCentre)/fineWidth).add(y);
+                    edgeCoords.get((x-fineWidthRadius)/fineWidth).add(y);
                 }
             }
 
@@ -159,7 +162,8 @@ public class ImageToDetect extends Activity {
         if (useThinning) {
             //Log.d("Hi", "Going to thin out edgeCoords: " + edgeCoords.toString());
             // Unsure if finebmp and edgecoords get updated here
-            edgeCoords = ImageManipulation.thinBitmap(fineBMP, edgeCoords, fineWidth, fineHeight, fineWidthFromCentre);
+            edgeCoords = ImageManipulation.thinBitmap(fineBMP, edgeCoords,
+                                            fineWidth, fineHeight, fineWidthRadius);
             //Log.d("Hi", "Have thinned out edgeCoords:  " + edgeCoords.toString());
         }
 
@@ -170,18 +174,14 @@ public class ImageToDetect extends Activity {
             edgeBMP = bmp.copy(bmp.getConfig(), true);
             // Draw the edge on top of the photo from the edge coordinates we saved in edgeCoords
             ImageManipulation.colourFineBitmap(edgeBMP, edgeCoords,
-                    fineWidth, fineHeight, fineWidthFromCentre);
+                                            fineWidth, fineHeight, fineWidthRadius);
         }
-
-
-
         if (showCoarse)
             return new EdgeDetection(edgeCoords, coarseBMP);
         else if (edgeBMP != null && showEdgeOnly)
             return new EdgeDetection(edgeCoords, edgeBMP);
         else
             return new EdgeDetection(edgeCoords, fineBMP);
-
     }
 
 }
