@@ -22,9 +22,9 @@ class HorizonMatching {
                                                                         Bitmap bmp, Activity a)
     {
         // Find all minimas and maximas of both horizons
-        List<Point> photoMMs = findMaximaMinima(photoCoords);
+        List<Point> photoMMs = findMaximaMinima(photoCoords, false);
         Log.d(TAG, "matchUpHorizons: Now check elevationMMs from coords: " + elevationCoords);
-        List<Point> elevationMMs = findMaximaMinima(elevationCoords);
+        List<Point> elevationMMs = findMaximaMinima(elevationCoords, true);
 
         if (photoMMs.size() < 2 || elevationMMs.size() < 2)
             Log.e(TAG, "matchUpHorizons: Didn't find enough maximas and minimas");
@@ -52,9 +52,8 @@ class HorizonMatching {
             List<Point> elevationMM = new ArrayList<>();
 
             if (i == 0 && photoMM.size() == 2) { // From the photo we found a maxima then minima
-                // Elevation's 1st max is index 0, unless elevations started with a minima
-                if (elevationMMs.get(0) == null)
-                    i = 2;
+                if (elevationMMs.get(0) == null)    // If the elevations start with a minima
+                    i = 2;  // Then the first max index is at 2
 
             } else if (i == 0 && photoMM.size() == 3) { // Photo had a minima then maxima
                 i = 1;                  // Start at the first min
@@ -63,6 +62,23 @@ class HorizonMatching {
 
             elevationMM.add(elevationMMs.get(i));       // add the first max/min
             elevationMM.add(elevationMMs.get(i + 1));   // add the first min/max after the max/min
+
+            // Only look at this pair if they're fairly far apart - we'll want mountains not dips
+            double signifWidth = elevationCoords.get(elevationCoords.size()-1).getX() / 10;
+            if (elevationMM.get(0) == null)
+                if ((elevationMM.get(2).getX() - elevationMM.get(1).getX()) < signifWidth) {
+                    Log.d(TAG, "matchUpHorizons: the difference between these two is only "
+                            + (elevationMM.get(2).getX() - elevationMM.get(1).getX())
+                            + " which isn't significant - " + signifWidth);
+                    continue;
+                }
+            else
+                if ((elevationMM.get(1).getX() - elevationMM.get(0).getX()) < signifWidth) {
+                    Log.d(TAG, "matchUpHorizons: the difference between these two is only "
+                            + (elevationMM.get(1).getX() - elevationMM.get(0).getX())
+                            + " which isn't significant - " + signifWidth);
+                    continue;
+                }
 
             Log.d("matching", "Checking elevation max min " + elevationMM);
             allMatchings.add(howWellMatched(photoMM, elevationMM, photoCoords, elevationCoords));
@@ -230,7 +246,7 @@ class HorizonMatching {
     }
 
     // Maxima in even numbers, Minima in odd
-    private static List<Point> findMaximaMinima(List<Point> coords)
+    private static List<Point> findMaximaMinima(List<Point> coords, boolean loosenThresh)
     {
         int arrayIndex = 0;
         double nextGradient = Integer.MAX_VALUE;
@@ -238,7 +254,7 @@ class HorizonMatching {
         boolean wereGoingUp = true;    //  Whether the hill is heading up or down. Updated.
 
         // Find appropriate search parameters based on the coordinates
-        double noiseThreshold = getThreshold(coords);
+        double noiseThreshold = getThreshold(coords) * (loosenThresh ? 3 : 1);  // Todo: This better. Using a looser threshold on the elevations because my edge detection is too thick to notice subtle dips
         int searchWidth = coords.size() / 20;
         Log.d(TAG, "findMaximaMinima: Using a noise threshold of " + noiseThreshold + " and searching a width of " + searchWidth);
 
@@ -268,7 +284,8 @@ class HorizonMatching {
 
                 Log.d("gradient", "Gradient ahead of " + coords.get(arrayIndex)
                         + " is significant at " + nextGradient + " so check what is from "
-                        + coords.get(arrayIndex + searchWidth - 1) + " if possible.");
+                        + coords.get(arrayIndex + searchWidth - 1) + ", index "
+                        + (arrayIndex + searchWidth - 1) + " if possible.");
                 arrayIndex += searchWidth - 1;
                 wereGoingUp = (nextGradient < 0);   // y coords are +ve downwards for bitmaps
                 Log.d("gradient", "We've just gone " + (wereGoingUp ? "up" : "down"));
@@ -320,7 +337,7 @@ class HorizonMatching {
             else if (coord.getY() > biggestY.getY())
                 biggestY = coord;
             
-        return (biggestY.getY() - smallestY.getY()) / 40;
+        return (biggestY.getY() - smallestY.getY()) / 25;
     }
 
     private static boolean outOfBounds(int index, int searchWidth, List<Point> coords) {
