@@ -8,7 +8,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-public class ImageManipulation {
+class ImageManipulation {
 
     /////////////////////// COARSE /////
     static boolean colourCoarseMaskPoint(Bitmap bmp, int i, int j, int distFromCentre, int loThresh, int hiThresh) {
@@ -92,6 +92,7 @@ public class ImageManipulation {
                     if (x == i) // If this is a centre point, weigh it twice as heavily
                         edgeness += Color.blue(bmp.getPixel(x, y)) * ((y == j + heightRadius) ? -1 : 1);
                     edgeness += Color.blue(bmp.getPixel(x, y)) * ((y == j + heightRadius) ? -1 : 1);
+
             }
         edgeness /= 4; // Max could be 3 * 255
 

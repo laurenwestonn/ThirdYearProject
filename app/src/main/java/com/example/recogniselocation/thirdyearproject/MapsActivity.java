@@ -107,6 +107,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         xPos =  51.6776886;
                         yPos = -116.4657593;
                         yourDirection = 140;
+                        break;
                     default:
                         // Save your co-ordinates
                         xPos = location.getLatitude();
