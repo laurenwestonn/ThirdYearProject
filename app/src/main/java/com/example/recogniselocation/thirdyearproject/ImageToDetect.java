@@ -152,10 +152,9 @@ public class ImageToDetect extends Activity {
 
                 // Is this a edge?
                 relevantEdge = ImageManipulation.colourFineMaskPoint(fineBMP, x, y, fineWidth, fineHeight, pointThreshold, neighbThreshold);
-                if (relevantEdge) {
+                if (relevantEdge)
                     // This should hold the location of every edge found with the fine mask
                     edgeCoords.get((x-fineWidthRadius)/fineWidth).add(y);
-                }
             }
 
         //// THINNING ////

@@ -8,6 +8,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static android.content.ContentValues.TAG;
+
 class ImageManipulation {
 
     /////////////////////// COARSE /////
@@ -303,57 +305,65 @@ class ImageManipulation {
     }
 
     /////// THINNING ///////
-    // Reduce the number of edges in this column to one. Pick the middle one.
-    private static int thinColumn(Bitmap fineBMP, List col, int colIndex, int fineWidth, int fineHeight) {
-        // Skip any columns that don't have edges
-        int noOfEdgesInCol = col.size();
-        if (noOfEdgesInCol > 0) {
-            // The middle edge in the column is most likely to be accurate so use this.
-            Collections.sort(col);
-            int mostAccurateEdgeInCol = 0;//noOfEdgesInCol / 2; Changed this to check if I should be getting the top value, as the horizon is at the top
-            int yToUse = (int)col.get(mostAccurateEdgeInCol);
-            // Have col hold only the edges we wont consider
-            col.remove(mostAccurateEdgeInCol);
+    // Reduce the number of edges in this column to one. Pick the first one that isn't noise.
+    // Returns the most recent valid point you've seen
+    private static Point thinColumn(Bitmap bmp, List<Integer> col, int colX, Point prevPoint, int width, int height) {
+        int bestColIndex = Integer.MIN_VALUE;
+        Point pointToUse = null;
 
-            //Log.d("Hi", "In column " + colIndex + " there are edges at " + col + ". Keep edge (" + colIndex + ", " + yToUse + ")");
+        for (int i = 0; i < col.size(); i++)
+            // Avoid noise by checking that the previous point isn't too different from this one
+            if (prevPoint == null)      // The first point
+                if (col.size() > 0)
+                    bestColIndex = 0;   // There's no points to compare against, just assume this is from the horizon
+                else
+                    return null;
+            else if (Math.abs((colX - prevPoint.getX())
+                    / (col.get(i) - prevPoint.getY())) >= 0.4) {
+                bestColIndex = i;   // Pick the highest in this column which isn't noise
+                Log.d(TAG, "thinColumn: We've found a point in this column to keep which is nearby the last. " + new Point(colX, col.get(bestColIndex)).toString());
+                break;
+            }
 
-            if (!ImageToDetect.showEdgeOnly) {
-                // In this column, colour in the only edge we want as white, the rest as black
-                // ~Change to yellow to show the result of thinning more clearly~
-
-                colourArea(fineBMP, colIndex, yToUse,
-                        Color.WHITE, fineWidth, fineHeight);
-
-                for (Object y : col) {
-                    // ~Change to red to see which edges were removed from thinning~
-                    //Log.d("Hi", "Thin out " + y + " from column " + colIndex);
-                    colourArea(fineBMP, colIndex, (int) y, Color.BLACK, fineWidth, fineHeight);
-                }
-            } // No need to colour in fineBMP if we're only showing the horizon on the bitmap
-
-            return yToUse;
-
-        } else {
-            //Log.d("Hi", "No edges in column " + colIndex);
-            return -1;
+        // Have col hold only the points we want to remove
+        // This body is entered if you found a point to keep
+        if (bestColIndex != Integer.MIN_VALUE) {
+            pointToUse = new Point(colX, col.get(bestColIndex));
+            col.remove(bestColIndex);
+            //Log.d("Hi", "In column " + colX + " there are edges at " + col + ". Keep edge (" + colX + ", " + yToUse + ")");
         }
+
+        if (!ImageToDetect.showEdgeOnly) {
+            // Colour in the only point we declare as an edge in this column
+            if (pointToUse != null)
+                colourArea(bmp, (int)pointToUse.getX(), (int)pointToUse.getY(), Color.WHITE, width, height);
+
+            // Get rid of the points we'd found in col that we now don't want
+            for (Integer y : col)
+                // ~Change to red to see which edges were removed from thinning~
+                colourArea(bmp, colX, y, Color.BLACK, width, height);
+        }
+
+        // Return the most recent valid point you've seen
+        return pointToUse == null ? prevPoint : pointToUse;
     }
 
-    static List<List<Integer>> thinBitmap(Bitmap fineBMP, List<List<Integer>> edgeCoords,
-                                          int fineWidth, int fineHeight, int fineWidthFromCentre)
+    static List<List<Integer>> thinBitmap(Bitmap bmp, List<List<Integer>> edgeCoords,
+                                          int width, int height, int widthFromCentre)
     {
         // Start at the centre of the first point
-        int colIndex = fineWidthFromCentre;
+        int colIndex = widthFromCentre;
+        Point prevPoint = null;
 
         // Go through each of the edge coords
         for (int i = 0; i < edgeCoords.size(); i++) {
-            int yToUse = thinColumn(fineBMP, edgeCoords.get(i), colIndex, fineWidth, fineHeight);
+            prevPoint = thinColumn(bmp, edgeCoords.get(i), colIndex, prevPoint, width, height);
 
             if(ImageToDetect.showEdgeOnly) {
                 // Have each column hold the 1 edge (if exists) found through thinning
-                if (yToUse != -1) {
+                if (prevPoint.getY() != -1) {
                     edgeCoords.get(i).clear();
-                    edgeCoords.get(i).add(yToUse);
+                    edgeCoords.get(i).add((int)prevPoint.getY());
                     //Log.d("Hi", "Col " + colIndex + " now only holds: " + edgeCoords.get(i));
                 } else {
                     //Log.d("Hi", "Col " + colIndex + " didn't have any edges, make it null" );
@@ -361,7 +371,7 @@ class ImageManipulation {
                     edgeCoords.get(i).clear();
                 }
             }
-            colIndex += fineWidth;
+            colIndex += width;
         }
 
         return edgeCoords;

@@ -51,34 +51,34 @@ class HorizonMatching {
             // As with the photoMM, this could hold 2 or three values
             List<Point> elevationMM = new ArrayList<>();
 
-            if (i == 0 && photoMM.size() == 2) { // From the photo we found a maxima then minima
-                if (elevationMMs.get(0) == null)    // If the elevations start with a minima
-                    i = 2;  // Then the first max index is at 2
+            // Need to find the first index to start off with
+            if (i == 0)
+                if (photoMM.size() == 2)    // Found a max, then min in the photo's horizon
+                    i = elevationMMs.get(0) == null ? 2 : 0;    // Get the index of the first maxima in the elevations
+                else if (photoMM.size() == 3)// Came across a minima first in the photo's horizon
+                    i = 1;  // The index of the first minima of the elevations
 
-            } else if (i == 0 && photoMM.size() == 3) { // Photo had a minima then maxima
-                i = 1;                  // Start at the first min
-                elevationMM.add(null);  // 'null' the first even index as it represents maxima
-            }
+            if (i % 2 == 1)             // If odd index, must start with a minima
+                elevationMM.add(null);  // So null out the first (would-be max) index
 
             elevationMM.add(elevationMMs.get(i));       // add the first max/min
             elevationMM.add(elevationMMs.get(i + 1));   // add the first min/max after the max/min
 
             // Only look at this pair if they're fairly far apart - we'll want mountains not dips
             double signifWidth = elevationCoords.get(elevationCoords.size()-1).getX() / 10;
-            if (elevationMM.get(0) == null)
+            if (elevationMM.get(0) == null) {   // Starts with a minima
                 if ((elevationMM.get(2).getX() - elevationMM.get(1).getX()) < signifWidth) {
                     Log.d(TAG, "matchUpHorizons: the difference between these two is only "
                             + (elevationMM.get(2).getX() - elevationMM.get(1).getX())
                             + " which isn't significant - " + signifWidth);
                     continue;
                 }
-            else
-                if ((elevationMM.get(1).getX() - elevationMM.get(0).getX()) < signifWidth) {
-                    Log.d(TAG, "matchUpHorizons: the difference between these two is only "
-                            + (elevationMM.get(1).getX() - elevationMM.get(0).getX())
-                            + " which isn't significant - " + signifWidth);
-                    continue;
-                }
+            } else if ((elevationMM.get(1).getX() - elevationMM.get(0).getX()) < signifWidth) { //maxima
+                Log.d(TAG, "matchUpHorizons: the difference between these two is only "
+                        + (elevationMM.get(1).getX() - elevationMM.get(0).getX())
+                        + " which isn't significant - " + signifWidth);
+                continue;
+            }
 
             Log.d("matching", "Checking elevation max min " + elevationMM);
             allMatchings.add(howWellMatched(photoMM, elevationMM, photoCoords, elevationCoords));
