@@ -14,6 +14,7 @@ import com.jjoe64.graphview.series.LineGraphSeries;
 import java.util.ArrayList;
 import java.util.List;
 
+import static android.content.ContentValues.TAG;
 import static com.example.recogniselocation.thirdyearproject.ImageToDetect.fineWidth;
 import static com.example.recogniselocation.thirdyearproject.MapsActivity.googleMap;
 import static com.example.recogniselocation.thirdyearproject.MapsActivity.xPos;
@@ -95,7 +96,8 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
         // other algorithms) there should only be one point per column, so List<Int> will do
         List<Integer> edgeCoordsIntegers = HorizonMatching.removeDimensionFromCoords(edgeCoords2D);
 
-        List<Point> edgeCoords = HorizonMatching.convertToPoints(edgeCoordsIntegers, fineWidth);
+        int pointWidth = (fineWidth-1)/2;
+        List<Point> edgeCoords = HorizonMatching.convertToPoints(edgeCoordsIntegers, pointWidth);
 
         // Match up the horizons
         HorizonMatching.matchUpHorizons(edgeCoords, elevationsCoords, edgeDetection.bmp, activity);
@@ -117,10 +119,10 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
     private Point findMaxPoint(List<Point> coords) {
         Point maxPoint = coords.get(0);
 
-        for (Point p : coords) {
+        for (Point p : coords)
             if (p.getY() > maxPoint.getY())
                 maxPoint = p;
-        }
+
         return maxPoint;
     }
 

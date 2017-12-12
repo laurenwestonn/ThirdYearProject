@@ -129,16 +129,18 @@ public class ImageToDetect extends Activity {
         Bitmap fineBMP = bmp.copy(bmp.getConfig(), true);
 
         int fineWidthRadius = fineBMP.getWidth() / 250; // 1 would make a mask of width 3, 2 would give width 5
-        fineWidth = fineWidthRadius * 2 + 1; // Total width of the fine mask
+        fineWidth = fineWidthRadius * 2 + 1;    // Width of the fine mask
         int fineHeightRadius = fineBMP.getHeight() / 120;
-        fineHeight = fineHeightRadius * 2 + 1; // Total height of the fine mask
+        fineHeight = fineHeightRadius * 2 + 1;  // Height of the fine mask
+        int pointWidth = fineWidthRadius;       // The width of point to colour in
+        int pointWidthRadius = pointWidth / 2;
 
         boolean relevantEdge;
         edgeCoords = new ArrayList<>();
 
         // Use a fine mask on the area found to be the horizon by the coarse mask
-        for(int y = coarseSD.minRange + fineHeightRadius; y <= coarseSD.maxRange; y+= fineHeight)
-            for (int x = fineWidthRadius; x < fineBMP.getWidth(); x+= fineWidth) {
+        for(int y = coarseSD.minRange + fineHeightRadius; y <= coarseSD.maxRange; y+= fineHeightRadius)
+            for (int x = fineWidthRadius; x < fineBMP.getWidth(); x+= fineWidthRadius) {
 
                 // Have a list for each column
                 if (y == coarseSD.minRange + fineHeightRadius)
@@ -151,10 +153,10 @@ public class ImageToDetect extends Activity {
                 int neighbThreshold = (int) (pointThreshold * 0.9); // A point that is neighbouring an edge's threshold
 
                 // Is this a edge?
-                relevantEdge = ImageManipulation.colourFineMaskPoint(fineBMP, x, y, fineWidth, fineHeight, pointThreshold, neighbThreshold);
+                relevantEdge = ImageManipulation.colourFineMaskPoint(bmp, fineBMP, x, y, fineWidth, fineHeight, pointThreshold, neighbThreshold);
                 if (relevantEdge)
                     // This should hold the location of every edge found with the fine mask
-                    edgeCoords.get((x-fineWidthRadius)/fineWidth).add(y);
+                    edgeCoords.get((x - pointWidthRadius) / pointWidth).add(y);
             }
 
         //// THINNING ////
@@ -173,7 +175,7 @@ public class ImageToDetect extends Activity {
             edgeBMP = bmp.copy(bmp.getConfig(), true);
             // Draw the edge on top of the photo from the edge coordinates we saved in edgeCoords
             ImageManipulation.colourFineBitmap(edgeBMP, edgeCoords,
-                                            fineWidth, fineHeight, fineWidthRadius);
+                                            fineWidthRadius, fineHeightRadius, fineWidthRadius/2);
         }
         if (showCoarse)
             return new EdgeDetection(edgeCoords, coarseBMP);

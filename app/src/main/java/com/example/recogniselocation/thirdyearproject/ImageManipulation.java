@@ -4,6 +4,7 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.util.Log;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -23,11 +24,11 @@ class ImageManipulation {
 
         //Log.d("Hi", "\tAnother COARSE pixel. Edgeness of (" + i + ", " + j + ") is " + edgeness);
 
-        int widthToColourAtOnce = distFromCentre * 2 + 1;
-        int heightToColourAtOnce = widthToColourAtOnce; // For the coarse detector, we're using a square
+        int pointWidth = distFromCentre * 2 + 1;
+        int pointHeight = pointWidth; // For the coarse detector, we're using a square
 
         // If we coloured point at (i,j) a useful colour, return this fact
-        return determineColour(bmp, edgeness, loThresh, hiThresh, i, j, widthToColourAtOnce, heightToColourAtOnce);
+        return determineColour(bmp, edgeness, loThresh, hiThresh, i, j, pointWidth, pointHeight);
 
     }
 
@@ -70,34 +71,30 @@ class ImageManipulation {
     }
 
     /////////////////////// FINE /////
-    static boolean colourFineMaskPoint(Bitmap bmp, int i, int j, int fineWidth, int fineHeight, int loThresh, int hiThresh) {
-
-        int widthFromCentre = (fineWidth - 1) / 2;
-        int heightFromCentre = (fineHeight - 1) / 2;
+    static boolean colourFineMaskPoint(Bitmap origBmp, Bitmap bmp, int i, int j, int maskWidth, int maskHeight, int loThresh, int hiThresh) {
+        int maskRadiusWidth = (maskWidth - 1) / 2;
+        int maskRadiusHeight = (maskHeight - 1) / 2;
 
         // Get the likelihood that this is an edge,
         // unless it has already been marked blue
-        int edgeness = bmp.getPixel(i,j) != Color.BLUE ?
-                getFineEdgeness(bmp, i, j, widthFromCentre, heightFromCentre) :
-                Color.BLUE;
+        int edgeness = bmp.getPixel(i,j) == Color.BLUE ? Color.BLUE :
+                getFineEdgeness(origBmp, i, j, maskRadiusWidth, maskRadiusHeight);
 
         //Log.d("Hi", "\tAnother FINE pixel. Edgeness of (" + i + ", " + j + ") is " + edgeness);
-        return determineColour(bmp, edgeness, hiThresh, loThresh, i, j, fineWidth, fineHeight);
+        return determineColour(bmp, edgeness, hiThresh, loThresh, i, j, maskRadiusWidth, maskRadiusHeight);
     }
 
     private static int getFineEdgeness(Bitmap bmp, int i, int j, int widthRadius, int heightRadius) {
         int edgeness = 0;
 
         for (int y = j - heightRadius; y <= j + heightRadius; y += heightRadius + heightRadius)
-            for (int x = i - widthRadius; x <= i + widthRadius; x+= widthRadius)
-                if (x < bmp.getWidth() && y < bmp.getHeight()) {
-                    if (x == i) // If this is a centre point, weigh it twice as heavily
+            for (int x = i - widthRadius; x <= i + widthRadius; x += widthRadius)
+                if (x >= 0 && y >= 0 && x < bmp.getWidth() && y < bmp.getHeight()) {
+                    if (x == i)// If this is a centre point, weigh it twice as heavily
                         edgeness += Color.blue(bmp.getPixel(x, y)) * ((y == j + heightRadius) ? -1 : 1);
                     edgeness += Color.blue(bmp.getPixel(x, y)) * ((y == j + heightRadius) ? -1 : 1);
-
-            }
-        edgeness /= 4; // Max could be 3 * 255
-
+                }
+        edgeness /= 4; // Max could be 4 * 255
         return edgeness > 0 ? edgeness : 0; // Edges with dark on top are -ve, ignore these
     }
 
@@ -106,13 +103,12 @@ class ImageManipulation {
     // x increases by 1 - but don't forget the bitmap increases by width
     // y is the actual y coordinate from the bitmap
     static void colourFineBitmap(Bitmap bmp, List<List<Integer>> edgeCoords,
-                                 int width, int height, int widthFromCentre) {
+                                 int pWidth, int pHeight, int radiusOfPointWidth) {
 
-        for (int i = 0; i < edgeCoords.size(); i++)
-            for (int j = 0; j < edgeCoords.get(i).size(); j++)
-                // from x = widthFromCentre, then x = widthFrCe + width, until x = bmpwidth-
-                colourArea(bmp, i * width + widthFromCentre, edgeCoords.get(i).get(j),
-                        Color.YELLOW, width, height);
+        for (int x = 0; x < edgeCoords.size(); x++)
+            for (int y = 0; y < edgeCoords.get(x).size(); y++)
+                colourArea(bmp, x * pWidth + radiusOfPointWidth, edgeCoords.get(x).get(y),
+                                                            Color.YELLOW, pWidth, pHeight);
     }
 
     /////// COLOUR ///////
@@ -122,26 +118,23 @@ class ImageManipulation {
         if (edgeness == Color.BLUE) {
             // If a neighbour set this as a semi edge, leave it be
             return true;
-        }
-        else if (edgeness < nThr) {
+        } else if (edgeness < nThr) {
             //Log.d("Colour", "Black");
             // Not a strong edge, ignore it
             colourArea(bmp, i, j, Color.BLACK, width, height);
-        }
-        else if (edgeness < pThr ||
-                (edgeness >= 40 &&
-                        !checkAndSetNbour(bmp, i, j, width, height, nThr, pThr))) {
+        } else if (edgeness < pThr ||
+                (edgeness >= 40 && !checkAndSetNbour(bmp, i, j, width, height, nThr, pThr))) {
             //Log.d("Colour", "Medium blue");
             // Point is within the neighbouring threshold
             // or is a definite edge with no neighbours, therefore doesn't count
             colourArea(bmp, i, j, edgeness, width, height);
-        }
-        else {
+        } else {
             //Log.d("Colour", "White");
             // Point is an edge with neighbours
             colourArea(bmp, i, j, Color.WHITE, width, height);
             return true;
         }
+
         return false;
     }
 
@@ -356,24 +349,20 @@ class ImageManipulation {
         Point prevPoint = null;
 
         // Go through each of the edge coords
-        for (int i = 0; i < edgeCoords.size(); i++) {
-            prevPoint = thinColumn(bmp, edgeCoords.get(i), colIndex, prevPoint, width, height);
+        for (int i = 0; i < edgeCoords.size(); i++, colIndex += width) {
+            Point remainingPoint = thinColumn(bmp, edgeCoords.get(i), colIndex, prevPoint, width, height);
 
-            if(ImageToDetect.showEdgeOnly) {
-                // Have each column hold the 1 edge (if exists) found through thinning
-                if (prevPoint.getY() != -1) {
+            if(ImageToDetect.showEdgeOnly)
+                // If a point was found, store only this in edgeCoords
+                if (remainingPoint != null) {
                     edgeCoords.get(i).clear();
-                    edgeCoords.get(i).add((int)prevPoint.getY());
-                    //Log.d("Hi", "Col " + colIndex + " now only holds: " + edgeCoords.get(i));
-                } else {
-                    //Log.d("Hi", "Col " + colIndex + " didn't have any edges, make it null" );
-                    // No edges in column colIndex, make it null
-                    edgeCoords.get(i).clear();
+                    edgeCoords.get(i).add((int) remainingPoint.getY());
                 }
-            }
-            colIndex += width;
-        }
+                else
+                    edgeCoords.get(i).clear();  // No edges in this column
 
+            prevPoint = remainingPoint;
+        }
         return edgeCoords;
     }
 

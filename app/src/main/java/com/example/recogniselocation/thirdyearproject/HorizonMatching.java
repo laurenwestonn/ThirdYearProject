@@ -149,7 +149,7 @@ class HorizonMatching {
         LineGraphSeries<DataPoint> series = new LineGraphSeries<>();
 
         for (Point c : transformCoords)
-            if (c.getY() != -1) { // Only check where an edge was detected
+            if (c != null) { // Only check where an edge was detected
 
                 // Transform this coordinate
                 int tX = (int) (c.getX() * scaleX + translateX);
@@ -195,7 +195,7 @@ class HorizonMatching {
         List<Point> bestMaximaMinima = new ArrayList<>();
 
         double maxYDiff, thisYDiff;
-        maxYDiff = -1;  // Low number so it gets updated by any height
+        maxYDiff = Integer.MIN_VALUE;  // Low number so it gets updated by any height
         int bestIndex = -1;
         int i = (maximasMinimas.get(0) == null) ? 1 : 0; // skip null index
 
@@ -329,13 +329,17 @@ class HorizonMatching {
     // based on the coordinates
     private static double getThreshold(List<Point> coords) {
         Point smallestY, biggestY;
-        smallestY = biggestY = coords.get(0);
-        
+        smallestY = biggestY = null;
+
         for (Point coord : coords)
-            if (coord.getY() < smallestY.getY())
-                smallestY = coord;
-            else if (coord.getY() > biggestY.getY())
-                biggestY = coord;
+            if (coord != null) {
+                if (smallestY == null || coord.getY() < smallestY.getY())
+                    smallestY = coord;
+                else if (biggestY == null || coord.getY() > biggestY.getY())
+                    biggestY = coord;
+            }
+            else
+                Log.d(TAG, "getThreshold: coord was null");
             
         return (biggestY.getY() - smallestY.getY()) / 25;
     }
@@ -404,21 +408,21 @@ class HorizonMatching {
         }
     }
 
-    private static int skipOverInitialFlatAreas(List<Point> coords, double noiseThreshold, int searchWidth)
+    private static int skipOverInitialFlatAreas(List<Point> coords, double threshold, int searchWidth)
     {
         int index = 0;
-        while (index + searchWidth - 1 < coords.size()
-                && Math.abs(gradientAhead(coords, index, searchWidth)) < noiseThreshold)
-            // This one is flat too, carry on
-            index += searchWidth;
+        while (coords.get(index) != null // There is an edge here
+                && index + searchWidth - 1 < coords.size()  // We are still within the photo
+                && Math.abs(gradientAhead(coords, index, searchWidth)) < threshold) // Ahead is 'flat'
+            index += searchWidth;   // Carry on
         return index;
     }
 
-    // True if the next 'searchWidth' coords after the index are all there (i.e. not set to -1)
+    // True if the next 'searchWidth' coords after the index are all there
     private static boolean aheadExists(List<Point> coords, int index, int searchWidth)
     {
         for (int i = index; i < index + searchWidth; i++)
-            if (coords.get(i).getY() == -1)
+            if (coords.get(i) == null)
                 return false;
         return true;
     }
@@ -435,11 +439,14 @@ class HorizonMatching {
         return coords1D;
     }
 
-    static List<Point> convertToPoints(List<Integer> intList, int width)
+    static List<Point> convertToPoints(List<Integer> intList, int pointWidth)
     {
         List<Point> pointList = new ArrayList<>();
         for (int i = 0; i < intList.size(); i++)
-            pointList.add(new Point(i * width + (width-1)/2, intList.get(i)));
+            if (intList.get(i) != -1)
+                pointList.add(new Point(i * pointWidth + (pointWidth-1)/2, intList.get(i)));
+            else
+                pointList.add(null);
 
         return pointList;
     }
