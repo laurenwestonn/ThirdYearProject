@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.graphics.Color;
 import android.util.Log;
 
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
@@ -24,12 +26,18 @@ public class MapFunctions extends Activity {
         LatLng midHorizon = highPoints.get(noOfPaths / 2).getLocation();
         double avLat = (x + midHorizon.getLat()) / 2;
         double avLng = (y + midHorizon.getLng()) / 2;
-        MapsActivity.goToLocation(avLat, avLng, 12);
+        goToLocation(avLat, avLng, 11);
 
         addMarkerAt(map, x, y, "You are here!");
 
         // Plot a line and add markers for each of the visible peaks
         showVisiblePeaks(highPoints);
+    }
+
+    public static void goToLocation(double lat, double lng, float zoom) {
+        CameraUpdate update = CameraUpdateFactory.newLatLngZoom(new com.google.android.gms.maps.model.LatLng(lat, lng), zoom);
+        MapsActivity.googleMap.moveCamera(update);
+        Log.d("MapFunctions", "Moved to location " + lat + ", " + lng);
     }
 
     // Add marker to map at  x and y that says the string

@@ -2,6 +2,7 @@ package com.example.recogniselocation.thirdyearproject;
 
 import android.Manifest;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -20,29 +21,24 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
-import com.google.android.gms.maps.CameraUpdate;
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.jjoe64.graphview.GraphView;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
-    int demo = 5;   // 0: Your location. 1: Sydney. 2: Kinder Scout. 3:Wast Water, 4:Blencathra, 5: Rocky Mountains
+    int demo = 5;   // 0: Your location. 2: Kinder Scout. 3:Wast Water, 4:Blencathra, 5: Rocky Mountains
 
-    private TextView textView;
     private LocationManager locationManager;
     private LocationListener locationListener;
 
     static GraphView graph;
     static GoogleMap googleMap;
-
-    public static double xPos, yPos;
+    public static LatLng yourLocation;
 
     //ToDo: Make these configurable
     public static int noOfPaths = 60;
@@ -55,74 +51,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Uncomment to test finding maxima/minima
-/*
-        Log.d("Hi", HorizonMatching.findMaximaMinima(Arrays.asList(1,1,2,1), 0, 2).toString());
-        Log.d("Hi", HorizonMatching.findMaximaMinima(Arrays.asList(2,1,2,2), 0, 2).toString());
-        Log.d("Hi", HorizonMatching.findMaximaMinima(Arrays.asList(2,1,1,2), 0, 2).toString());
-        Log.d("Hi", HorizonMatching.findMaximaMinima(Arrays.asList(1,1,2,2,1,1,2,3,2,1), 0, 2).toString());
-*/
-
-        if (googleServicesAvailable()) {
-            Toast.makeText(this, "Connected to google services", Toast.LENGTH_LONG).show();
-            setContentView(R.layout.activity_maps);
+        if (googleServicesAvailable())
             initMap();
-        } else {
-            setContentView(R.layout.activity_maps);
-            // Show content without google maps
-        }
-
-
+        
+        Button button = (Button) findViewById(R.id.button);
         graph = (GraphView) findViewById(R.id.graph);
 
-        Button button = (Button) findViewById(R.id.button);
-        textView = (TextView) findViewById(R.id.text);
-
-        locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         locationListener = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
-                switch (demo) {
-                    case 1:
-                        // Overwriting coords with coords of a valley SW of a sydney mountain
-                        xPos = -33.758731;
-                        yPos = 150.240165;
-                        break;
-                    case 2:
-                        // Coords of in front of kinder scout
-                        xPos = 53.382105;
-                        yPos = -1.9060239;
-                        break;
-                    case 3: // Wast Water
-                        xPos = 54.43619;
-                        yPos = -3.30942;
-                        yourDirection = 70;
-                        break;
-                    case 4: // Blencathra
-                        xPos = 54.6486243;
-                        yPos = -3.0915329;
-                        yourDirection = 215;
-                        break;
-                    case 5: // Rocky Mountains
-                        xPos =  51.6776886;
-                        yPos = -116.4657593;
-                        yourDirection = 140;
-                        break;
-                    default:
-                        // Save your co-ordinates
-                        xPos = location.getLatitude();
-                        yPos = location.getLongitude();
-                        break;
-                }
-
-                // https://www.darrinward.com/lat-long/?id=59dcd03715f6d6.39982706
-                // Great tool to plot map points, for before the time I make my own
-
-                // Print out your co-ordinates
-                textView.setText("You're at (" + BigDecimal.valueOf(xPos) + ", " + BigDecimal.valueOf(yPos) + ")");
-
-                // Find what you are looking at
-                getVisiblePeaks();
+                detectWhatsAheadOfYou(location, demo);
             }
 
             @Override
@@ -148,37 +87,76 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onClick(View v) {
                 Log.d("hi", "Button was clicked. Check permissions");
 
-                int ALLOWED = PackageManager.PERMISSION_GRANTED;
+                // If using your actual location, we'll have to track it
+                if (demo == 0) {
 
-                if (ActivityCompat.checkSelfPermission(MapsActivity.this,
-                        Manifest.permission.ACCESS_FINE_LOCATION) == ALLOWED
-                        && ActivityCompat.checkSelfPermission(MapsActivity.this,
-                        Manifest.permission.ACCESS_COARSE_LOCATION) == ALLOWED )
-                    locationManager.requestLocationUpdates("gps", 1000, 5, locationListener); // It's this that takes ages
-                else
-                    ActivityCompat.requestPermissions(MapsActivity.this, new String[] {
-                            Manifest.permission.ACCESS_FINE_LOCATION,
-                            Manifest.permission.ACCESS_COARSE_LOCATION,
-                            Manifest.permission.INTERNET
-                    }, 10);
+                    int ALLOWED = PackageManager.PERMISSION_GRANTED;
+
+                    if (ActivityCompat.checkSelfPermission(MapsActivity.this,
+                            Manifest.permission.ACCESS_FINE_LOCATION) == ALLOWED
+                            && ActivityCompat.checkSelfPermission(MapsActivity.this,
+                            Manifest.permission.ACCESS_COARSE_LOCATION) == ALLOWED) {
+                        locationManager.requestLocationUpdates("gps", 0, 5, locationListener);
+                    } else
+                        ActivityCompat.requestPermissions(MapsActivity.this, new String[]{
+                                Manifest.permission.ACCESS_FINE_LOCATION,
+                                Manifest.permission.ACCESS_COARSE_LOCATION,
+                                Manifest.permission.INTERNET
+                        }, 10);
+
+                } else // You're doing a demo, and faking your location. Go ahead
+                    detectWhatsAheadOfYou(null, demo);
             }
         });
     }
 
-    private void initMap() {
-        MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.mapFragment);
-        if (mapFragment == null)
-            Log.d("Hi", "Couldn't find mapFragment");
-        else {
-            Log.d("Hi", "Found mapFragment");
-            mapFragment.getMapAsync(this);
+    private void detectWhatsAheadOfYou(Location location, int demo) {
+
+        yourLocation = getYourCoordinates(location, demo);
+
+        // https://www.darrinward.com/lat-long/?id=59dcd03715f6d6.39982706
+        // Great tool to plot map points, for before the time I make my own
+
+        // Display your co-ordinates
+        TextView textView = (TextView) findViewById(R.id.text);
+        textView.setText("You're at ("
+                + yourLocation.getLat() + ", " + yourLocation.getLng() + ")");
+
+        // Find what you are looking at
+        getVisiblePeaks();
+    }
+
+    private LatLng getYourCoordinates(Location yourLocation, int demo) {
+        LatLng yourCoords;
+        switch (demo) {
+            case 2:
+                // Coords of in front of kinder scout
+                yourCoords = new LatLng(53.382105, -1.9060239);
+                break;
+            case 3: // Wast Water
+                yourCoords = new LatLng(54.43619, -3.30942);
+                yourDirection = 70;
+                break;
+            case 4: // Blencathra
+                yourCoords = new LatLng(54.6486243, -3.0915329);
+                yourDirection = 215;
+                break;
+            case 5: // Rocky Mountains
+                yourCoords = new LatLng(51.6776886, -116.4657593);
+                yourDirection = 140;
+                break;
+            default:
+                // Save your co-ordinates
+                yourCoords = new LatLng(yourLocation.getLatitude(), yourLocation.getLongitude());
         }
+        return yourCoords;
     }
 
     public boolean googleServicesAvailable() {
         GoogleApiAvailability api = GoogleApiAvailability.getInstance();
         int isAvailable = api.isGooglePlayServicesAvailable(this);
         if (isAvailable == ConnectionResult.SUCCESS) {
+            Toast.makeText(this, "Connected to google services", Toast.LENGTH_LONG).show();
             return true;
         } else if (api.isUserResolvableError(isAvailable)) {
             Dialog dialog = api.getErrorDialog(this, isAvailable, 0);
@@ -187,6 +165,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Toast.makeText(this, "Can't connect to play services", Toast.LENGTH_LONG).show();
         }
         return false;
+    }
+
+    private void initMap() {
+        setContentView(R.layout.activity_maps);
+        MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.mapFragment);
+        if (mapFragment == null)
+            Log.d("Hi", "Couldn't find mapFragment");
+        else {
+            Log.d("Hi", "Found mapFragment");
+            mapFragment.getMapAsync(this);
+        }
     }
 
     public void loadLocation() {
@@ -231,14 +220,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             double cosOfThisStep = Math.cos(Math.toRadians(((start - i * step) % 360 + 360) % 360));
             // Start from the first position away from you in each direction
             startCoords.add(new LatLng(
-                                    xPos + lengthOfSearch / noOfSamples * sinOfThisStep,
-                                    yPos + lengthOfSearch / noOfSamples * cosOfThisStep
-                                    ));
+                    yourLocation.getLat() + lengthOfSearch / noOfSamples * sinOfThisStep,
+                    yourLocation.getLng() + lengthOfSearch / noOfSamples * cosOfThisStep
+            ));
             // End at the length of your search in each direction
             endCoords.add(new LatLng(
-                                    xPos + lengthOfSearch * sinOfThisStep,
-                                    yPos + lengthOfSearch * cosOfThisStep
-                                    ));
+                    yourLocation.getLat() + lengthOfSearch * sinOfThisStep,
+                    yourLocation.getLng() + lengthOfSearch * cosOfThisStep
+            ));
         }
 
         // Now we have the path coords, we can get heights along them
@@ -246,7 +235,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             // Build up the web requests for each path
             // The first request is to get the elevation of where you are
             String urls = "https://maps.googleapis.com/maps/api/elevation/json?locations="
-                    + xPos + "," + yPos
+                    + yourLocation.getLat() + "," + yourLocation.getLng()
                     + "&key=" + getString(R.string.google_maps_key) + "!";
             // The other requests are to get elevations along paths
             for (int i = 0; i < noOfPaths; i++)
@@ -268,15 +257,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap givenGoogleMap) {
         googleMap = givenGoogleMap;
         googleMap.setMapType(googleMap.MAP_TYPE_TERRAIN);
-    }
-
-    public static void goToLocation(double lat, double lng, float zoom) {
-        Log.d("Hi", "Go to location " + lat + ", " + lng);
-        com.google.android.gms.maps.model.LatLng pos =
-                new com.google.android.gms.maps.model.LatLng(lat, lng);
-        CameraUpdate update = CameraUpdateFactory.newLatLngZoom(pos, zoom);
-        googleMap.moveCamera(update);
-        Log.d("Hi", "Moved");
     }
 
     public void buttonClicked(View view) {

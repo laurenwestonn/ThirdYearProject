@@ -14,11 +14,9 @@ import com.jjoe64.graphview.series.LineGraphSeries;
 import java.util.ArrayList;
 import java.util.List;
 
-import static android.content.ContentValues.TAG;
 import static com.example.recogniselocation.thirdyearproject.ImageToDetect.fineWidth;
 import static com.example.recogniselocation.thirdyearproject.MapsActivity.googleMap;
-import static com.example.recogniselocation.thirdyearproject.MapsActivity.xPos;
-import static com.example.recogniselocation.thirdyearproject.MapsActivity.yPos;
+import static com.example.recogniselocation.thirdyearproject.MapsActivity.yourLocation;
 
 public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
 
@@ -73,7 +71,7 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
         // We now have the highest peaks in all directions ahead.
         // Find the differences between these so we can show the horizon on the map
         highPoints = MapFunctions.findDiffBetweenElevations(highPoints);
-        MapFunctions.showPointsOnMap(googleMap, highPoints, xPos, yPos);
+        MapFunctions.showPointsOnMap(googleMap, highPoints, yourLocation.getLat(), yourLocation.getLng());
 
         // Draw the horizon
         double distanceBetweenPlots = MapFunctions.findDistanceBetweenPlots(highPoints.get(0));
