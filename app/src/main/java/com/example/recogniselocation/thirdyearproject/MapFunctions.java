@@ -93,8 +93,7 @@ public class MapFunctions extends Activity {
         // If this peak was at the distance of the first one, how big would it be?
         double perceivedElevation = comparisonDistance * Math.tan(thisPeaksAngle);
 
-        //double perceivedElevation = thisPeaksDistance * Math.tan(comparisonAngle);
-        Log.d("Hi", "Perceived height, got from a distance of " + comparisonDistance + " and an angle of " + thisPeaksAngle + " was calculated as " + perceivedElevation);
+        //Log.d("Hi", "Perceived height, got from a distance of " + comparisonDistance + " and an angle of " + thisPeaksAngle + " was calculated as " + perceivedElevation);
         return perceivedElevation - comparisonElevation;
     }
 

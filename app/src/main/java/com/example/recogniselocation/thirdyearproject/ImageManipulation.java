@@ -27,12 +27,14 @@ class ImageManipulation {
         int pointWidth = distFromCentre * 2 + 1;
         int pointHeight = pointWidth; // For the coarse detector, we're using a square
 
+
         // If we coloured point at (i,j) a useful colour, return this fact
         return determineColour(bmp, edgeness, loThresh, hiThresh, i, j, pointWidth, pointHeight);
 
     }
 
     private static int getCoarseEdgeness(Bitmap bmp, int i, int j, int d) {
+        // TODO: CHECK WHAT IS CONSTANTLY THROWING AN ERROR, CAN WE AVOID THIS?
         int top, bottom;
         try {
             top = Color.blue(bmp.getPixel(i - d / 3, j - d))
@@ -64,7 +66,7 @@ class ImageManipulation {
                     + bmp.getWidth() + " x " + bmp.getHeight()
                     + "\n" + boundsException.toString());
         } catch (Exception e){
-            Log.e("Hi", e.toString());
+            Log.e("getCoarseEdgeness", e.toString());
         }
 
         return -1;
@@ -314,7 +316,7 @@ class ImageManipulation {
             else if (Math.abs((colX - prevPoint.getX())
                     / (col.get(i) - prevPoint.getY())) >= 0.4) {
                 bestColIndex = i;   // Pick the highest in this column which isn't noise
-                Log.d(TAG, "thinColumn: We've found a point in this column to keep which is nearby the last. " + new Point(colX, col.get(bestColIndex)).toString());
+                //Log.d(TAG, "thinColumn: We've found a point in this column to keep which is nearby the last. " + new Point(colX, col.get(bestColIndex)).toString());
                 break;
             }
 

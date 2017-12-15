@@ -59,12 +59,13 @@ class APIFunctions {
                     .append(noOfSamples).append("&key=").append(key).append("!");
 
         // Requesting the elevations from the Google Maps API
-        Log.d("APIFunctions", "Requesting URLs");
+        Log.d("APIFunctions", "Requesting URLs " + urls.toString());
         try { new RetrieveURLTask(activity).execute(urls.toString()); }
         catch (Exception e) { e.printStackTrace(); }
     }
 
     // Given a string of concatenated URLS, send the requests and return the responses
+    // Each one takes a while to request - unavoidable(?)
     static List<String> requestURLS(String urls, String separator)
     {
         // Get an array of the URLs, taking into account that "!" was appended after each URL.
@@ -72,6 +73,7 @@ class APIFunctions {
         String[] urlArr = urlsString.split(separator);
 
         List<String> responseList = new ArrayList<>(noOfPaths);
+
 
         for (String url : urlArr) {
             HttpURLConnection con = null;
@@ -98,9 +100,9 @@ class APIFunctions {
 
                     in.close();
                     responseList.add(response.toString());
-                } else  Log.d("Hi", "Connection failed: " + con.getResponseMessage());
+                } else  Log.e("Hi", "Connection failed: " + con.getResponseMessage());
             } catch(Exception e) {
-                Log.d("Hi", "Problem connecting to URL: " + e.toString());
+                Log.e("Hi", "Problem connecting to URL: " + e.toString());
             } finally {
                 if (con != null)
                     con.disconnect();
@@ -131,6 +133,9 @@ class APIFunctions {
 
         if (highPoints.size() != (stringResponses.size() - 1))
             Log.e("InterpretResponses", "getHighestVisiblePoints: Didn't find " + (stringResponses.size()-1) + " responses");
+
+        // Find the differences between the elevations so we can plot them
+        highPoints = MapFunctions.findDiffBetweenElevations(highPoints);
 
         return highPoints;
     }

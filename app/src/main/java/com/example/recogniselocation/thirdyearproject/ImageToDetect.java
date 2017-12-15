@@ -70,8 +70,6 @@ public class ImageToDetect extends Activity {
     }
 
     public static EdgeDetection detectEdge(Bitmap bmp) {
-        Log.d("Hi", "Going to detect the edge");
-
         // The number of pixels to the left/right/above/below of the centre pixel
         int coarseRadius = bmp.getHeight() / 17;
         // The number of pixels for the width/height, the diameter
@@ -100,6 +98,7 @@ public class ImageToDetect extends Activity {
                 if (relevantEdge)
                     ysOfEdges.add(y);
             }
+        Log.d(TAG, "detectEdge: Coarse Masking done");
 
         ///////////// Standard Deviation //////////////
         // Here we work out the standard deviation of the edges found using the coarse mask
@@ -117,6 +116,7 @@ public class ImageToDetect extends Activity {
             ImageManipulation.colourArea(coarseBMP, coarseBMP.getWidth()/2, coarseSD.minRange+15, Color.RED, coarseBMP.getWidth()-1, 30);
             ImageManipulation.colourArea(coarseBMP, coarseBMP.getWidth()/2, coarseSD.maxRange-15, Color.RED, coarseBMP.getWidth()-1, 30);
         }
+        Log.d(TAG, "detectEdge: SD got");
 
 
         ///////////////////// FINE MASK //////////////////
@@ -158,6 +158,7 @@ public class ImageToDetect extends Activity {
                     // This should hold the location of every edge found with the fine mask
                     edgeCoords.get((x - pointWidthRadius) / pointWidth).add(y);
             }
+        Log.d(TAG, "detectEdge: Fine Masking done");
 
         //// THINNING ////
         if (useThinning) {
@@ -167,6 +168,7 @@ public class ImageToDetect extends Activity {
                                             fineWidth, fineHeight, fineWidthRadius);
             //Log.d("Hi", "Have thinned out edgeCoords:  " + edgeCoords.toString());
         }
+        Log.d(TAG, "detectEdge: Thinning done");
 
         ///// SHOW EDGES ONLY? /////
         Bitmap edgeBMP = null;
@@ -177,6 +179,7 @@ public class ImageToDetect extends Activity {
             ImageManipulation.colourFineBitmap(edgeBMP, edgeCoords,
                                             fineWidthRadius, fineHeightRadius, fineWidthRadius/2);
         }
+
         if (showCoarse)
             return new EdgeDetection(edgeCoords, coarseBMP);
         else if (edgeBMP != null && showEdgeOnly)

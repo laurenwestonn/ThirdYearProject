@@ -30,23 +30,22 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
 
     protected List<String> doInBackground(String... urls)
     {
+        Log.d("RetrieveURLTask", "Going to take some time getting the results from the API");
         return APIFunctions.requestURLS(urls[0], "!");
     }
 
     protected void onPostExecute(List<String> stringResponses)
     {
+        Log.d("onPostExecute", "API gave responses " + stringResponses.toString());
         List<Result> highPoints = APIFunctions.getHighestVisiblePoints(stringResponses);
+        Log.d("onPostExecute", "Got high points " + highPoints.toString());
 
         // We now have the highest peaks in all directions ahead.
         // Find the differences between these so we can show the horizon on the map
-        highPoints = MapFunctions.findDiffBetweenElevations(highPoints);
         MapFunctions.showPointsOnMap(googleMap, highPoints, yourLocation.getLat(), yourLocation.getLng());
 
         // Draw the horizon
         double distanceBetweenPlots = MapFunctions.findDistanceBetweenPlots(highPoints.get(0));
-        Log.d("Hi", "Distance between points is now " + distanceBetweenPlots 
-                + " and as there are " + APIFunctions.noOfPaths + " paths, x axis goes up to "
-                + distanceBetweenPlots * APIFunctions.noOfPaths);
         List<Point> elevationsCoords = drawOnGraph(highPoints, distanceBetweenPlots);
 
         // Convert these coordinates to be in line with the bitmaps coordinate system

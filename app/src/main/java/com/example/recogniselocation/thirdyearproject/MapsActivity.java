@@ -162,7 +162,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         setContentView(R.layout.activity_maps);
         MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.mapFragment);
         if (mapFragment == null)
-            Log.d("Hi", "Couldn't find mapFragment");
+            Log.e("Hi", "Couldn't find mapFragment");
         else {
             Log.d("Hi", "Found mapFragment");
             mapFragment.getMapAsync(this);
