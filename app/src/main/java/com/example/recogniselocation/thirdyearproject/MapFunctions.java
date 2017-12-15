@@ -12,12 +12,15 @@ import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.util.List;
 
-import static com.example.recogniselocation.thirdyearproject.MapsActivity.noOfPaths;
-import static com.example.recogniselocation.thirdyearproject.MapsActivity.widthOfSearch;
+import static com.example.recogniselocation.thirdyearproject.APIFunctions.noOfPaths;
+import static com.example.recogniselocation.thirdyearproject.APIFunctions.noOfSamples;
+import static com.example.recogniselocation.thirdyearproject.APIFunctions.searchLength;
+import static com.example.recogniselocation.thirdyearproject.APIFunctions.widthOfSearch;
 
 public class MapFunctions extends Activity {
 
     private static final int LONLAT_TO_METRES = 111111; // roughly
+
 
     // Draw a line around the points, add a marker to where you are
     public static void showPointsOnMap(GoogleMap map, List<Result> highPoints, double x, double y)
@@ -121,7 +124,7 @@ public class MapFunctions extends Activity {
         for(Result r : results) {
 
             //Fraction of path length we're at now
-            double thisOnesDistance = (MapsActivity.lengthOfSearch * LONLAT_TO_METRES) * loopCount++ / MapsActivity.noOfSamples;
+            double thisOnesDistance = (searchLength * LONLAT_TO_METRES) * loopCount++ / noOfSamples;
             double angleOfThisElevation = Math.atan(
                     (r.getElevation() - yourElevation) / thisOnesDistance);  // Distance of the first one away
 

@@ -50,7 +50,7 @@ public class Result {
     public String toString()
     {
         return "Location: (" + location.getLat() + ", " + location.getLng()
-                + ") \tElevation: " + elevation + "\tDistance: " + distance
+                + ") \tAPIFunctions: " + elevation + "\tDistance: " + distance
                 + "\tAngle: " + angle + "\tDifference: " + difference;
     }
 }

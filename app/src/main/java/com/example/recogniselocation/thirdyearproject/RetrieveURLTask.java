@@ -6,7 +6,6 @@ import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.google.gson.Gson;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
@@ -31,42 +30,12 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
 
     protected List<String> doInBackground(String... urls)
     {
-        return connectToURL(urls[0]);
+        return APIFunctions.requestURLS(urls[0], "!");
     }
 
-    private List<String> connectToURL(String urls)
+    protected void onPostExecute(List<String> stringResponses)
     {
-        // "!" was appended to the end of every URL. Get an array of the URLs
-        urls = urls.substring(0, urls.length() - 1);
-        String[] urlArr = urls.split("!");
-
-        return Elevation.interpretURLResponses(urlArr);
-    }
-
-    protected void onPostExecute(List<String> responses)
-    {
-        List<Result> highPoints= new ArrayList<>();
-        boolean isFirstResponse = true;
-        double yourElevation = 0;
-
-        // Parse any responses, find highest visible point in each path
-        for (String response : responses)
-            if (response != null)
-                try {
-                    Response results = new Gson().fromJson(response, Response.class);
-                    if (results != null) {
-                        if (isFirstResponse) {  //Treat first differently, is just your elevation
-                            isFirstResponse = false;
-                            yourElevation = results.getResults().get(0).getElevation();
-
-                        } else  // Response is a path of elevations
-                            highPoints.add(MapFunctions.findHighestVisiblePoint(results, yourElevation));
-                    } else
-                        Log.e("Hi", "Results didn't come back correctly");
-                } catch(Exception e){
-                    Log.e("Hi", "On post execute failure\n" + e);
-                }
-            else  Log.e("Hi", "Response was null");
+        List<Result> highPoints = APIFunctions.getHighestVisiblePoints(stringResponses);
 
         // We now have the highest peaks in all directions ahead.
         // Find the differences between these so we can show the horizon on the map
@@ -76,8 +45,8 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
         // Draw the horizon
         double distanceBetweenPlots = MapFunctions.findDistanceBetweenPlots(highPoints.get(0));
         Log.d("Hi", "Distance between points is now " + distanceBetweenPlots 
-                + " and as there are " + MapsActivity.noOfPaths + " paths, x axis goes up to " 
-                + distanceBetweenPlots * MapsActivity.noOfPaths);
+                + " and as there are " + APIFunctions.noOfPaths + " paths, x axis goes up to "
+                + distanceBetweenPlots * APIFunctions.noOfPaths);
         List<Point> elevationsCoords = drawOnGraph(highPoints, distanceBetweenPlots);
 
         // Convert these coordinates to be in line with the bitmaps coordinate system

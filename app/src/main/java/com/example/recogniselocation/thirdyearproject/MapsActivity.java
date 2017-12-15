@@ -15,7 +15,6 @@ import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -26,26 +25,20 @@ import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.jjoe64.graphview.GraphView;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
+    //ToDo: Make these configurable
     int demo = 5;   // 0: Your location. 2: Kinder Scout. 3:Wast Water, 4:Blencathra, 5: Rocky Mountains
+    double yourDirection = 60; // Due East anticlockwise
 
     private LocationManager locationManager;
     private LocationListener locationListener;
-
     static GraphView graph;
     static GoogleMap googleMap;
     public static LatLng yourLocation;
 
-    //ToDo: Make these configurable
-    public static int noOfPaths = 60;
-    public static int widthOfSearch = 180;
-    public static int noOfSamples = 20;
-    public static double lengthOfSearch = 0.1;  // radius of the search
-    double yourDirection = 60; // Due East anticlockwise
+    // https://www.darrinward.com/lat-long/?id=59dcd03715f6d6.39982706
+    // Great tool to plot map points, for before the time I make my own
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,10 +46,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         if (googleServicesAvailable())
             initMap();
-        
-        Button button = (Button) findViewById(R.id.button);
+
         graph = (GraphView) findViewById(R.id.graph);
 
+        // Set up the listener to be ready to get used when the button is clicked
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         locationListener = new LocationListener() {
             @Override
@@ -82,7 +75,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         };
 
-        button.setOnClickListener(new View.OnClickListener() {
+        // Once you click the button, listen out for changes in location
+        findViewById(R.id.button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Log.d("hi", "Button was clicked. Check permissions");
@@ -111,19 +105,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void detectWhatsAheadOfYou(Location location, int demo) {
-
+        // Get your location, or the location of a demo
         yourLocation = getYourCoordinates(location, demo);
 
-        // https://www.darrinward.com/lat-long/?id=59dcd03715f6d6.39982706
-        // Great tool to plot map points, for before the time I make my own
-
-        // Display your co-ordinates
+        // Inform the user of their location
+        String loc = getString(R.string.location_text) + yourLocation.toString();
         TextView textView = (TextView) findViewById(R.id.text);
-        textView.setText("You're at ("
-                + yourLocation.getLat() + ", " + yourLocation.getLng() + ")");
+        textView.setText(loc);
 
         // Find what you are looking at
-        getVisiblePeaks();
+        APIFunctions.getElevations(yourDirection, yourLocation, this, getString(R.string.google_maps_key));
     }
 
     private LatLng getYourCoordinates(Location yourLocation, int demo) {
@@ -204,52 +195,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             Manifest.permission.ACCESS_FINE_LOCATION,
                             Manifest.permission.ACCESS_COARSE_LOCATION
                     }, 10);
-        }
-    }
-
-    private void getVisiblePeaks() {
-        Log.d("Hi", "Getting visible peaks");
-        double step = widthOfSearch / (noOfPaths - 1);
-        double start = yourDirection + step/2 + step*(noOfPaths/2-1);
-        List<LatLng> endCoords = new ArrayList<>();
-        List<LatLng> startCoords = new ArrayList<>();
-
-        // Build up the coordinates of the start and the end of each path
-        for (int i = 0; i < noOfPaths; i++) {
-            double sinOfThisStep = Math.sin(Math.toRadians(((start - i * step) % 360 + 360) % 360));
-            double cosOfThisStep = Math.cos(Math.toRadians(((start - i * step) % 360 + 360) % 360));
-            // Start from the first position away from you in each direction
-            startCoords.add(new LatLng(
-                    yourLocation.getLat() + lengthOfSearch / noOfSamples * sinOfThisStep,
-                    yourLocation.getLng() + lengthOfSearch / noOfSamples * cosOfThisStep
-            ));
-            // End at the length of your search in each direction
-            endCoords.add(new LatLng(
-                    yourLocation.getLat() + lengthOfSearch * sinOfThisStep,
-                    yourLocation.getLng() + lengthOfSearch * cosOfThisStep
-            ));
-        }
-
-        // Now we have the path coords, we can get heights along them
-        try {
-            // Build up the web requests for each path
-            // The first request is to get the elevation of where you are
-            String urls = "https://maps.googleapis.com/maps/api/elevation/json?locations="
-                    + yourLocation.getLat() + "," + yourLocation.getLng()
-                    + "&key=" + getString(R.string.google_maps_key) + "!";
-            // The other requests are to get elevations along paths
-            for (int i = 0; i < noOfPaths; i++)
-                urls += "https://maps.googleapis.com/maps/api/elevation/json?path="
-                        + startCoords.get(i).getLat() + "," + startCoords.get(i).getLng() + "|"
-                        + endCoords.get(i).getLat() + "," + endCoords.get(i).getLng()
-                        + "&samples=" + noOfSamples
-                        + "&key=" + getString(R.string.google_maps_key) + "!";
-            if (!urls.equals("")) {
-                new RetrieveURLTask(this).execute(urls);
-            }
-        } catch (Exception e) {
-            Log.d("Hi", "Failed: " + e);
-            e.printStackTrace();
         }
     }
 
