@@ -4,6 +4,9 @@ import android.app.Activity;
 import android.util.Log;
 
 import com.google.gson.Gson;
+import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.series.DataPoint;
+import com.jjoe64.graphview.series.LineGraphSeries;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -138,5 +141,54 @@ class APIFunctions {
         highPoints = MapFunctions.findDiffBetweenElevations(highPoints);
 
         return highPoints;
+    }
+
+    static List<Point> drawOnGraph(List<Result> points)
+    {
+        List<Point> horizonCoords = new ArrayList<>();
+
+        LineGraphSeries<DataPoint> series = new LineGraphSeries<>();
+        int count = -1;
+        int x;
+        double y;
+        x = 0;
+
+        for (Result point : points) {
+            x = ++count * (int) findDistanceBetweenPlots(points.get(0));
+            y = point.getDifference();
+
+            horizonCoords.add(new Point(x,y));
+
+            //Log.d("Hi", "Plotting at " + x + ", " + y);
+            series.appendData(new DataPoint(x,y), true, points.size());
+        }
+
+        MapsActivity.graph.addSeries(series);
+        setBounds(MapsActivity.graph,0,  x, series.getLowestValueY(), series.getHighestValueY());
+        HorizonMatching.graphHeight =  series.getHighestValueY();
+
+        return horizonCoords;
+    }
+
+    // Allows you to draw onto the graph
+    public static double findDistanceBetweenPlots(Result comparisonPoint)
+    {
+        double step = widthOfSearch / (noOfPaths - 1);
+        double distanceToFirstPeakInMetres = comparisonPoint.getDistance();
+
+        return distanceToFirstPeakInMetres / Math.sin(Math.toRadians((180-step) / 2))
+                * Math.sin(Math.toRadians(step));
+    }
+
+    static void setBounds(GraphView graph, double minX, double maxX, double minY, double maxY)
+    {
+        // Set bounds on the x axis
+        graph.getViewport().setXAxisBoundsManual(true);
+        graph.getViewport().setMinX(minX);
+        graph.getViewport().setMaxX(maxX);
+        // Set bounds on the y axis
+        graph.getViewport().setYAxisBoundsManual(true);
+        graph.getViewport().setMinY(minY);
+        graph.getViewport().setMaxY(maxY);
     }
 }

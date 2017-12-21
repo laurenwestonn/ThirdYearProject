@@ -79,15 +79,6 @@ public class MapFunctions extends Activity {
         MapsActivity.googleMap.addPolyline(polylineOptions);
     }
 
-    public static double findDistanceBetweenPlots(Result comparisonPoint)
-    {
-        double step = widthOfSearch / (noOfPaths - 1);
-        double distanceToFirstPeakInMetres = comparisonPoint.getDistance();
-
-        return distanceToFirstPeakInMetres / Math.sin(Math.toRadians((180-step) / 2))
-                * Math.sin(Math.toRadians(step));
-    }
-
     private static double diffFromFirst(double comparisonDistance, double thisPeaksAngle, double comparisonElevation)
     {
         // If this peak was at the distance of the first one, how big would it be?

@@ -40,13 +40,11 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
         List<Result> highPoints = APIFunctions.getHighestVisiblePoints(stringResponses);
         Log.d("onPostExecute", "Got high points " + highPoints.toString());
 
-        // We now have the highest peaks in all directions ahead.
-        // Find the differences between these so we can show the horizon on the map
+        // We now have the highest peaks in all directions ahead, draw this on the map
         MapFunctions.showPointsOnMap(googleMap, highPoints, yourLocation.getLat(), yourLocation.getLng());
 
-        // Draw the horizon
-        double distanceBetweenPlots = MapFunctions.findDistanceBetweenPlots(highPoints.get(0));
-        List<Point> elevationsCoords = drawOnGraph(highPoints, distanceBetweenPlots);
+        // Draw the horizon on the graph
+        List<Point> elevationsCoords = APIFunctions.drawOnGraph(highPoints);
 
         // Convert these coordinates to be in line with the bitmaps coordinate system
         elevationsCoords = convertCoordSystem(elevationsCoords);
@@ -90,44 +88,5 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
                 maxPoint = p;
 
         return maxPoint;
-    }
-
-    private List<Point> drawOnGraph(List<Result> points, double distanceBetweenPlots)
-    {
-        List<Point> horizonCoords = new ArrayList<>();
-        
-        LineGraphSeries<DataPoint> series = new LineGraphSeries<>();
-        int count = -1;
-        int x;
-        double y;
-        x = 0;
-        
-        for (Result point : points) {
-            x = ++count * (int)distanceBetweenPlots;
-            y = point.getDifference();
-
-            horizonCoords.add(new Point(x,y));
-
-            //Log.d("Hi", "Plotting at " + x + ", " + y);
-            series.appendData(new DataPoint(x,y), true, points.size());
-        }
-        
-        MapsActivity.graph.addSeries(series);
-        setBounds(MapsActivity.graph,0,  x, series.getLowestValueY(), series.getHighestValueY());
-        HorizonMatching.graphHeight =  series.getHighestValueY();
-        
-        return horizonCoords;
-    }
-
-    static void setBounds(GraphView graph, double minX, double maxX, double minY, double maxY)
-    {
-        // Set bounds on the x axis
-        graph.getViewport().setXAxisBoundsManual(true);
-        graph.getViewport().setMinX(minX);
-        graph.getViewport().setMaxX(maxX);
-        // Set bounds on the y axis
-        graph.getViewport().setYAxisBoundsManual(true);
-        graph.getViewport().setMinY(minY);
-        graph.getViewport().setMaxY(maxY);
     }
 }
