@@ -27,7 +27,7 @@ import com.jjoe64.graphview.GraphView;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
-    //ToDo: Make these configurable
+    //ToDo: Make configurable
     int demo = 5;   // 0: Your location. 2: Kinder Scout. 3:Wast Water, 4:Blencathra, 5: Rocky Mountains
     double yourDirection = 60; // Due East anticlockwise
 
@@ -76,7 +76,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         };
 
         // Once you click the button, listen out for changes in location
-        findViewById(R.id.button).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.horizonButton).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Log.d("hi", "Button was clicked. Check permissions");
@@ -206,13 +206,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     public void buttonClicked(View view) {
         switch (view.getId()) {
-            case R.id.imageButton: {
-                Intent intent = new Intent(this.getString(R.string.CUSTOM_ACTION_IMAGETODETECT));
-                startActivity(intent);
-            }
-            case R.id.edgeDetection: {
-                Intent intent = new Intent(this.getString(R.string.CUSTOM_ACTION_IMAGETODETECT));
-                startActivity(intent);
+            case R.id.photo: {
+                Intent intent = new Intent(this.getString(R.string.CUSTOM_ACTION_PHOTO));
+                startActivity(intent);  // Go to the ImageToDetect activity
             }
         }
     }

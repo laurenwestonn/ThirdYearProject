@@ -15,7 +15,6 @@ import java.util.List;
 import static com.example.recogniselocation.thirdyearproject.APIFunctions.noOfPaths;
 import static com.example.recogniselocation.thirdyearproject.APIFunctions.noOfSamples;
 import static com.example.recogniselocation.thirdyearproject.APIFunctions.searchLength;
-import static com.example.recogniselocation.thirdyearproject.APIFunctions.widthOfSearch;
 
 public class MapFunctions extends Activity {
 
@@ -23,7 +22,7 @@ public class MapFunctions extends Activity {
 
 
     // Draw a line around the points, add a marker to where you are
-    public static void showPointsOnMap(GoogleMap map, List<Result> highPoints, double x, double y)
+    public static void plotPoints(GoogleMap map, List<Result> highPoints, double x, double y)
     {
         // Centre the camera around the middle of the points and your location
         LatLng midHorizon = highPoints.get(noOfPaths / 2).getLocation();

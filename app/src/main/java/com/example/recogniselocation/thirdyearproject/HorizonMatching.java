@@ -116,7 +116,7 @@ class HorizonMatching {
                                             Color.BLUE, 40, 40);
 
         // Put this on the image button
-        ImageButton imageButton = (ImageButton) a.findViewById(R.id.edgeDetection);
+        ImageButton imageButton = (ImageButton) a.findViewById(R.id.photo);
         BitmapDrawable drawable = new BitmapDrawable(a.getResources(), bmp);
         imageButton.setBackground(drawable);
     }
@@ -249,7 +249,7 @@ class HorizonMatching {
     private static List<Point> findMaximaMinima(List<Point> coords, boolean loosenThresh)
     {
         int arrayIndex = 0;
-        double nextGradient = Integer.MAX_VALUE;
+        double nextGradient;
         List<Point> maxMin = new ArrayList<>();
         boolean wereGoingUp = true;    //  Whether the hill is heading up or down. Updated.
 

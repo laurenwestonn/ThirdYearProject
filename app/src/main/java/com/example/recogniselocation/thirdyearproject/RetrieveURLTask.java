@@ -5,15 +5,9 @@ import android.app.Activity;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.util.Log;
-
-import com.jjoe64.graphview.GraphView;
-import com.jjoe64.graphview.series.DataPoint;
-import com.jjoe64.graphview.series.LineGraphSeries;
-
-import java.util.ArrayList;
 import java.util.List;
 
-import static com.example.recogniselocation.thirdyearproject.ImageToDetect.fineWidth;
+import static com.example.recogniselocation.thirdyearproject.ImageManipulation.fineWidth;
 import static com.example.recogniselocation.thirdyearproject.MapsActivity.googleMap;
 import static com.example.recogniselocation.thirdyearproject.MapsActivity.yourLocation;
 
@@ -40,10 +34,8 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
         List<Result> highPoints = APIFunctions.getHighestVisiblePoints(stringResponses);
         Log.d("onPostExecute", "Got high points " + highPoints.toString());
 
-        // We now have the highest peaks in all directions ahead, draw this on the map
-        MapFunctions.showPointsOnMap(googleMap, highPoints, yourLocation.getLat(), yourLocation.getLng());
-
-        // Draw the horizon on the graph
+        // Show results of the highest peaks in all directions ahead on the map and graph
+        MapFunctions.plotPoints(googleMap, highPoints, yourLocation.getLat(), yourLocation.getLng());
         List<Point> elevationsCoords = APIFunctions.drawOnGraph(highPoints);
 
         // Convert these coordinates to be in line with the bitmaps coordinate system
@@ -51,7 +43,7 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
 
         // Detect the edge from an image
         EdgeDetection edgeDetection;
-        edgeDetection = ImageToDetect.detectEdge(BitmapFactory.decodeResource(activity.getResources(), photoID));
+        edgeDetection = ImageManipulation.detectEdge(BitmapFactory.decodeResource(activity.getResources(), photoID));
         List<List<Integer>> edgeCoords2D = edgeDetection.coords;
 
         // Quick fix to simplify coordinates
@@ -59,7 +51,6 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
         // but as thinning should have been used (but we may not have it 'on' to test
         // other algorithms) there should only be one point per column, so List<Int> will do
         List<Integer> edgeCoordsIntegers = HorizonMatching.removeDimensionFromCoords(edgeCoords2D);
-
         int pointWidth = (fineWidth-1)/2;
         List<Point> edgeCoords = HorizonMatching.convertToPoints(edgeCoordsIntegers, pointWidth);
 

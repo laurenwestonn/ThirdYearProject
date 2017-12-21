@@ -1,8 +1,5 @@
 package com.example.recogniselocation.thirdyearproject;
 
-/**
- * Created by LaUrE on 07/10/2017.
- */
 
 public class LatLng {
     private double lat;
@@ -20,6 +17,6 @@ public class LatLng {
 
     @Override
     public String toString() {
-        return "(" + lat + ", " + lng + ")";
+        return lat + "," + lng;
     }
 }

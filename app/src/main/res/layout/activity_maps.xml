@@ -17,7 +17,7 @@
         android:layout_alignParentTop="true" />
 
     <Button
-        android:id="@+id/button"
+        android:id="@+id/horizonButton"
         android:layout_width="90dp"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
@@ -29,15 +29,15 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_alignTop="@+id/button"
-        android:layout_toEndOf="@+id/button"
+        android:layout_alignTop="@+id/horizonButton"
+        android:layout_toEndOf="@+id/horizonButton"
         android:layout_alignEnd="@+id/mapFragment"
         android:layout_toStartOf="@+id/graph"
         android:background="#88ffffff"
         android:textColor="@android:color/black" />
 
     <ImageButton
-        android:id="@+id/edgeDetection"
+        android:id="@+id/photo"
         android:layout_width="match_parent"
         android:layout_height="200dp"
         android:layout_alignParentTop="true"
@@ -50,6 +50,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_below="@id/edgeDetection"
+        android:layout_below="@id/photo"
         android:layout_toEndOf="@id/mapFragment"/>
 </RelativeLayout>

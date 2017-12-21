@@ -48,7 +48,7 @@
             android:label="@string/title_image_to_detect"
             android:screenOrientation="landscape">
             <intent-filter>
-                <action android:name="com.example.recogniselocation.thirdyearproject.IMAGETODETECT" />
+                <action android:name="com.example.recogniselocation.thirdyearproject.PHOTO" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>

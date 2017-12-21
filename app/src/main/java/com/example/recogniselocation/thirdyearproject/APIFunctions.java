@@ -17,7 +17,7 @@ import java.util.List;
 
 class APIFunctions {
 
-    public static int noOfPaths = 60;
+    public static int noOfPaths = 50;
     public static int widthOfSearch = 180;
     public static int noOfSamples = 20;
     public static double searchLength = 0.1;  // radius of the search
@@ -51,14 +51,12 @@ class APIFunctions {
         
         // The first request is to get the elevation of where you are
         StringBuilder urls = new StringBuilder("https://maps.googleapis.com/maps/api/elevation/json?locations="
-                + loc.getLat() + "," + loc.getLng() + "&key=" + key + "!");
+                + loc.toString() + "&key=" + key + "!");
         // The other requests are to get elevations along paths
         for (int i = 0; i < noOfPaths; i++)
             urls.append("https://maps.googleapis.com/maps/api/elevation/json?path=")
-                    .append(startCoords.get(i).getLat()).append(",")
-                    .append(startCoords.get(i).getLng()).append("|")
-                    .append(endCoords.get(i).getLat()).append(",")
-                    .append(endCoords.get(i).getLng()).append("&samples=")
+                    .append(startCoords.get(i).toString()).append("|")
+                    .append(endCoords.get(i).toString()).append("&samples=")
                     .append(noOfSamples).append("&key=").append(key).append("!");
 
         // Requesting the elevations from the Google Maps API

@@ -6,8 +6,6 @@
     <string name="image_button_description">Button with the horizon to detect on it</string>
     <string name="location_text">You\'re at </string>
 
-
-    <string name="CUSTOM_ACTION_IMAGETODETECT">com.example.recogniselocation.thirdyearproject.IMAGETODETECT</string>
-
+    <string name="CUSTOM_ACTION_PHOTO">com.example.recogniselocation.thirdyearproject.PHOTO</string>
 
 </resources>
