@@ -51,7 +51,7 @@ class APIFunctions {
             url.append("|").append(loc.toString())
                     .append("|").append(endCoords.get(i));
 
-        int totalSamples = samplesPerPath * noOfPaths * 2 - samplesPerPath * 2;
+        int totalSamples = samplesPerPath * noOfPaths * 2 - samplesPerPath * 2 + 1;
         url.append("&samples=").append(totalSamples).append("&key=").append(key);
         /*
         // Get the coordinates of the start and the end of each path
@@ -136,9 +136,8 @@ class APIFunctions {
         if (response != null) {
             Response results = new Gson().fromJson(response, Response.class);
             if (results != null) {
-                // Todo: Save your elevation, and add the points we care about to highPoints
-                //yourElevation = results.getResults().get(?).getElevation();
-                //highPoints.add(MapFunctions.findHighestVisiblePoint(results, yourElevation));
+                yourElevation = results.getResults().get(samplesPerPath).getElevation();
+                highPoints = MapFunctions.findHighestVisiblePoints(results, yourElevation);
             }
         }
 

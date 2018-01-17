@@ -1,8 +1,6 @@
 package com.example.recogniselocation.thirdyearproject;
 
-/**
- * Created by LaUrE on 07/10/2017.
- */
+
 import java.util.Iterator;
 import java.util.List;
 

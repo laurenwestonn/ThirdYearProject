@@ -14,6 +14,7 @@ import java.util.List;
 
 import static com.example.recogniselocation.thirdyearproject.APIFunctions.noOfPaths;
 import static com.example.recogniselocation.thirdyearproject.APIFunctions.noOfSamples;
+import static com.example.recogniselocation.thirdyearproject.APIFunctions.samplesPerPath;
 import static com.example.recogniselocation.thirdyearproject.APIFunctions.searchLength;
 
 public class MapFunctions extends Activity {
@@ -98,16 +99,43 @@ public class MapFunctions extends Activity {
         return highPoints;
     }
 
-    public static Result findHighestVisiblePoint(Response results, double yourElevation)
+
+    // Given the results from a google api call, determine the highest points you can see
+    // in all directions. Results from all paths are within this one Response,
+    // unfortunately this means unwanted (duplicate) results are present. Ignore these
+    // Starts at the end of the first path and goes to your location,
+    // for each middle path: goes to the end and back to your location
+    // for the last path: goes to the end of path
+    public static List<Result> findHighestVisiblePoints(Response response, double yourElevation)
     {
         // Find the highest visible point
         double hiLat, hiLng, hiEl, hiDis;
         hiLat = hiLng = hiEl = hiDis = 0;
+        List<Result> results = response.getResults();
+        int i = 0;
 
         // Initial 'highest' value is small so that it will get overridden even by -ve angles
         double currentHighestAng = Integer.MIN_VALUE;
 
+        //Todo: Ignore the duplicate results and notice the the first path is backwards
 
+            //Todo: OR JUST ONE BIG FOR WITH IF CONDITIONS check if these size conditions are right
+        for (; i <= samplesPerPath; i++) {
+            // Find the highest point of the first path
+        }
+
+        for (; i < results.size() - samplesPerPath; i++) {
+            // Find the highest point of each middle path... while?
+            // Care about the first *samplesPerPath*, ignore the next *samplesPerPath*
+        }
+
+        for (; i < results.size(); i++) {
+            // Find the highest point of the last path
+        }
+            //Todo: OR JUST ONE BIG FOR WITH IF CONDITIONS check if these conditions are right
+
+
+        //Todo: CONVERT THE BELOW TO THE NEW WAY
         // Go through each result to see if you can see any that are higher
         int loopCount = 1;
         for(Result r : results) {
