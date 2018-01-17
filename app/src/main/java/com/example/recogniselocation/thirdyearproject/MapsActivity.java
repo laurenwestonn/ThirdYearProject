@@ -207,6 +207,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         googleMap.setMapType(googleMap.MAP_TYPE_TERRAIN);
     }
 
+    // If you tap the image, go to the next activity
     public void buttonClicked(View view) {
         switch (view.getId()) {
             case R.id.photo: {

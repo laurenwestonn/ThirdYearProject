@@ -11,7 +11,7 @@ import static com.example.recogniselocation.thirdyearproject.ImageManipulation.f
 import static com.example.recogniselocation.thirdyearproject.MapsActivity.googleMap;
 import static com.example.recogniselocation.thirdyearproject.MapsActivity.yourLocation;
 
-public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
+public class RetrieveURLTask extends AsyncTask<String, Void, String>  {
 
     @SuppressLint("StaticFieldLeak")
     private Activity activity;
@@ -22,16 +22,16 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
         this.activity = a;
     }
 
-    protected List<String> doInBackground(String... urls)
+    protected String doInBackground(String... urls)
     {
         Log.d("RetrieveURLTask", "Going to take some time getting the results from the API");
-        return APIFunctions.requestURLS(urls[0], "!");
+        return APIFunctions.requestURL(urls[0]);
     }
 
-    protected void onPostExecute(List<String> stringResponses)
+    protected void onPostExecute(String response)
     {
-        Log.d("onPostExecute", "API gave responses " + stringResponses.toString());
-        List<Result> highPoints = APIFunctions.getHighestVisiblePoints(stringResponses);
+        Log.d("onPostExecute", "API gave response " + response);
+        List<Result> highPoints = APIFunctions.getHighestVisiblePoints(response);
         Log.d("onPostExecute", "Got high points " + highPoints.toString());
 
         // Show results of the highest peaks in all directions ahead on the map and graph
