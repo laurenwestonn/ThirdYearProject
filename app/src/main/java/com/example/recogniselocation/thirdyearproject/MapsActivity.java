@@ -143,9 +143,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return yourCoords;
     }
 
+    // Checks if you can connect to google services and gives Toast of result
     public boolean googleServicesAvailable() {
         GoogleApiAvailability api = GoogleApiAvailability.getInstance();
         int isAvailable = api.isGooglePlayServicesAvailable(this);
+
         if (isAvailable == ConnectionResult.SUCCESS) {
             Toast.makeText(this, "Connected to google services", Toast.LENGTH_LONG).show();
             return true;
@@ -158,6 +160,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return false;
     }
 
+    // Initialise the content and assign the map
     private void initMap() {
         setContentView(R.layout.activity_maps);
         MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.mapFragment);
