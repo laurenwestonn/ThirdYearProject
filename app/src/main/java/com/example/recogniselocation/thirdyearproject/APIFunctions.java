@@ -15,12 +15,15 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import static android.content.ContentValues.TAG;
+
 class APIFunctions {
 
-    public static int noOfPaths = 50;
-    public static int widthOfSearch = 180;
-    public static int samplesPerPath = 20;
-    public static double searchLength = 0.1;  // radius of the search
+    static int noOfPaths = 20;
+    static int noOfPathsPerGroup = 8;
+    private static int widthOfSearch = 180;
+    static int samplesPerPath = 20;
+    static double searchLength = 0.1;  // radius of the search
 
     // MapsActivity calls this once it knows your direction and location
     static void getElevations(double dir, LatLng loc, Activity activity, String key)
@@ -42,17 +45,34 @@ class APIFunctions {
             ));
         }
 
-        // Use these coordinates to build up web requests
+        // Use these coordinates to build up each web request, containing *noOfPathsPerGroup* paths
+        StringBuilder urls = new StringBuilder("");
+        //Todo: Figure this out (below). How to find number of samples for the last group? May not be *noOfPathsPerGroup* long
+        int samplesPerGroup = 0; //samplesPerPath * noOfPathsPerGroup * 2 - samplesPerPath * 2 + 1;
+        int i = 0;
 
-        StringBuilder url = new StringBuilder("https://maps.googleapis.com/maps/api/elevation/json?path="
-                + endCoords.get(0));
         // The other requests are to get elevations along paths
-        for (int i = 1; i < noOfPaths; i++)
-            url.append("|").append(loc.toString())
-                    .append("|").append(endCoords.get(i));
+        for (; i < noOfPaths; i++) {
+            // Have to do in groups of paths as can only request 512 samples a day
+            if (i % noOfPathsPerGroup == 0) // First path of a group
+                // Begin the html and start your path at this end coordinate then go back to your location
+                urls.append("https://maps.googleapis.com/maps/api/elevation/json?path=")
+                        .append(endCoords.get(i)).append("|")
+                        .append(loc);
+            else if (i % noOfPathsPerGroup < noOfPathsPerGroup-1)    // Paths in the middle of a group
+                // Go to this end coordinate and then back to your location
+                urls.append("|").append(endCoords.get(i)).append("|").append(loc);
+            else    // Last path of a group
+                // Go to this last end coordinate for this path and a splitter to say we've finished
+                urls.append("|").append(endCoords.get(i))
+                        .append("&samples=").append(samplesPerGroup).append("&key=").append(key)
+                        .append("!");   // Splitter to mark the end of this group
+        }
 
-        int totalSamples = samplesPerPath * noOfPaths * 2 - samplesPerPath * 2 + 1;
-        url.append("&samples=").append(totalSamples).append("&key=").append(key);
+        // If we ended in the middle of a path, don't forget the end of the url
+        if (i % noOfPathsPerGroup < noOfPathsPerGroup-1)
+            urls.append("&samples=").append(samplesPerGroup).append("&key=").append(key);
+
         /*
         // Get the coordinates of the start and the end of each path
         for (int i = 0; i < noOfPaths; i++) {
@@ -84,46 +104,54 @@ class APIFunctions {
         */
 
         // Requesting the elevations from the Google Maps API
-        Log.d("APIFunctions", "Requesting URL " + url.toString());
-        try { new RetrieveURLTask(activity).execute(url.toString()); }
+        Log.d("APIFunctions", "Requesting URLs " + urls.toString());
+        try { new RetrieveURLTask(activity).execute(urls.toString()); }
         catch (Exception e) { e.printStackTrace(); }
     }
 
-    // Given a URL string, send the request and return the response
-    static String requestURL(String url)
+    // Given a string of URLs, send the requests and return the responses
+    static List<String> requestURL(String urls)
     {
+        String[] urlArr = urls.substring(0, urls.length()).split("!");
+
+        List<String> urlResponses = new ArrayList<>();
         HttpURLConnection con = null;
         StringBuilder response = new StringBuilder();   //Todo: Understand; do I need a builder?
 
-        try {
-            URL urlObj = new URL(url);
-            con = (HttpURLConnection) urlObj.openConnection();
+        for (String url : urlArr)
+        {
+            Log.e(TAG, "requestURL: Trying url " + url);
+            try {
+                URL urlObj = new URL(url);
+                con = (HttpURLConnection) urlObj.openConnection();
 
-            // If the connection was successful
-            if (con.getResponseCode() == 200) {
-                // Get the response
-                con.setRequestMethod("GET");
-                con.connect();
+                // If the connection was successful
+                if (con.getResponseCode() == 200) {
+                    // Get the response
+                    con.setRequestMethod("GET");
+                    con.connect();
 
-                //Todo: Check that I did get all results!
-                // Build up the response in a string
-                BufferedReader in = new BufferedReader(
-                        new InputStreamReader(con.getInputStream()));
+                    //Todo: Check that I did get all results!
+                    // Build up the response in a string
+                    BufferedReader in = new BufferedReader(
+                            new InputStreamReader(con.getInputStream()));
 
-                String inputLine;
-                while ((inputLine = in.readLine()) != null)
-                    response.append(inputLine);
+                    String inputLine;
+                    while ((inputLine = in.readLine()) != null)
+                        response.append(inputLine);
+                    urlResponses.add(response.toString());
 
-                in.close();
-            } else Log.e("Hi", "Connection failed: " + con.getResponseMessage());
-        } catch(Exception e) {
-            Log.e("Hi", "Problem connecting to URL: " + e.toString());
-        } finally {
-            if (con != null)
-                con.disconnect();
+                    in.close();
+                } else Log.e("Hi", "Connection failed: " + con.getResponseMessage());
+            } catch(Exception e) {
+                Log.e("Hi", "Problem connecting to URL: " + e.toString());
+            } finally {
+                if (con != null)
+                    con.disconnect();
+            }
         }
 
-        return response.toString();
+        return urlResponses;
     }
 
     // Interpret the string response into response object

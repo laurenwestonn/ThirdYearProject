@@ -11,7 +11,7 @@ import static com.example.recogniselocation.thirdyearproject.ImageManipulation.f
 import static com.example.recogniselocation.thirdyearproject.MapsActivity.googleMap;
 import static com.example.recogniselocation.thirdyearproject.MapsActivity.yourLocation;
 
-public class RetrieveURLTask extends AsyncTask<String, Void, String>  {
+public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
 
     @SuppressLint("StaticFieldLeak")
     private Activity activity;
@@ -22,7 +22,7 @@ public class RetrieveURLTask extends AsyncTask<String, Void, String>  {
         this.activity = a;
     }
 
-    protected String doInBackground(String... urls)
+    protected List<String> doInBackground(String... urls)
     {
         Log.d("RetrieveURLTask", "Going to take some time getting the results from the API");
         return APIFunctions.requestURL(urls[0]);

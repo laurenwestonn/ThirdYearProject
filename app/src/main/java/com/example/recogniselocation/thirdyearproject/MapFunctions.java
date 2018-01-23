@@ -12,8 +12,8 @@ import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.util.List;
 
+import static android.content.ContentValues.TAG;
 import static com.example.recogniselocation.thirdyearproject.APIFunctions.noOfPaths;
-import static com.example.recogniselocation.thirdyearproject.APIFunctions.noOfSamples;
 import static com.example.recogniselocation.thirdyearproject.APIFunctions.samplesPerPath;
 import static com.example.recogniselocation.thirdyearproject.APIFunctions.searchLength;
 
@@ -118,11 +118,30 @@ public class MapFunctions extends Activity {
         double currentHighestAng = Integer.MIN_VALUE;
 
         //Todo: Ignore the duplicate results and notice the the first path is backwards
-
+        Log.d(TAG, "findHighestVisiblePoints: There are " + samplesPerPath + " samples per path with a search length of " + searchLength + " \nThe response is " + results.toString());
             //Todo: OR JUST ONE BIG FOR WITH IF CONDITIONS check if these size conditions are right
-        for (; i <= samplesPerPath; i++) {
+        for (; i < samplesPerPath; i++) {
             // Find the highest point of the first path
+
+            // 0 -                  i * x + searchLength    searchLength - 0
+            // 1 -                                          searchLength -
+            // samplesPerPath -     i * x + searchLength    searchLength - samplesPerPath lots of
+            //Fraction of path length we're at now
+            double thisOnesDistance = (searchLength * LONLAT_TO_METRES) * (samplesPerPath-i) / samplesPerPath;
+            double angleOfThisElevation = Math.atan(
+                    (results.get(i).getElevation() - yourElevation) / thisOnesDistance);  // Distance of the first one away
+
+            // from you, i.e. step
+            if (angleOfThisElevation > currentHighestAng) {
+                hiLat = results.get(i).getLocation().getLat();
+                hiLng = results.get(i).getLocation().getLng();
+                hiEl = results.get(i).getElevation() - yourElevation;
+                hiDis = thisOnesDistance;
+                currentHighestAng = angleOfThisElevation;
+            }
         }
+
+        i++; // Ignore the duplicate result of your elevation
 
         for (; i < results.size() - samplesPerPath; i++) {
             // Find the highest point of each middle path... while?
@@ -141,7 +160,7 @@ public class MapFunctions extends Activity {
         for(Result r : results) {
 
             //Fraction of path length we're at now
-            double thisOnesDistance = (searchLength * LONLAT_TO_METRES) * loopCount++ / noOfSamples;
+            double thisOnesDistance = (searchLength * LONLAT_TO_METRES) * loopCount++ / samplesPerPath;
             double angleOfThisElevation = Math.atan(
                     (r.getElevation() - yourElevation) / thisOnesDistance);  // Distance of the first one away
 
@@ -157,7 +176,7 @@ public class MapFunctions extends Activity {
         double highestAngle = currentHighestAng;
 
         if (highestAngle != Integer.MIN_VALUE) // If we found a highest visible peak
-            return new Result(new LatLng(hiLat, hiLng),hiEl, hiDis, highestAngle,0 );
+            return null;//new Result(new LatLng(hiLat, hiLng),hiEl, hiDis, highestAngle,0 );
         else {
             Log.e("Hi", "Didn't find a high point here, don't add to highPoints");
             return null;
