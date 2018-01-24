@@ -3,7 +3,6 @@ package com.example.recogniselocation.thirdyearproject;
 import android.app.Activity;
 import android.util.Log;
 
-import com.google.gson.Gson;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
@@ -24,6 +23,7 @@ class APIFunctions {
     private static int widthOfSearch = 180;
     static int samplesPerPath = 20;
     static double searchLength = 0.1;  // radius of the search
+    private static final int LONLAT_TO_METRES = 111111; // roughly
 
     // MapsActivity calls this once it knows your direction and location
     static void getElevations(double dir, LatLng loc, Activity activity, String key)
@@ -47,13 +47,11 @@ class APIFunctions {
 
         // Use these coordinates to build up each web request, containing *noOfPathsPerGroup* paths
         StringBuilder urls = new StringBuilder("");
-        //Todo: Figure this out (below). How to find number of samples for the last group? May not be *noOfPathsPerGroup* long
-        int samplesPerGroup = 0; //samplesPerPath * noOfPathsPerGroup * 2 - samplesPerPath * 2 + 1;
+        int samplesPerGroup = samplesPerPath * noOfPathsPerGroup * 2 - samplesPerPath * 2 + 1;
         int i = 0;
 
-        // The other requests are to get elevations along paths
+        // Have to get elevations of paths in groups as can only request 512 samples in one request
         for (; i < noOfPaths; i++) {
-            // Have to do in groups of paths as can only request 512 samples a day
             if (i % noOfPathsPerGroup == 0) // First path of a group
                 // Begin the html and start your path at this end coordinate then go back to your location
                 urls.append("https://maps.googleapis.com/maps/api/elevation/json?path=")
@@ -70,38 +68,11 @@ class APIFunctions {
         }
 
         // If we ended in the middle of a path, don't forget the end of the url
-        if (i % noOfPathsPerGroup < noOfPathsPerGroup-1)
+        if (i % noOfPathsPerGroup < noOfPathsPerGroup-1) {
+            int noOfPathsInThisGroup = i % noOfPathsPerGroup;
+            samplesPerGroup = samplesPerPath * noOfPathsInThisGroup * 2 - samplesPerPath * 2 + 1;
             urls.append("&samples=").append(samplesPerGroup).append("&key=").append(key);
-
-        /*
-        // Get the coordinates of the start and the end of each path
-        for (int i = 0; i < noOfPaths; i++) {
-            double sin = Math.sin(Math.toRadians(((start - i * step) % 360 + 360) % 360));
-            double cos = Math.cos(Math.toRadians(((start - i * step) % 360 + 360) % 360));
-            // Start from the first position away from you in each direction
-            startCoords.add(new LatLng(
-                    loc.getLat() + searchLength / samplesPerPath * sin,
-                    loc.getLng() + searchLength / samplesPerPath * cos
-            ));
-            // End at the length of your search in each direction
-            endCoords.add(new LatLng(
-                    loc.getLat() + searchLength * sin,
-                    loc.getLng() + searchLength * cos
-            ));
         }
-
-        // Use these coordinates to build up web requests
-
-        // The first request is to get the elevation of where you are
-        StringBuilder urls = new StringBuilder("https://maps.googleapis.com/maps/api/elevation/json?locations="
-                + loc.toString() + "&key=" + key + "!");
-        // The other requests are to get elevations along paths
-        for (int i = 0; i < noOfPaths; i++)
-            urls.append("https://maps.googleapis.com/maps/api/elevation/json?path=")
-                    .append(startCoords.get(i).toString()).append("|")
-                    .append(endCoords.get(i).toString()).append("&samples=")
-                    .append(samplesPerPath).append("&key=").append(key).append("!");
-        */
 
         // Requesting the elevations from the Google Maps API
         Log.d("APIFunctions", "Requesting URLs " + urls.toString());
@@ -114,9 +85,9 @@ class APIFunctions {
     {
         String[] urlArr = urls.substring(0, urls.length()).split("!");
 
-        List<String> urlResponses = new ArrayList<>();
-        HttpURLConnection con = null;
+        List<String> urlResponses = new ArrayList<>(); // Store each response
         StringBuilder response = new StringBuilder();   //Todo: Understand; do I need a builder?
+        HttpURLConnection con = null;
 
         for (String url : urlArr)
         {
@@ -150,29 +121,42 @@ class APIFunctions {
                     con.disconnect();
             }
         }
-
         return urlResponses;
     }
 
-    // Interpret the string response into response object
-    static List<Result> getHighestVisiblePoints(String response)
+    // Find highest visible point of this path
+    static Result getHighestVisiblePoint(List<Result> path, double yourElevation)
     {
-        List<Result> highPoints= new ArrayList<>();
-        double yourElevation = 0;
+        double currentHiAng = Integer.MIN_VALUE;
+        int loop = 0;
+        double hiLat, hiLng, hiEl, hiDis;
+        hiLat = hiLng = hiEl = hiDis = 0;
 
-        // Parse any stringResponses, find highest visible point in each path
-        if (response != null) {
-            Response results = new Gson().fromJson(response, Response.class);
-            if (results != null) {
-                yourElevation = results.getResults().get(samplesPerPath).getElevation();
-                highPoints = MapFunctions.findHighestVisiblePoints(results, yourElevation);
+        for (Result r : path) {
+            double thisOnesDistance = (searchLength * LONLAT_TO_METRES)
+                    * (samplesPerPath-loop++) / samplesPerPath;
+            double angleOfThisElevation = Math.atan(
+                    (r.getElevation() - yourElevation) / thisOnesDistance); // Distance of the first one away
+                                                                            // from you, i.e. step
+            if (angleOfThisElevation > currentHiAng) {
+                hiLat = r.getLocation().getLat();
+                hiLng = r.getLocation().getLng();
+                hiEl = r.getElevation() - yourElevation;
+                hiDis = thisOnesDistance;
+                currentHiAng = angleOfThisElevation;
             }
         }
+        double highestAngle = currentHiAng;
 
-        // Find the differences between the elevations so we can plot them
-        highPoints = MapFunctions.findDiffBetweenElevations(highPoints);
+        Log.d(TAG, "getHighestVisiblePoint: The highest point in path " + path.toString()
+        + " \nis " + new Result(new LatLng(hiLat, hiLng),hiEl, hiDis, highestAngle,0 ).toString());
 
-        return highPoints;
+        if (highestAngle != Integer.MIN_VALUE) // If we found a highest visible peak
+            return new Result(new LatLng(hiLat, hiLng),hiEl, hiDis, highestAngle,0 );
+        else {
+            Log.e("Hi", "Didn't find a high point here, don't add to highPoints");
+            return null;
+        }
     }
 
     static List<Point> drawOnGraph(List<Result> points)

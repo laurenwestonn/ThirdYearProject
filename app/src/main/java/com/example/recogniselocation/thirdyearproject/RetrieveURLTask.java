@@ -5,8 +5,16 @@ import android.app.Activity;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.util.Log;
+
+import com.google.gson.Gson;
+
+import java.util.ArrayList;
 import java.util.List;
 
+import static android.content.ContentValues.TAG;
+import static com.example.recogniselocation.thirdyearproject.APIFunctions.getHighestVisiblePoint;
+import static com.example.recogniselocation.thirdyearproject.APIFunctions.noOfPathsPerGroup;
+import static com.example.recogniselocation.thirdyearproject.APIFunctions.samplesPerPath;
 import static com.example.recogniselocation.thirdyearproject.ImageManipulation.fineWidth;
 import static com.example.recogniselocation.thirdyearproject.MapsActivity.googleMap;
 import static com.example.recogniselocation.thirdyearproject.MapsActivity.yourLocation;
@@ -28,10 +36,62 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
         return APIFunctions.requestURL(urls[0]);
     }
 
-    protected void onPostExecute(String response)
+    protected void onPostExecute(List<String> strResponses)
     {
-        Log.d("onPostExecute", "API gave response " + response);
-        List<Result> highPoints = APIFunctions.getHighestVisiblePoints(response);
+        Log.e("onPostExecute", "(API gave response) END IS CUT OFF! " + strResponses);
+        List<Result> highPoints = new ArrayList<>();
+
+        for (String strResponse : strResponses) {
+            // Convert this string response to a Response object
+            Response response = new Gson().fromJson(strResponse, Response.class);
+            List<Result> results = response.getResults();
+            List<Result> path = new ArrayList<>();
+            int i = 0;
+
+            for (; i < samplesPerPath; i++)
+                path.add(results.get(samplesPerPath - i - 1));  // First path is backwards
+
+            // Store only the highest point of this first path from the response
+            // 1st param is the first path; 2nd is your location's elevation,
+            // while skipping past this index as your location isn't part of the next path
+            double yourElevation = results.get(i++).getElevation();
+            highPoints.add(getHighestVisiblePoint(path, yourElevation));
+            Log.d(TAG, "onPostExecute: Added a high point: " + highPoints.toString()
+            + " \nfrom first path " + path.toString());
+            path.clear();
+
+            // The paths in the middle (these have duplicates where we've headed back to your location
+            for (; i < results.size() - samplesPerPath; i++) {
+
+                // From your location to the paths end. These results make up one path
+                if (i % samplesPerPath*2 < samplesPerPath)
+                    path.add(results.get(i));
+                // The others (from the path's end back to your location) are duplicate, ignore
+
+                // A path is complete when it has all samples
+                if (path.size() == samplesPerPath) {
+                    highPoints.add(getHighestVisiblePoint(path, yourElevation));
+                    Log.d(TAG, "onPostExecute: Added a high point: " + highPoints.toString()
+                            + " \nfrom mid path " + path.toString());
+
+                    // Clear the path to build up the next one
+                    path.clear();
+                }
+            }
+            path.clear();   // Todo: This shouldn't be needed if is done correctly, should only ever exit in the last if
+
+            // The last path
+            for (; i < results.size(); i++) {
+                path.add(results.get(i));
+            }
+            highPoints.add(getHighestVisiblePoint(path, yourElevation));
+            Log.d(TAG, "onPostExecute: Added a high point: " + highPoints.toString()
+                    + " \nfrom the last path " + path.toString());
+
+        }
+
+        // Find the differences between the elevations so we can plot them
+        highPoints = MapFunctions.findDiffBetweenElevations(highPoints);
         Log.d("onPostExecute", "Got high points " + highPoints.toString());
 
         // Show results of the highest peaks in all directions ahead on the map and graph

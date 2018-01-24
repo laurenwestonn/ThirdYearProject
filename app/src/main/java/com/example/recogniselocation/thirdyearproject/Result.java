@@ -7,10 +7,8 @@ public class Result {
     private double angle;
     private double difference;
 
-    public transient double resolution;
-
-    public Result(LatLng givenLocation, double givenElevation, double givenDistance,
-                                            double givenAngle, double givenDifference)
+    Result(LatLng givenLocation, double givenElevation, double givenDistance,
+           double givenAngle, double givenDifference)
     {
         this.location = givenLocation;
         this.elevation = givenElevation;
@@ -19,34 +17,34 @@ public class Result {
         this.difference = givenDifference;
     }
 
-    public LatLng getLocation() {
+    LatLng getLocation() {
         return location;
     }
 
-    public double getElevation() {
+    double getElevation() {
         return elevation;
     }
 
-    public double getDistance() {
+    double getDistance() {
         return distance;
     }
 
-    public double getAngle() {
+    double getAngle() {
         return angle;
     }
 
-    public double getDifference() {
+    double getDifference() {
         return difference;
     }
 
-    public void setDifference(double newDifference) {
+    void setDifference(double newDifference) {
         this.difference = newDifference;
     }
 
     public String toString()
     {
-        return "Location: (" + location.getLat() + ", " + location.getLng()
-                + ") \tAPIFunctions: " + elevation + "\tDistance: " + distance
-                + "\tAngle: " + angle + "\tDifference: " + difference;
+        return "Location: (" + location + ")"
+                + "\tElevation: " +  elevation + "\tDistance: " + distance
+                + "\tAngle: " +         angle + "\tDifference: " + difference;
     }
 }
