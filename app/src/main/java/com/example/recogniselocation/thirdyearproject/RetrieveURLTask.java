@@ -7,6 +7,7 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,12 +39,13 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
 
     protected void onPostExecute(List<String> strResponses)
     {
-        Log.e("onPostExecute", "(API gave response) END IS CUT OFF! " + strResponses);
+        Log.d("onPostExecute", "API gave response " + strResponses);
         List<Result> highPoints = new ArrayList<>();
 
         for (String strResponse : strResponses) {
             // Convert this string response to a Response object
-            Response response = new Gson().fromJson(strResponse, Response.class);
+            Gson gson = new GsonBuilder().setLenient().create(); //Todo is lenient needed? could just do new Gson instead, like I used to have.
+            Response response = gson.fromJson(strResponse, Response.class);
             List<Result> results = response.getResults();
             List<Result> path = new ArrayList<>();
             int i = 0;

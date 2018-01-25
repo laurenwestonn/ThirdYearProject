@@ -18,10 +18,10 @@ import static android.content.ContentValues.TAG;
 
 class APIFunctions {
 
-    static int noOfPaths = 20;
-    static int noOfPathsPerGroup = 8;
     private static int widthOfSearch = 180;
-    static int samplesPerPath = 20;
+    static int noOfPaths = widthOfSearch / 18;//4;
+    static int noOfPathsPerGroup = 8;   // This * samplesPerPath needs to be <= 512
+    static int samplesPerPath = widthOfSearch / 18;//4;
     static double searchLength = 0.1;  // radius of the search
     private static final int LONLAT_TO_METRES = 111111; // roughly
 
@@ -86,12 +86,12 @@ class APIFunctions {
         String[] urlArr = urls.substring(0, urls.length()).split("!");
 
         List<String> urlResponses = new ArrayList<>(); // Store each response
-        StringBuilder response = new StringBuilder();   //Todo: Understand; do I need a builder?
+        StringBuilder response;   //Todo: Understand; do I need a builder?
         HttpURLConnection con = null;
 
         for (String url : urlArr)
         {
-            Log.e(TAG, "requestURL: Trying url " + url);
+            response = new StringBuilder(); // clearing the string builder each time
             try {
                 URL urlObj = new URL(url);
                 con = (HttpURLConnection) urlObj.openConnection();
