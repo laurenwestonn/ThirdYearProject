@@ -12,9 +12,10 @@ import com.google.gson.GsonBuilder;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.security.auth.login.LoginException;
+
 import static android.content.ContentValues.TAG;
 import static com.example.recogniselocation.thirdyearproject.APIFunctions.getHighestVisiblePoint;
-import static com.example.recogniselocation.thirdyearproject.APIFunctions.noOfPathsPerGroup;
 import static com.example.recogniselocation.thirdyearproject.APIFunctions.samplesPerPath;
 import static com.example.recogniselocation.thirdyearproject.ImageManipulation.fineWidth;
 import static com.example.recogniselocation.thirdyearproject.MapsActivity.googleMap;
@@ -52,7 +53,7 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
 
             for (; i < samplesPerPath; i++)
                 path.add(results.get(samplesPerPath - i - 1));  // First path is backwards
-
+            Log.e(TAG, "onPostExecute: This first path is " + path);
             // Store only the highest point of this first path from the response
             // 1st param is the first path; 2nd is your location's elevation,
             // while skipping past this index as your location isn't part of the next path
@@ -64,13 +65,16 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
             for (; i < results.size() - samplesPerPath; i++) {
 
                 // From your location to the paths end. These results make up one path
-                if (i % samplesPerPath*2 < samplesPerPath)
+                if ((i % (samplesPerPath*2+1)) >= samplesPerPath) {
                     path.add(results.get(i));
+                } else;
                 // The others (from the path's end back to your location) are duplicate, ignore
 
                 // A path is complete when it has all samples
                 if (path.size() == samplesPerPath) {
                     highPoints.add(getHighestVisiblePoint(path, yourElevation));
+                    Log.e(TAG, "onPostExecute: a Mid path is " + path);
+                    Log.e(TAG, "onPostExecute: Hi point from that is " + highPoints.get(highPoints.size()-1));
 
                     // Clear the path to build up the next one
                     path.clear();
@@ -82,6 +86,7 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
             for (; i < results.size(); i++) {
                 path.add(results.get(i));
             }
+            Log.e(TAG, "onPostExecute: Last path " + path);
             highPoints.add(getHighestVisiblePoint(path, yourElevation));
 
         }

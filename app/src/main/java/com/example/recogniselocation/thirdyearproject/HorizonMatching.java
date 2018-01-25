@@ -17,7 +17,7 @@ import static android.content.ContentValues.TAG;
 
 class HorizonMatching {
     static double graphHeight;
-    private static boolean debug = true;
+    private static boolean debug = false;
 
     static void matchUpHorizons(List<Point> photoCoords, List<Point> elevationCoords,
                                                                         Bitmap bmp, Activity a) {
@@ -25,7 +25,7 @@ class HorizonMatching {
         List<Point> photoMMs = findMaximaMinima(photoCoords, 1);
         if (debug)
             Log.d(TAG, "matchUpHorizons: Now check elevationMMs from coords: " + elevationCoords);
-        List<Point> elevationMMs = findMaximaMinima(elevationCoords, 1);// Todo: This better. Using a looser(...is it?) threshold here because my edge detection is too thick to notice subtle dips
+        List<Point> elevationMMs = findMaximaMinima(elevationCoords, 2);// Todo: This better. Using a looser(...is it?) threshold here because my edge detection is too thick to notice subtle dips
 
         if (photoMMs.size() < 2 || elevationMMs.size() < 2                  // Just a maxima found
                 || photoMMs.get(0) == null && photoMMs.size() == 2          // Just a minima found

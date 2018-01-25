@@ -20,8 +20,8 @@ class APIFunctions {
 
     private static int widthOfSearch = 180;
     static int noOfPaths = widthOfSearch / 4;//8;//4;
-    static int noOfPathsPerGroup = 6;   // (This + duplicates) * samplesPerPath needs to be <= 512
-    static int samplesPerPath = widthOfSearch / 4;//10;//4;
+    private static int noOfPathsPerGroup = 6;   // (This + duplicates) * samplesPerPath needs to be <= 512
+    static int samplesPerPath = widthOfSearch / 18;//4;
     static double searchLength = 0.1;  // radius of the search
     private static final int LONLAT_TO_METRES = 111111; // roughly
 
@@ -134,17 +134,20 @@ class APIFunctions {
     static Result getHighestVisiblePoint(List<Result> path, double yourElevation)
     {
         double currentHiAng = Integer.MIN_VALUE;
-        int loop = 0;
+        int loop = 1;
         double hiLat, hiLng, hiEl, hiDis;
         hiLat = hiLng = hiEl = hiDis = 0;
 
         for (Result r : path) {
             double thisOnesDistance = (searchLength * LONLAT_TO_METRES)
-                    * (samplesPerPath-loop++) / samplesPerPath;
+                    * loop++ / samplesPerPath;
             double angleOfThisElevation = Math.atan(
                     (r.getElevation() - yourElevation) / thisOnesDistance); // Distance of the first one away
                                                                             // from you, i.e. step
             if (angleOfThisElevation > currentHiAng) {
+                Log.d(TAG, "getHighestVisiblePoint: Ooh ("+ r.getLocation() +") at distance "
+                        + thisOnesDistance + "\t at elevation " + r.getElevation() + " at angle " + angleOfThisElevation
+                        + "\t is bigger than our current max " + currentHiAng);
                 hiLat = r.getLocation().getLat();
                 hiLng = r.getLocation().getLng();
                 hiEl = r.getElevation() - yourElevation;
