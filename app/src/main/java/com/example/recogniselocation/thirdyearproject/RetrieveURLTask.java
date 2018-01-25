@@ -58,8 +58,6 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
             // while skipping past this index as your location isn't part of the next path
             double yourElevation = results.get(i++).getElevation();
             highPoints.add(getHighestVisiblePoint(path, yourElevation));
-            Log.d(TAG, "onPostExecute: Added a high point: " + highPoints.toString()
-            + " \nfrom first path " + path.toString());
             path.clear();
 
             // The paths in the middle (these have duplicates where we've headed back to your location
@@ -73,8 +71,6 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
                 // A path is complete when it has all samples
                 if (path.size() == samplesPerPath) {
                     highPoints.add(getHighestVisiblePoint(path, yourElevation));
-                    Log.d(TAG, "onPostExecute: Added a high point: " + highPoints.toString()
-                            + " \nfrom mid path " + path.toString());
 
                     // Clear the path to build up the next one
                     path.clear();
@@ -87,8 +83,6 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
                 path.add(results.get(i));
             }
             highPoints.add(getHighestVisiblePoint(path, yourElevation));
-            Log.d(TAG, "onPostExecute: Added a high point: " + highPoints.toString()
-                    + " \nfrom the last path " + path.toString());
 
         }
 
@@ -106,6 +100,7 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
         // Detect the edge from an image
         EdgeDetection edgeDetection;
         edgeDetection = ImageManipulation.detectEdge(BitmapFactory.decodeResource(activity.getResources(), photoID));
+        Log.d(TAG, "onPostExecute: Edge Detected");
         List<List<Integer>> edgeCoords2D = edgeDetection.coords;
 
         // Quick fix to simplify coordinates
@@ -117,6 +112,7 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
         List<Point> edgeCoords = HorizonMatching.convertToPoints(edgeCoordsIntegers, pointWidth);
 
         // Match up the horizons
+        Log.d(TAG, "onPostExecute: Going to match up horizons");
         HorizonMatching.matchUpHorizons(edgeCoords, elevationsCoords, edgeDetection.bmp, activity);
     }
 

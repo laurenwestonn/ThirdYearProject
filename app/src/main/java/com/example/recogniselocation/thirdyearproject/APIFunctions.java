@@ -19,9 +19,9 @@ import static android.content.ContentValues.TAG;
 class APIFunctions {
 
     private static int widthOfSearch = 180;
-    static int noOfPaths = widthOfSearch / 18;//4;
-    static int noOfPathsPerGroup = 8;   // This * samplesPerPath needs to be <= 512
-    static int samplesPerPath = widthOfSearch / 18;//4;
+    static int noOfPaths = widthOfSearch / 4;//8;//4;
+    static int noOfPathsPerGroup = 6;   // (This + duplicates) * samplesPerPath needs to be <= 512
+    static int samplesPerPath = widthOfSearch / 4;//10;//4;
     static double searchLength = 0.1;  // radius of the search
     private static final int LONLAT_TO_METRES = 111111; // roughly
 
@@ -48,6 +48,10 @@ class APIFunctions {
         // Use these coordinates to build up each web request, containing *noOfPathsPerGroup* paths
         StringBuilder urls = new StringBuilder("");
         int samplesPerGroup = samplesPerPath * noOfPathsPerGroup * 2 - samplesPerPath * 2 + 1;
+        if (samplesPerGroup > 512) {
+            Log.e(TAG, "getElevations: Requesting too many samples. Capping at 512 but you should ask for less samples per path");
+            samplesPerGroup = 512;
+        }
         int i = 0;
 
         // Have to get elevations of paths in groups as can only request 512 samples in one request
@@ -84,6 +88,7 @@ class APIFunctions {
     static List<String> requestURL(String urls)
     {
         String[] urlArr = urls.substring(0, urls.length()).split("!");
+        Log.d(TAG, "requestURL: Got " + urlArr.length + " urls from " + urls);
 
         List<String> urlResponses = new ArrayList<>(); // Store each response
         StringBuilder response;   //Todo: Understand; do I need a builder?
@@ -91,6 +96,7 @@ class APIFunctions {
 
         for (String url : urlArr)
         {
+            Log.d(TAG, "requestURL: Trying URL " + url);
             response = new StringBuilder(); // clearing the string builder each time
             try {
                 URL urlObj = new URL(url);
@@ -147,9 +153,6 @@ class APIFunctions {
             }
         }
         double highestAngle = currentHiAng;
-
-        Log.d(TAG, "getHighestVisiblePoint: The highest point in path " + path.toString()
-        + " \nis " + new Result(new LatLng(hiLat, hiLng),hiEl, hiDis, highestAngle,0 ).toString());
 
         if (highestAngle != Integer.MIN_VALUE) // If we found a highest visible peak
             return new Result(new LatLng(hiLat, hiLng),hiEl, hiDis, highestAngle,0 );

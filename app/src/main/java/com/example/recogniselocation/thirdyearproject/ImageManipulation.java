@@ -13,16 +13,15 @@ import static android.content.ContentValues.TAG;
 
 class ImageManipulation {
 
-    public static boolean showCoarse = false;   // Show results of the coarse or the fine?
-    public static boolean sdDetail = false;     // Want to draw SD and log info under tag "sd"?
-    public static boolean useThinning = true;   // Thin to have only one point per column?
-    public static boolean showEdgeOnly = true;  // Colour in just the edge, or all searched area?
+    private static boolean showCoarse = false;   // Show results of the coarse or the fine?
+    private static boolean sdDetail = false;     // Want to draw SD and log info under tag "sd"?
+    private static boolean useThinning = true;   // Thin to have only one point per column?
+    private static boolean showEdgeOnly = true;  // Colour in just the edge, or all searched area?
 
-    public static List<List<Integer>> edgeCoords;
-    public static int fineWidth;
-    public static int fineHeight;
+    private static List<List<Integer>> edgeCoords;
+    static int fineWidth;
 
-    public static EdgeDetection detectEdge(Bitmap bmp) {
+    static EdgeDetection detectEdge(Bitmap bmp) {
         // The number of pixels to the left/right/above/below of the centre pixel
         int coarseRadius = bmp.getHeight() / 17;
         // The number of pixels for the width/height, the diameter
@@ -84,7 +83,7 @@ class ImageManipulation {
         int fineWidthRadius = fineBMP.getWidth() / 250; // 1 would make a mask of width 3, 2 would give width 5
         fineWidth = fineWidthRadius * 2 + 1;    // Width of the fine mask
         int fineHeightRadius = fineBMP.getHeight() / 120;
-        fineHeight = fineHeightRadius * 2 + 1;  // Height of the fine mask
+        int fineHeight = fineHeightRadius * 2 + 1;
         int pointWidth = fineWidthRadius;       // The width of point to colour in
         int pointWidthRadius = pointWidth / 2;
 
