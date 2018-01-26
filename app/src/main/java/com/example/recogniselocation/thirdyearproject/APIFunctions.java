@@ -19,9 +19,9 @@ import static android.content.ContentValues.TAG;
 class APIFunctions {
 
     private static int widthOfSearch = 180;
-    static int noOfPaths = widthOfSearch / 4;//8;//4;
-    private static int noOfPathsPerGroup = 6;   // (This + duplicates) * samplesPerPath needs to be <= 512
-    static int samplesPerPath = widthOfSearch / 18;//4;
+    static int noOfPaths = widthOfSearch / 8;//8;//4;
+    private static int noOfPathsPerGroup = 3;//6;   // (This + duplicates) * samplesPerPath needs to be <= 512
+    static int samplesPerPath = widthOfSearch / 60;//4;
     static double searchLength = 0.1;  // radius of the search
     private static final int LONLAT_TO_METRES = 111111; // roughly
 
@@ -47,11 +47,7 @@ class APIFunctions {
 
         // Use these coordinates to build up each web request, containing *noOfPathsPerGroup* paths
         StringBuilder urls = new StringBuilder("");
-        int samplesPerGroup = samplesPerPath * noOfPathsPerGroup * 2 - samplesPerPath * 2 + 1;
-        if (samplesPerGroup > 512) {
-            Log.e(TAG, "getElevations: Requesting too many samples. Capping at 512 but you should ask for less samples per path");
-            samplesPerGroup = 512;
-        }
+        int samplesPerGroup = getSamplesPerGroup(noOfPathsPerGroup, samplesPerPath);
         int i = 0;
 
         // Have to get elevations of paths in groups as can only request 512 samples in one request
@@ -66,15 +62,19 @@ class APIFunctions {
                 urls.append("|").append(endCoords.get(i)).append("|").append(loc);
             else    // Last path of a group
                 // Go to this last end coordinate for this path and a splitter to say we've finished
-                urls.append("|").append(endCoords.get(i))
-                        .append("&samples=").append(samplesPerGroup).append("&key=").append(key)
+                urls.append("|").append(endCoords.get(i));
+
+            // End of this group - finish off the URL
+            if (i % noOfPathsPerGroup == noOfPathsPerGroup - 1)
+                urls.append("&samples=").append(samplesPerGroup).append("&key=").append(key)
                         .append("!");   // Splitter to mark the end of this group
+
         }
 
-        // If we ended in the middle of a path, don't forget the end of the url
-        if (i % noOfPathsPerGroup < noOfPathsPerGroup-1) {
+        // If we ended in the middle of a group, don't forget the end of the url
+        if (i % noOfPathsPerGroup < noOfPathsPerGroup-1 && i % noOfPathsPerGroup != 0) {
             int noOfPathsInThisGroup = i % noOfPathsPerGroup;
-            samplesPerGroup = samplesPerPath * noOfPathsInThisGroup * 2 - samplesPerPath * 2 + 1;
+            samplesPerGroup = getSamplesPerGroup(noOfPathsInThisGroup, samplesPerPath);
             urls.append("&samples=").append(samplesPerGroup).append("&key=").append(key);
         }
 
@@ -82,6 +82,20 @@ class APIFunctions {
         Log.d("APIFunctions", "Requesting URLs " + urls.toString());
         try { new RetrieveURLTask(activity).execute(urls.toString()); }
         catch (Exception e) { e.printStackTrace(); }
+    }
+
+    // Get the number of elevations you need per group of paths
+    private static int getSamplesPerGroup(int noOfPathsPerGroup, int samplesPerPath) {
+        int samplesPerGroup;
+        if (noOfPathsPerGroup >= 3)
+            samplesPerGroup = samplesPerPath * noOfPathsPerGroup * 2 - samplesPerPath * 2 + 1;
+        else
+            samplesPerGroup = samplesPerPath * noOfPathsPerGroup + 1;
+        if (samplesPerGroup > 512) {
+            Log.e(TAG, "getElevations: Requesting too many samples. Capping at 512 but you should ask for less samples per path");
+            samplesPerGroup = 512;
+        }
+        return samplesPerGroup;
     }
 
     // Given a string of URLs, send the requests and return the responses
