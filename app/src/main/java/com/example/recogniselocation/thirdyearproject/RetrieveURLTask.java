@@ -86,9 +86,10 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
             for (; i < results.size(); i++) {
                 path.add(results.get(i));
             }
-            Log.e(TAG, "onPostExecute: Last path " + path);
-            highPoints.add(getHighestVisiblePoint(path, yourElevation));
-
+            if (path.size() != 0) {
+                Log.e(TAG, "onPostExecute: Last path " + path);
+                highPoints.add(getHighestVisiblePoint(path, yourElevation));
+            }
         }
 
         // Find the differences between the elevations so we can plot them
