@@ -61,6 +61,12 @@ public class RetrieveURLTask extends AsyncTask<String, Void, List<String>>  {
             highPoints.add(getHighestVisiblePoint(path, yourElevation));
             path.clear();
 
+            // If the group is just a start and an end path,
+            // i.e. is only: (Index after) first path, skip one for your location, plus the last path
+            // then skip your location to trigger code to add any 'last path's
+            if (i + 1 + samplesPerPath == results.size())
+                i++;
+
             // The paths in the middle (these have duplicates where we've headed back to your location
             for (; i < results.size() - samplesPerPath; i++) {
 

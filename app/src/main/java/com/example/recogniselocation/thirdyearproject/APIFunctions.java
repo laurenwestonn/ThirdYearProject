@@ -19,9 +19,9 @@ import static android.content.ContentValues.TAG;
 class APIFunctions {
 
     private static int widthOfSearch = 180;
-    static int noOfPaths = widthOfSearch / 8;//8;//4;
-    private static int noOfPathsPerGroup = 3;//6;   // (This + duplicates) * samplesPerPath needs to be <= 512
-    static int samplesPerPath = widthOfSearch / 60;//4;
+    static int noOfPaths = widthOfSearch / 4;
+    private static int noOfPathsPerGroup = 3;   // (This + duplicates) * samplesPerPath needs to be <= 512
+    static int samplesPerPath = widthOfSearch / 6;
     static double searchLength = 0.1;  // radius of the search
     private static final int LONLAT_TO_METRES = 111111; // roughly
 
@@ -57,7 +57,8 @@ class APIFunctions {
                 urls.append("https://maps.googleapis.com/maps/api/elevation/json?path=")
                         .append(endCoords.get(i)).append("|")
                         .append(loc);
-            else if (i % noOfPathsPerGroup < noOfPathsPerGroup-1)    // Paths in the middle of a group
+            // Isn't the last path we have and is within the middle of this group
+            else if (noOfPaths - i != 1 && i % noOfPathsPerGroup < noOfPathsPerGroup-1)    // Paths in the middle of a group
                 // Go to this end coordinate and then back to your location
                 urls.append("|").append(endCoords.get(i)).append("|").append(loc);
             else    // Last path of a group
@@ -70,10 +71,11 @@ class APIFunctions {
                         .append("!");   // Splitter to mark the end of this group
 
         }
+        i--;    // Stay at the last used index to perform next calculations more understandably
 
         // If we ended in the middle of a group, don't forget the end of the url
-        if (i % noOfPathsPerGroup < noOfPathsPerGroup-1 && i % noOfPathsPerGroup != 0) {
-            int noOfPathsInThisGroup = i % noOfPathsPerGroup;
+        int noOfPathsInThisGroup;
+        if ((noOfPathsInThisGroup = i % noOfPathsPerGroup + 1) < noOfPathsPerGroup){
             samplesPerGroup = getSamplesPerGroup(noOfPathsInThisGroup, samplesPerPath);
             urls.append("&samples=").append(samplesPerGroup).append("&key=").append(key);
         }
@@ -148,13 +150,13 @@ class APIFunctions {
     static Result getHighestVisiblePoint(List<Result> path, double yourElevation)
     {
         double currentHiAng = Integer.MIN_VALUE;
-        int loop = 1;
+        int distanceUnit = 1;
         double hiLat, hiLng, hiEl, hiDis;
         hiLat = hiLng = hiEl = hiDis = 0;
 
         for (Result r : path) {
             double thisOnesDistance = (searchLength * LONLAT_TO_METRES)
-                    * loop++ / samplesPerPath;
+                    * distanceUnit++ / samplesPerPath;
             double angleOfThisElevation = Math.atan(
                     (r.getElevation() - yourElevation) / thisOnesDistance); // Distance of the first one away
                                                                             // from you, i.e. step
