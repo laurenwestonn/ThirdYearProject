@@ -16,7 +16,7 @@ import java.util.List;
 
 import static android.content.ContentValues.TAG;
 
-class APIFunctions {
+public class APIFunctions {
 
     private static int widthOfSearch = 180;
     static int noOfPaths = widthOfSearch / 4;
@@ -26,50 +26,60 @@ class APIFunctions {
     private static final int LONLAT_TO_METRES = 111111; // roughly
 
     // MapsActivity calls this once it knows your direction and location
-    static void getElevations(double dir, LatLng loc, Activity activity, String key)
+    static void getElevations(double dir, LatLng loc, Activity activity)
     {
-        Log.d("APIFunctions", "Building up the URL");
+        Log.d("APIFunctions", "Building up URLs to request");
+        List<String> urls = getURLsToRequest(dir, loc, widthOfSearch, noOfPaths, noOfPathsPerGroup,
+                samplesPerPath, searchLength, activity.getString(R.string.google_maps_key));
+
+        // Requesting the elevations from the Google Maps API
+        Log.d("APIFunctions", "Requesting URLs " + urls);
+        try { new RetrieveURLTask(activity).execute(urls); }
+        catch (Exception e) { e.printStackTrace(); }
+    }
+
+    // Returns a list of the URLs to request
+    public static List<String> getURLsToRequest(double dir, LatLng loc, int widthOfSearch,
+                                                int noOfPaths, int noOfPathsPerGroup,
+                                                int samplesPerPath, double searchLength, String key) {
+
         double step = widthOfSearch / (noOfPaths - 1);
         double start = dir + step/2 + step*(noOfPaths/2-1);
-        List<LatLng> endCoords = new ArrayList<>();
-
-        //Todo: Simplify these two for loops into one
-        // Get the lon lat of the end of each path
-        for (int i = 0; i < noOfPaths; i++) {
-            double sin = Math.sin(Math.toRadians(((start - i * step) % 360 + 360) % 360));
-            double cos = Math.cos(Math.toRadians(((start - i * step) % 360 + 360) % 360));
-            // End at the length of your search in each direction
-            endCoords.add(new LatLng(
-                    loc.getLat() + searchLength * sin,
-                    loc.getLng() + searchLength * cos
-            ));
-        }
-
-        // Use these coordinates to build up each web request, containing *noOfPathsPerGroup* paths
-        StringBuilder urls = new StringBuilder("");
+        List<String> urls = new ArrayList<>();
+        StringBuilder url = new StringBuilder();
         int samplesPerGroup = getSamplesPerGroup(noOfPathsPerGroup, samplesPerPath);
         int i = 0;
 
-        // Have to get elevations of paths in groups as can only request 512 samples in one request
         for (; i < noOfPaths; i++) {
-            if (i % noOfPathsPerGroup == 0) // First path of a group
+            // Coordinate at the end of path i
+            LatLng endCoordinate = getEndCoordinate(i, start, step, loc, searchLength);
+
+            // Use this point to build up the next path in the request
+            // Each request has *noOfPathsPerGroup* paths - can only request 512 samples per request
+
+            // First path of a group
+            if (i % noOfPathsPerGroup == 0) {
                 // Begin the html and start your path at this end coordinate then go back to your location
-                urls.append("https://maps.googleapis.com/maps/api/elevation/json?path=")
-                        .append(endCoords.get(i)).append("|")
+                url.append("https://maps.googleapis.com/maps/api/elevation/json?path=")
+                        .append(endCoordinate).append("|")
                         .append(loc);
-            // Isn't the last path we have and is within the middle of this group
-            else if (noOfPaths - i != 1 && i % noOfPathsPerGroup < noOfPathsPerGroup-1)    // Paths in the middle of a group
+            }
+            // Path is in the middle of this group and isn't the last path we have, ever
+            else if (i % noOfPathsPerGroup < noOfPathsPerGroup-1 && noOfPaths - i != 1)
                 // Go to this end coordinate and then back to your location
-                urls.append("|").append(endCoords.get(i)).append("|").append(loc);
-            else    // Last path of a group
-                // Go to this last end coordinate for this path and a splitter to say we've finished
-                urls.append("|").append(endCoords.get(i));
+                url.append("|").append(endCoordinate).append("|").append(loc);
+            // Last path of a group
+            else
+                url.append("|").append(endCoordinate);
 
             // End of this group - finish off the URL
-            if (i % noOfPathsPerGroup == noOfPathsPerGroup - 1)
-                urls.append("&samples=").append(samplesPerGroup).append("&key=").append(key)
-                        .append("!");   // Splitter to mark the end of this group
+            if (i % noOfPathsPerGroup == noOfPathsPerGroup - 1) {
+                url.append("&samples=").append(samplesPerGroup).append("&key=").append(key);
 
+                // Make sure this URL gets returned later, and clear it for any next URLs
+                urls.add(url.toString());
+                url = new StringBuilder();
+            }
         }
         i--;    // Stay at the last used index to perform next calculations more understandably
 
@@ -77,14 +87,24 @@ class APIFunctions {
         int noOfPathsInThisGroup;
         if ((noOfPathsInThisGroup = i % noOfPathsPerGroup + 1) < noOfPathsPerGroup){
             samplesPerGroup = getSamplesPerGroup(noOfPathsInThisGroup, samplesPerPath);
-            urls.append("&samples=").append(samplesPerGroup).append("&key=").append(key);
+            url.append("&samples=").append(samplesPerGroup).append("&key=").append(key);
+            urls.add(url.toString());
         }
 
-        // Requesting the elevations from the Google Maps API
-        Log.d("APIFunctions", "Requesting URLs " + urls.toString());
-        try { new RetrieveURLTask(activity).execute(urls.toString()); }
-        catch (Exception e) { e.printStackTrace(); }
+        return urls;
     }
+
+    private static LatLng getEndCoordinate(int i, double start, double step, LatLng loc,
+                                           double searchLength) {
+
+        double sin = Math.sin(Math.toRadians(((start - i * step) % 360 + 360) % 360));
+        double cos = Math.cos(Math.toRadians(((start - i * step) % 360 + 360) % 360));
+
+        return new LatLng(
+                loc.getLat() + searchLength * sin,
+                loc.getLng() + searchLength * cos);
+    }
+
 
     // Get the number of elevations you need per group of paths
     private static int getSamplesPerGroup(int noOfPathsPerGroup, int samplesPerPath) {
@@ -101,16 +121,15 @@ class APIFunctions {
     }
 
     // Given a string of URLs, send the requests and return the responses
-    static List<String> requestURL(String urls)
+    static List<String> requestURL(List<String> urls)
     {
-        String[] urlArr = urls.substring(0, urls.length()).split("!");
-        Log.d(TAG, "requestURL: Got " + urlArr.length + " urls from " + urls);
+        Log.d(TAG, "requestURL: Got " + urls.size() + " urls.. " + urls);
 
         List<String> urlResponses = new ArrayList<>(); // Store each response
-        StringBuilder response;   //Todo: Understand; do I need a builder?
+        StringBuilder response;   // StringBuilders are better for appending in a while
         HttpURLConnection con = null;
 
-        for (String url : urlArr)
+        for (String url : urls)
         {
             Log.d(TAG, "requestURL: Trying URL " + url);
             response = new StringBuilder(); // clearing the string builder each time

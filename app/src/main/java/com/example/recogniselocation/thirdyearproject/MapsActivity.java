@@ -114,7 +114,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         textView.setText(loc);
 
         // Find what you are looking at
-        APIFunctions.getElevations(yourDirection, yourLocation, this, getString(R.string.google_maps_key));
+        APIFunctions.getElevations(yourDirection, yourLocation, this);
     }
 
     private LatLng getYourCoordinates(Location yourLocation, int demo) {
