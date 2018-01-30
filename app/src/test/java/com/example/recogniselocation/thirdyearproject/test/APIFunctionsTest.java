@@ -14,8 +14,20 @@ public class APIFunctionsTest {
     @Test
     public void getElevations() throws Exception {
     }
+
     @Test
-    public void getURLsToRequest() throws Exception {
+    public void checkIndexingString() {
+        String s = "01&s=L67";
+        int indexOfSamples = s.lastIndexOf("&s=");
+        indexOfSamples += 3;
+        assertThat(indexOfSamples, is(5));
+        assertThat(s.charAt(indexOfSamples), is('L'));
+
+    }
+    @Test
+    // Tests that the right number of requests are made with the right number of locations
+    // per request with the right number of samples per request
+    public void getURLsManyPathsManyGroups() throws Exception {
 
         // Isn't supposed to work for one path
         // Todo: Throw exception for this
@@ -29,10 +41,15 @@ public class APIFunctionsTest {
         double searchLength = 0.1;
         String key = "AIzaSyBtNG5C0b9-euGrqAUhqbiWc_f7WSjNZ-U"; // Todo: Get the string from the debug google_maps_api.xml
         List<String> result;
+        int indexOfSamples;
 
         // Only start and end path exists in a group. One group. One sample per path
         result = APIFunctions.getURLsToRequest(dir, latLng, widthOfSearch, noOfPaths, noOfPathsPerGroup, samplesPerPath, searchLength, key);
         assertThat(result.size(), is(1));
+        //  First path's end | HERE | Last path's end
+        assertTrue(result.get(0).matches("https://maps\\.googleapis\\.com/maps/api/elevation/json\\?path=[^|]*\\|[^|]*\\|[^|]*"));
+        indexOfSamples = result.get(0).indexOf("&samples=") + 9;
+        assertThat(result.get(0).charAt(indexOfSamples), is('3'));
 
 
         // Start, middle and end path exists in a group. One group. One sample per path
@@ -40,21 +57,37 @@ public class APIFunctionsTest {
         noOfPathsPerGroup = 3;
         result = APIFunctions.getURLsToRequest(dir, latLng, widthOfSearch, noOfPaths, noOfPathsPerGroup, samplesPerPath, searchLength, key);
         assertThat(result.size(), is(1));
+        // First End | HERE | Mid end | HERE | Last end
+        assertTrue(result.get(0).matches("https://maps\\.googleapis\\.com/maps/api/elevation/json\\?path=[^|]*\\|[^|]*\\|[^|]*\\|[^|]*\\|[^|]*"));
+        indexOfSamples = result.get(0).indexOf("&samples=") + 9;
+        assertThat(result.get(0).charAt(indexOfSamples), is('5'));
 
         // Start, middle and end path exists in a group. Two full groups. One sample per path
         noOfPaths = 6;
         result = APIFunctions.getURLsToRequest(dir, latLng, widthOfSearch, noOfPaths, noOfPathsPerGroup, samplesPerPath, searchLength, key);
         assertThat(result.size(), is(2));
+        // Last request: First End | HERE | Mid end | HERE | Last end
+        assertTrue(result.get(1).matches("https://maps\\.googleapis\\.com/maps/api/elevation/json\\?path=[^|]*\\|[^|]*\\|[^|]*\\|[^|]*\\|[^|]*"));
+        indexOfSamples = result.get(1).indexOf("&samples=") + 9;
+        assertThat(result.get(1).charAt(indexOfSamples), is('5'));
 
         // Start, middle and end path exists in a group. Two groups - last partial. One sample per path
         noOfPaths = 5;
         result = APIFunctions.getURLsToRequest(dir, latLng, widthOfSearch, noOfPaths, noOfPathsPerGroup, samplesPerPath, searchLength, key);
         assertThat(result.size(), is(2));
+        // Last request: First End | HERE | Last end
+        assertTrue(result.get(1).matches("https://maps\\.googleapis\\.com/maps/api/elevation/json\\?path=[^|]*\\|[^|]*\\|[^|]*"));
+        indexOfSamples = result.get(1).indexOf("&samples=") + 9;
+        assertThat(result.get(1).charAt(indexOfSamples), is('3'));
 
         // Start, middle and end path exists in a group. Two groups - last only has one. One sample per path
         noOfPaths = 4;
         result = APIFunctions.getURLsToRequest(dir, latLng, widthOfSearch, noOfPaths, noOfPathsPerGroup, samplesPerPath, searchLength, key);
         assertThat(result.size(), is(2));
+        // Last request: First End | HERE
+        assertTrue(result.get(1).matches("https://maps\\.googleapis\\.com/maps/api/elevation/json\\?path=[^|]*\\|[^|]*"));
+        indexOfSamples = result.get(1).indexOf("&samples=") + 9;
+        assertThat(result.get(1).charAt(indexOfSamples), is('2'));
 
     }
 

@@ -60,7 +60,7 @@ public class APIFunctions {
             // First path of a group
             if (i % noOfPathsPerGroup == 0) {
                 // Begin the html and start your path at this end coordinate then go back to your location
-                url.append("https://maps.googleapis.com/maps/api/elevation/json?path=")
+                url.append("https://maps.googleapis.com/maps/api/elevation/json?path=") //Todo: use url_start from strings.xml
                         .append(endCoordinate).append("|")
                         .append(loc);
             }
