@@ -25,7 +25,7 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
 
     @SuppressLint("StaticFieldLeak")
     private Activity activity;
-    private int photoID = R.drawable.rocky_mountains;
+    private int photoID = R.drawable.wast_water_two;
 
     RetrieveURLTask(Activity a)
     {
@@ -59,12 +59,12 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
             // while skipping past this index as your location isn't part of the next path
             double yourElevation = results.get(i++).getElevation();
             highPoints.add(getHighestVisiblePoint(path, yourElevation));
-            /*if (strResponse.equals(strResponses.get(3))) {
+            /*if (strResponse.equals(strResponses.get(3))) {*/
                 MapFunctions.addMarkerAt(googleMap, path.get(path.size()-1).getLocation().getLat(),
                         path.get(path.size()-1).getLocation().getLng(), "First end of a group at index " + (i - 2));
                 MapFunctions.addMarkerAt(googleMap, path.get(0).getLocation().getLat(),
                         path.get(0).getLocation().getLng(), "First start of a group. Index 0 - " + (i - 2));
-            }*/
+            /*}*/
             path.clear();
 
             // If the group is just a start and an end path,
@@ -84,13 +84,8 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
                 // Use the ones heading from your location to the end of the path
                 // Ignore the ones heading back to your location
                 for (; i < startI + samplesPerPath; i++)
-                    if (!duplicate) {
+                    if (!duplicate)
                         path.add(results.get(i));
-                        if (strResponse.equals(strResponses.get(3)))
-                            Log.d(TAG, "onPostExecute: Adding location at index " + i + ". " + results.get(i));
-                    } else
-                    if (strResponse.equals(strResponses.get(3)))
-                        Log.d(TAG, "onPostExecute: Not adding location at index " + i + ". " + results.get(i));
 
                 if (path.size() != 0) {
                     highPoints.add(getHighestVisiblePoint(path, yourElevation));
@@ -98,12 +93,12 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
                     //Log.e(TAG, "onPostExecute: Hi point from that is " + highPoints.get(highPoints.size()-1));
 
                     /*
-                    if (path.size() != 0 && strResponse.equals(strResponses.get(3))) {
+                    if (path.size() != 0 && strResponse.equals(strResponses.get(3))) {*/
                         MapFunctions.addMarkerAt(googleMap, path.get(path.size() - 1).getLocation().getLat(),
                                 path.get(path.size() - 1).getLocation().getLng(), "End of a middle path at " + (i-1));
                         MapFunctions.addMarkerAt(googleMap, path.get(0).getLocation().getLat(),
                                 path.get(0).getLocation().getLng(), "Start of a middle path: " + startI + " - " + (i-1));
-                    }*/
+                    /*}*/
                     path.clear();
                 }
 
@@ -120,12 +115,12 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
             if (path.size() != 0) {
                 //Log.e(TAG, "onPostExecute: Last path " + path);
                 /*
-                if (strResponse.equals(strResponses.get(3))) {
+                if (strResponse.equals(strResponses.get(3))) {*/
                     MapFunctions.addMarkerAt(googleMap, path.get(path.size() - 1).getLocation().getLat(),
                             path.get(path.size() - 1).getLocation().getLng(), "Last end of a group at " + i);
                     MapFunctions.addMarkerAt(googleMap, path.get(0).getLocation().getLat(),
                             path.get(0).getLocation().getLng(), "Start of an end path: " + startI + " - " + i);
-                }*/
+                /*}*/
                 highPoints.add(getHighestVisiblePoint(path, yourElevation));
             }
         }

@@ -28,7 +28,7 @@ import com.jjoe64.graphview.GraphView;
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     //ToDo: Make configurable
-    int demo = 5;   // 0: Your location. 2: Kinder Scout. 3:Wast Water, 4:Blencathra, 5: Rocky Mountains
+    int demo = 1;   // 0: Your location. 1: Wast water TWO. 2: Kinder Scout. 3:Wast Water, 4:Blencathra, 5: Rocky Mountains
     double yourDirection = 60; // Due East anticlockwise
 
     private LocationManager locationManager;
@@ -120,6 +120,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private LatLng getYourCoordinates(Location yourLocation, int demo) {
         LatLng yourCoords;
         switch (demo) {
+            case 1: // Wast Water two
+                yourCoords = new LatLng(54.4506654,-3.2830789);
+                yourDirection = 80;
+                break;
             case 2:
                 // Coords of in front of kinder scout
                 yourCoords = new LatLng(53.382105, -1.9060239);
