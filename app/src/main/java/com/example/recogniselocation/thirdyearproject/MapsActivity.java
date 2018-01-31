@@ -133,8 +133,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 yourDirection = 215;
                 break;
             case 5: // Rocky Mountains
-                yourCoords = new LatLng(51.6776886, -116.4657593);
-                yourDirection = 140;
+                yourCoords = new LatLng(51.6776886, -116.4644593);
+                yourDirection = 230;
                 break;
             default:
                 // Save your co-ordinates

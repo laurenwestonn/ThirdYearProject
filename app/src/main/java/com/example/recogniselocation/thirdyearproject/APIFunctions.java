@@ -18,9 +18,9 @@ import static android.content.ContentValues.TAG;
 
 public class APIFunctions {
 
-    private static int widthOfSearch = 180;
+    private static int widthOfSearch = 160;
     static int noOfPaths = widthOfSearch / 4;
-    private static int noOfPathsPerGroup = 3;   // (This + duplicates) * samplesPerPath needs to be <= 512
+    private static int noOfPathsPerGroup = 5;   // (This + duplicates) * samplesPerPath needs to be <= 512. More middle paths causes more distortion so only 3 mid is ok
     static int samplesPerPath = widthOfSearch / 6;
     static double searchLength = 0.1;  // radius of the search
     private static final int LONLAT_TO_METRES = 111111; // roughly
@@ -180,9 +180,9 @@ public class APIFunctions {
                     (r.getElevation() - yourElevation) / thisOnesDistance); // Distance of the first one away
                                                                             // from you, i.e. step
             if (angleOfThisElevation > currentHiAng) {
-                Log.d(TAG, "getHighestVisiblePoint: Ooh ("+ r.getLocation() +") at distance "
+                /*Log.d(TAG, "getHighestVisiblePoint: Ooh ("+ r.getLocation() +") at distance "
                         + thisOnesDistance + "\t at elevation " + r.getElevation() + " at angle " + angleOfThisElevation
-                        + "\t is bigger than our current max " + currentHiAng);
+                        + "\t is bigger than our current max " + currentHiAng);*/
                 hiLat = r.getLocation().getLat();
                 hiLng = r.getLocation().getLng();
                 hiEl = r.getElevation() - yourElevation;

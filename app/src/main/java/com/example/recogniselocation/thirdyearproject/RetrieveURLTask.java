@@ -53,12 +53,18 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
 
             for (; i < samplesPerPath; i++)
                 path.add(results.get(samplesPerPath - i - 1));  // First path is backwards
-            Log.e(TAG, "onPostExecute: This first path is " + path);
+            //Log.e(TAG, "onPostExecute: This first path is " + path);
             // Store only the highest point of this first path from the response
             // 1st param is the first path; 2nd is your location's elevation,
             // while skipping past this index as your location isn't part of the next path
             double yourElevation = results.get(i++).getElevation();
             highPoints.add(getHighestVisiblePoint(path, yourElevation));
+            /*if (strResponse.equals(strResponses.get(3))) {
+                MapFunctions.addMarkerAt(googleMap, path.get(path.size()-1).getLocation().getLat(),
+                        path.get(path.size()-1).getLocation().getLng(), "First end of a group at index " + (i - 2));
+                MapFunctions.addMarkerAt(googleMap, path.get(0).getLocation().getLat(),
+                        path.get(0).getLocation().getLng(), "First start of a group. Index 0 - " + (i - 2));
+            }*/
             path.clear();
 
             // If the group is just a start and an end path,
@@ -67,33 +73,59 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
             if (i + 1 + samplesPerPath == results.size())
                 i++;
 
+            /*if (strResponse.equals(strResponses.get(3)))
+                Log.d(TAG, "onPostExecute: Skipped your location to be at the start of the next ones. " + i + " should be 31. 30 is your location");*/
+            int startI;
+            boolean duplicate = false;
             // The paths in the middle (these have duplicates where we've headed back to your location
-            for (; i < results.size() - samplesPerPath; i++) {
+            while (i < results.size() - samplesPerPath) {
+                startI = i;
 
-                // From your location to the paths end. These results make up one path
-                if ((i % (samplesPerPath*2+1)) >= samplesPerPath) {
-                    path.add(results.get(i));
-                } else;
-                // The others (from the path's end back to your location) are duplicate, ignore
+                // Use the ones heading from your location to the end of the path
+                // Ignore the ones heading back to your location
+                for (; i < startI + samplesPerPath; i++)
+                    if (!duplicate) {
+                        path.add(results.get(i));
+                        if (strResponse.equals(strResponses.get(3)))
+                            Log.d(TAG, "onPostExecute: Adding location at index " + i + ". " + results.get(i));
+                    } else
+                    if (strResponse.equals(strResponses.get(3)))
+                        Log.d(TAG, "onPostExecute: Not adding location at index " + i + ". " + results.get(i));
 
-                // A path is complete when it has all samples
-                if (path.size() == samplesPerPath) {
+                if (path.size() != 0) {
                     highPoints.add(getHighestVisiblePoint(path, yourElevation));
-                    Log.e(TAG, "onPostExecute: a Mid path is " + path);
-                    Log.e(TAG, "onPostExecute: Hi point from that is " + highPoints.get(highPoints.size()-1));
+                    //Log.e(TAG, "onPostExecute: a Mid path is " + path);
+                    //Log.e(TAG, "onPostExecute: Hi point from that is " + highPoints.get(highPoints.size()-1));
 
-                    // Clear the path to build up the next one
+                    /*
+                    if (path.size() != 0 && strResponse.equals(strResponses.get(3))) {
+                        MapFunctions.addMarkerAt(googleMap, path.get(path.size() - 1).getLocation().getLat(),
+                                path.get(path.size() - 1).getLocation().getLng(), "End of a middle path at " + (i-1));
+                        MapFunctions.addMarkerAt(googleMap, path.get(0).getLocation().getLat(),
+                                path.get(0).getLocation().getLng(), "Start of a middle path: " + startI + " - " + (i-1));
+                    }*/
                     path.clear();
                 }
-            }
-            path.clear();   // Todo: This shouldn't be needed if is done correctly, should only ever exit in the last if
 
+                // Next results will be the opposite - needed or not
+                duplicate = !duplicate;
+
+            }
+
+            startI = i;
             // The last path
             for (; i < results.size(); i++) {
                 path.add(results.get(i));
             }
             if (path.size() != 0) {
-                Log.e(TAG, "onPostExecute: Last path " + path);
+                //Log.e(TAG, "onPostExecute: Last path " + path);
+                /*
+                if (strResponse.equals(strResponses.get(3))) {
+                    MapFunctions.addMarkerAt(googleMap, path.get(path.size() - 1).getLocation().getLat(),
+                            path.get(path.size() - 1).getLocation().getLng(), "Last end of a group at " + i);
+                    MapFunctions.addMarkerAt(googleMap, path.get(0).getLocation().getLat(),
+                            path.get(0).getLocation().getLng(), "Start of an end path: " + startI + " - " + i);
+                }*/
                 highPoints.add(getHighestVisiblePoint(path, yourElevation));
             }
         }
