@@ -17,7 +17,7 @@ import static android.content.ContentValues.TAG;
 
 class HorizonMatching {
     static double graphHeight;
-    private static boolean debug = false;
+    private static boolean debug = true;
 
     static void matchUpHorizons(List<Point> photoCoords, List<Point> elevationCoords,
                                                                         Bitmap bmp, Activity a) {
@@ -59,44 +59,31 @@ class HorizonMatching {
         for (int i = 0; i < elevationMMs.size() - 1; i += 2) {
             // Store this elevation maxima minima pair into elevationMM
             // As with the photoMM, this could hold 2 or three values
-            List<Point> elevationMM = new ArrayList<>();
+            List<Point> elevationMM = getTheNextElevationMM(photoMM, elevationMMs, i);
 
-            // Need to find the first index to start off with
-            if (i == 0)
-                if (photoMM.size() == 2)    // Found a max, then min in the photo's horizon
-                    i = elevationMMs.get(0) == null ? 2 : 0;    // Get the index of the first maxima in the elevations
-                else if (photoMM.size() == 3)// Came across a minima first in the photo's horizon
-                    i = 1;  // The index of the first minima of the elevations
-
-            if (i % 2 == 1)             // If odd index, must start with a minima
-                elevationMM.add(null);  // So null out the first (would-be max) index
-
-            if (i > elevationMMs.size())
-                Log.e(TAG, "mUH: Can't access index " + i+1 + ". Size is " + elevationMMs.size());
-            else {
-                elevationMM.add(elevationMMs.get(i));       // add the first max/min
-                elevationMM.add(elevationMMs.get(i + 1));   // add the first min/max after the max/min
-            }
-
-            // Only look at this pair if they're fairly far apart - we'll want mountains not dips
-            double signifWidth = elevationCoords.get(elevationCoords.size()-1).getX() / 15;
-            if (elevationMM.get(0) == null) {   // Starts with a minima
-                if ((elevationMM.get(2).getX() - elevationMM.get(1).getX()) < signifWidth) {
+            if (elevationMM != null){
+                // Only look at this pair if they're fairly far apart - we'll want mountains not dips
+                double signifWidth = elevationCoords.get(elevationCoords.size()-1).getX() / 15;
+                if (elevationMM.get(0) == null) {   // Starts with a minima
+                    if ((elevationMM.get(2).getX() - elevationMM.get(1).getX()) < signifWidth) {
+                        if (debug)
+                            Log.d(TAG, "matchUpHorizons: the difference between this pair of elevations max/min \n"
+                                    + elevationMM + " and the chosen photo max/min \n" + photoMM + " is only \n"
+                                    + (elevationMM.get(2).getX() - elevationMM.get(1).getX())
+                                    + " which isn't *significant* -> " + signifWidth);
+                        continue;
+                    }
+                } else if ((elevationMM.get(1).getX() - elevationMM.get(0).getX()) < signifWidth) { //maxima
                     if (debug)
                         Log.d(TAG, "matchUpHorizons: the difference between this pair of elevations max/min \n"
                                 + elevationMM + " and the chosen photo max/min \n" + photoMM + " is only \n"
-                                + (elevationMM.get(2).getX() - elevationMM.get(1).getX())
-                                + " which isn't *significant* -> " + signifWidth);
+                                + (elevationMM.get(1).getX() - elevationMM.get(0).getX())
+                                + " which isn't significant - " + signifWidth);
                     continue;
                 }
-            } else if ((elevationMM.get(1).getX() - elevationMM.get(0).getX()) < signifWidth) { //maxima
-                if (debug)
-                    Log.d(TAG, "matchUpHorizons: the difference between this pair of elevations max/min \n"
-                            + elevationMM + " and the chosen photo max/min \n" + photoMM + " is only \n"
-                            + (elevationMM.get(1).getX() - elevationMM.get(0).getX())
-                            + " which isn't significant - " + signifWidth);
-                continue;
-            }
+            } else
+                Log.e(TAG, "matchUpHorizons: Didn't find a elevation MM pair. Try a broader search");
+
 
             if (debug)
                 Log.d("matching", "Checking elevation max min " + elevationMM);
@@ -120,6 +107,41 @@ class HorizonMatching {
                 bestMatching.getSeries().getHighestValueY());
 */
 
+    }
+
+    public static List<Point> getTheNextElevationMM(List<Point> photoMaxMinPair, List<Point> elevationMMs, int i)
+    {
+        // Need to find the first index to start off with
+        if (i == 0)
+            i = getFirstElevationIndex( photoMaxMinPair.size() == 2, elevationMMs.get(0) != null);
+
+        List<Point> elevationMaxMinPair = new ArrayList<>();
+
+        if (i % 2 == 1)                     // If odd index, must start with a minima
+            elevationMaxMinPair.add(null);  // So null out the first (would-be max) index
+
+        if (i + 1 >= elevationMMs.size()) {
+            Log.e(TAG, "mUH: Can't access index " + (i + 1) + ". Size is " + elevationMMs.size()
+                    + ". Try a broader search as could only find these elevation max mins: " + elevationMMs);
+            return null;
+        }
+        else {
+            elevationMaxMinPair.add(elevationMMs.get(i));       // add the first max/min
+            elevationMaxMinPair.add(elevationMMs.get(i + 1));   // add the first min/max after the max/min
+            return elevationMaxMinPair;
+        }
+    }
+
+    // Depending on if maxima or minima was found first, decide which elevation index to start at
+    public static int getFirstElevationIndex(boolean photoInTheOrderMaxMin, boolean elevaInTheOrderMaxMin) {
+        int i;
+
+        if (photoInTheOrderMaxMin)    // Found a max, then min in the photo's horizon
+            i = elevaInTheOrderMaxMin ? 0 : 2;    // Get the index of the first maxima in the elevations
+        else // Came across a minima first in the photo's horizon
+            i = 1;  // The index of the first minima of the elevations
+
+        return i;
     }
 
     // Colour maxima in red, minima in blue
@@ -312,7 +334,7 @@ class HorizonMatching {
 
                 if(debug) {
                     Log.d("gradient", "findMaximaMinima: Ahead of " + coords.get(arrayIndex) + ", index "
-                            + arrayIndex + " is " + nextGradient + "which is significantly "
+                            + arrayIndex + " is " + nextGradient + " which is significantly "
                             + (wereGoingUp ?  "up" : "down") +", so check what it is from "
                             + coords.get(arrayIndex + searchWidth - 1) + ", index "
                             + (arrayIndex + searchWidth - 1) + " if possible.");
@@ -361,12 +383,15 @@ class HorizonMatching {
             if (debug)
                 Log.d(TAG, "findMaximaMinima: Couldn't find max/min at threshold " + threshold + ". Trying a looser threshold of " + threshold + " / "+  (loop * loop));
             return findMaximaMinima(coords, loop);
-        } else if (loop > 5) {
-            Log.e(TAG, "findMaximaMinima: Couldn't find any maxima minimas of this horizon. "
-                    + "Provide more paths or a wider search");
+        } else if (loop > 5
+                && (maxMin.size() < 2 || maxMin.size() == 2 && maxMin.get(0) == null)) {
+            Log.e(TAG, "findMaximaMinima: Couldn't find enough maxima minimas of this horizon. "
+                    + "Provide more paths or a wider search. Only got " + maxMin);
             return null;
-        } else
+        } else {
+            Log.d(TAG, "findMaximaMinima: Yaas found max mins " + maxMin);
             return maxMin;
+        }
     }
 
     // Find a value that can be used to determine if an area is an in/decline or just flat

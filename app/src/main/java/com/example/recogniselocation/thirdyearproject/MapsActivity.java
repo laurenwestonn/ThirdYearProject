@@ -121,7 +121,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         LatLng yourCoords;
         switch (demo) {
             case 1: // Wast Water two
-                yourCoords = new LatLng(54.4506654,-3.2830789);
+                yourCoords = new LatLng(54.4436654,-3.2830789);
                 yourDirection = 80;
                 break;
             case 2:

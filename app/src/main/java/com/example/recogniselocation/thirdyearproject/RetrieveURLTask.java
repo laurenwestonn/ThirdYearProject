@@ -42,10 +42,13 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
     {
         Log.d("onPostExecute", "API gave response " + strResponses);
         List<Result> highPoints = new ArrayList<>();
+        Gson gson = new GsonBuilder().setLenient().create(); //Todo is lenient needed? could just do new Gson instead, like I used to have.
+        double yourElevation = gson.fromJson(strResponses.get(0), Response.class).getResults().get(samplesPerPath).getElevation();
+        Log.d(TAG, "getHighestVisiblePoint: Your Elevation is " + yourElevation);
 
         for (String strResponse : strResponses) {
             // Convert this string response to a Response object
-            Gson gson = new GsonBuilder().setLenient().create(); //Todo is lenient needed? could just do new Gson instead, like I used to have.
+            gson = new GsonBuilder().setLenient().create(); //Todo is lenient needed? could just do new Gson instead, like I used to have.
             Response response = gson.fromJson(strResponse, Response.class);
             List<Result> results = response.getResults();
             List<Result> path = new ArrayList<>();
@@ -57,15 +60,16 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
             // Store only the highest point of this first path from the response
             // 1st param is the first path; 2nd is your location's elevation,
             // while skipping past this index as your location isn't part of the next path
-            double yourElevation = results.get(i++).getElevation();
             highPoints.add(getHighestVisiblePoint(path, yourElevation));
             /*if (strResponse.equals(strResponses.get(3))) {*/
                 MapFunctions.addMarkerAt(googleMap, path.get(path.size()-1).getLocation().getLat(),
-                        path.get(path.size()-1).getLocation().getLng(), "First end of a group at index " + (i - 2));
+                        path.get(path.size()-1).getLocation().getLng(), "First end of a group at index " + (i - 1));
                 MapFunctions.addMarkerAt(googleMap, path.get(0).getLocation().getLat(),
-                        path.get(0).getLocation().getLng(), "First start of a group. Index 0 - " + (i - 2));
+                        path.get(0).getLocation().getLng(), "First start of a group. Index 0 - " + (i - 1));
             /*}*/
             path.clear();
+
+            i++; // Skip your location
 
             // If the group is just a start and an end path,
             // i.e. is only: (Index after) first path, skip one for your location, plus the last path

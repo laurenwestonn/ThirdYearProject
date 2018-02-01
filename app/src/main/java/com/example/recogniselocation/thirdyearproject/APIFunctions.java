@@ -18,11 +18,11 @@ import static android.content.ContentValues.TAG;
 
 public class APIFunctions {
 
-    private static int widthOfSearch = 160;
+    private static int widthOfSearch = 90;
     static int noOfPaths = widthOfSearch / 4;
     private static int noOfPathsPerGroup = 5;   // (This + duplicates) * samplesPerPath needs to be <= 512. More middle paths causes more distortion so only 3 mid is ok
     static int samplesPerPath = widthOfSearch / 6;
-    static double searchLength = 0.1;  // radius of the search
+    static double searchLength = 0.05;  // radius of the search
     private static final int LONLAT_TO_METRES = 111111; // roughly
 
     // MapsActivity calls this once it knows your direction and location
@@ -166,7 +166,7 @@ public class APIFunctions {
     }
 
     // Find highest visible point of this path
-    static Result getHighestVisiblePoint(List<Result> path, double yourElevation)
+    public static Result getHighestVisiblePoint(List<Result> path, double yourElevation)
     {
         double currentHiAng = Integer.MIN_VALUE;
         int distanceUnit = 1;
@@ -178,11 +178,12 @@ public class APIFunctions {
                     * distanceUnit++ / samplesPerPath;
             double angleOfThisElevation = Math.atan(
                     (r.getElevation() - yourElevation) / thisOnesDistance); // Distance of the first one away
-                                                                            // from you, i.e. step
+            // from you, i.e. step
+
             if (angleOfThisElevation > currentHiAng) {
-                /*Log.d(TAG, "getHighestVisiblePoint: Ooh ("+ r.getLocation() +") at distance "
+                Log.d(TAG, "getHighestVisiblePoint: Ooh ("+ r.getLocation() +") at distance "
                         + thisOnesDistance + "\t at elevation " + r.getElevation() + " at angle " + angleOfThisElevation
-                        + "\t is bigger than our current max " + currentHiAng);*/
+                        + "\t is bigger than our current max " + currentHiAng);
                 hiLat = r.getLocation().getLat();
                 hiLng = r.getLocation().getLng();
                 hiEl = r.getElevation() - yourElevation;
@@ -191,7 +192,7 @@ public class APIFunctions {
             }
         }
         double highestAngle = currentHiAng;
-
+        Log.e(TAG, "getHighestVisiblePoint: Highest angle of that path is at " + hiLat + ", " + hiLng + " at an angle of " + highestAngle + " and a distance of " + hiDis);
         if (highestAngle != Integer.MIN_VALUE) // If we found a highest visible peak
             return new Result(new LatLng(hiLat, hiLng),hiEl, hiDis, highestAngle,0 );
         else {
