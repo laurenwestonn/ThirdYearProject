@@ -63,11 +63,11 @@ class HorizonMatching {
 
             if (elevationMM != null){
                 // Only look at this pair if they're fairly far apart - we'll want mountains not dips
-                double signifWidth = elevationCoords.get(elevationCoords.size()-1).getX() / 15;
+                double signifWidth = elevationCoords.get(elevationCoords.size()-1).getX() / 8;
                 if (elevationMM.get(0) == null) {   // Starts with a minima
                     if ((elevationMM.get(2).getX() - elevationMM.get(1).getX()) < signifWidth) {
                         if (debug)
-                            Log.d(TAG, "matchUpHorizons: the difference between this pair of elevations max/min \n"
+                            Log.d(TAG, "matchUpHorizons: the width difference between this pair of elevations max/min \n"
                                     + elevationMM + " and the chosen photo max/min \n" + photoMM + " is only \n"
                                     + (elevationMM.get(2).getX() - elevationMM.get(1).getX())
                                     + " which isn't *significant* -> " + signifWidth);
@@ -75,7 +75,7 @@ class HorizonMatching {
                     }
                 } else if ((elevationMM.get(1).getX() - elevationMM.get(0).getX()) < signifWidth) { //maxima
                     if (debug)
-                        Log.d(TAG, "matchUpHorizons: the difference between this pair of elevations max/min \n"
+                        Log.d(TAG, "matchUpHorizons: the width difference between this pair of elevations max/min \n"
                                 + elevationMM + " and the chosen photo max/min \n" + photoMM + " is only \n"
                                 + (elevationMM.get(1).getX() - elevationMM.get(0).getX())
                                 + " which isn't significant - " + signifWidth);
@@ -329,7 +329,7 @@ class HorizonMatching {
             while (arrayIndex + searchWidth - 1 < coords.size()
                     && Math.abs(nextGradient = gradientAhead(coords, arrayIndex, searchWidth)) > threshold) {
 
-                addAnyPointyPeaks(coords, arrayIndex, wereGoingUp, nextGradient, maxMin);
+                addAnyPointyPeaks(coords, arrayIndex, wereGoingUp, nextGradient, maxMin, threshold);
                 wereGoingUp = (nextGradient < 0);   // y coords are +ve downwards for bitmaps
 
                 if(debug) {
@@ -339,7 +339,7 @@ class HorizonMatching {
                             + coords.get(arrayIndex + searchWidth - 1) + ", index "
                             + (arrayIndex + searchWidth - 1) + " if possible.");
                 }
-                arrayIndex += searchWidth - 1;
+                arrayIndex += 1;    // Check the gradient from EVERY point so as to not miss any min/max
             }
 
             // If this is too close to the edge that we can't see the next gradient, exit
@@ -460,18 +460,20 @@ class HorizonMatching {
     }
 
     private static void addAnyPointyPeaks(List<Point> coords, int arrayIndex, boolean wereGoingUp,
-                                          double nextGradient, List<Point> maxMin)
+                                          double nextGradient, List<Point> maxMin, double threshold)
     {
         // Check if the direction has flipped, if so, this is a maxima or minima
-        if (wereGoingUp & nextGradient > 0) {
+        if (wereGoingUp & nextGradient > threshold) {
             if (debug)
-                Log.d("gradient", "Adding Pointy maxima at " + coords.get(arrayIndex) + ", index " + arrayIndex);
-            if (maxMin.size() % 2 == 1) // Done this so that maximas are even
+                Log.d("gradient", "Adding Pointy maxima at " + coords.get(arrayIndex)
+                        + ", index " + arrayIndex + ", where the gradient ahead is also significant at "
+                        + nextGradient + ". We're checking that it's more than " + threshold);
+            if (maxMin.size() % 2 == 1) // Done this so that maximas are at even indexes
                 maxMin.add(null);
 
             maxMin.add(coords.get(arrayIndex));
 
-        } else if (!wereGoingUp & nextGradient < 0) {
+        } else if (!wereGoingUp & nextGradient < -threshold) {
             if (debug)
                 Log.d("gradient", "Adding Pointy minima at " + coords.get(arrayIndex) + ", index " + arrayIndex);
             if (maxMin.size() % 2 == 0) // Done this so that minima are odd

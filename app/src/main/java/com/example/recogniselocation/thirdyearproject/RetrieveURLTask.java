@@ -25,7 +25,7 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
 
     @SuppressLint("StaticFieldLeak")
     private Activity activity;
-    private int photoID = R.drawable.wast_water_two;
+    private int photoID = R.drawable.blencathra;
 
     RetrieveURLTask(Activity a)
     {
