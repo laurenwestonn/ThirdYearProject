@@ -17,7 +17,7 @@ import static android.content.ContentValues.TAG;
 
 class HorizonMatching {
     static double graphHeight;
-    private static boolean debug = true;
+    private static boolean debug = false;   // Can't log when testing
 
     static void matchUpHorizons(List<Point> photoCoords, List<Point> elevationCoords,
                                                                         Bitmap bmp, Activity a) {
@@ -262,26 +262,31 @@ class HorizonMatching {
     }
 
     // Gets the average difference in y between the next 'width' coords
-    private static double gradientAhead(List<Point> coords, int startingIndex, int width)
+    // In the event that 'width' number of coordinates ahead of this one doesn't exist,
+    // it'll return the gradient of the remaining coords. Gradient is 0 if this is the last coord
+    public static double gradientAhead(List<Point> coords, int startingIndex, int searchWidth)
     {
-        // If there are no coordinates ahead, say that there is no gradient
-        if (!aheadExists(coords, startingIndex, width))
-            return 0;
+        double sum = 0;
+        int offset = 0;
+        int thisY, nextY;
 
-        if (startingIndex + width - 1 > coords.size())
-            Log.e("Hi", "Wont be able to access " + width + " spaces from index " +
-                    startingIndex + " when there are " + coords.size() + " coords");
+        for (; offset < searchWidth; offset++) {
+            if (startingIndex + offset + 1 < coords.size()) {
+                thisY = (int) coords.get(startingIndex + offset).getY();
+                nextY = (int) coords.get(startingIndex + offset + 1).getY();
+                sum +=  nextY - thisY;
 
-        int sum = 0;
-        for (int count = 0; count < width - 1; count++) {
-            int thisY = (int) coords.get(startingIndex + count).getY();
-            int nextY = (int) coords.get(startingIndex + count + 1).getY();
-
-            if (debug)
-                Log.d("gradient", "Diff in height between "  + nextY + " and " + thisY
-                        + " is " + (nextY - thisY));
-            sum +=  nextY - thisY;
+                if (debug)
+                    Log.d("gradient", "Diff in height between "  + nextY + " and " + thisY
+                            + " is " + (nextY - thisY));
+            } else
+                break;
         }
+
+        // Get the average of any existing ones ahead
+        if (offset > 0)
+            sum /= offset;
+
         if (debug)
             Log.d(TAG, "gradientAhead: The gradient ahead of " + coords.get(startingIndex)
                     + " is " + sum);
@@ -306,7 +311,7 @@ class HorizonMatching {
             if (debug) {
                 Log.d("gradient", " ");
                 Log.d("gradient", "findMaximaMinima: Ahead of " + coords.get(arrayIndex) + ", index "
-                        + arrayIndex + " is " + gradientAhead(coords, arrayIndex, searchWidth));
+                        + arrayIndex + " is steepness " + gradientAhead(coords, arrayIndex, searchWidth));
             }
 
             // Skip over any flat areas at the start
@@ -494,9 +499,18 @@ class HorizonMatching {
     }
 
     // True if the next 'searchWidth' coords after the index are all there
-    private static boolean aheadExists(List<Point> coords, int index, int searchWidth)
+    public static boolean aheadExists(List<Point> coords, int index, int searchWidth)
     {
-        for (int i = index; i < index + searchWidth; i++)
+        // In case you're mad enough to ask to check no points ahead
+        if (searchWidth == 0)
+            return (index < coords.size());
+
+        // Check that there are that many coordinates ahead
+        if (index + searchWidth >= coords.size())
+            return false;
+
+        // Check none of the coordinates are null
+        for (int i = index; i <= index + searchWidth; i++)
             if (coords.get(i) == null)
                 return false;
         return true;
