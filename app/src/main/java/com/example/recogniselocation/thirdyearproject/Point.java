@@ -22,5 +22,15 @@ public class Point {
     public String toString() {
         return "(" + x + ", " + y + ")";
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null)
+            return false;
+        else
+            return (this.getX() == ((Point) obj).getX() &&
+                this.getY() == ((Point) obj).getY());
+
+    }
 }
 

@@ -293,8 +293,9 @@ class HorizonMatching {
         return sum;
     }
 
-    // Maxima in even numbers, Minima in odd
-    private static List<Point> findMaximaMinima(List<Point> coords, int loop)
+    // Find all maximum and minimum point of a line when given the coordinates
+    // Returned in the form where maximas are are even indexes, minima at odd indexes
+    public static List<Point> findMaximaMinima(List<Point> coords, int loop)
     {
         int arrayIndex = 0;
         double nextGradient = 999;
@@ -303,7 +304,7 @@ class HorizonMatching {
         double threshold = getThreshold(coords) / (loop * loop);
 
         // Find appropriate search parameters based on the coordinates
-        int searchWidth = (coords.size() / 20) > 3 ? (coords.size() / 20) : 3;  // At least 3
+        int searchWidth = (coords.size() / 20) > 1 ? (coords.size() / 20) : 1;  // At least 1
         if (debug)
             Log.d(TAG, "findMaximaMinima: Using a noise threshold of " + threshold + " and searching a width of " + searchWidth);
 
@@ -393,10 +394,8 @@ class HorizonMatching {
             Log.e(TAG, "findMaximaMinima: Couldn't find enough maxima minimas of this horizon. "
                     + "Provide more paths or a wider search. Only got " + maxMin);
             return null;
-        } else {
-            Log.d(TAG, "findMaximaMinima: Yaas found max mins " + maxMin);
+        } else
             return maxMin;
-        }
     }
 
     // Find a value that can be used to determine if an area is an in/decline or just flat
