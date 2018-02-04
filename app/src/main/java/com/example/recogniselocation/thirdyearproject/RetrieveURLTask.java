@@ -47,84 +47,31 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
         Log.d(TAG, "getHighestVisiblePoint: Your Elevation is " + yourElevation);
 
         for (String strResponse : strResponses) {
-            // Convert this string response to a Response object
-            gson = new GsonBuilder().setLenient().create(); //Todo is lenient needed? could just do new Gson instead, like I used to have.
-            Response response = gson.fromJson(strResponse, Response.class);
-            List<Result> results = response.getResults();
-            List<Result> path = new ArrayList<>();
-            int i = 0;
 
-            for (; i < samplesPerPath; i++)
-                path.add(results.get(samplesPerPath - i - 1));  // First path is backwards
-            //Log.e(TAG, "onPostExecute: This first path is " + path);
-            // Store only the highest point of this first path from the response
-            // 1st param is the first path; 2nd is your location's elevation,
-            // while skipping past this index as your location isn't part of the next path
-            highPoints.add(getHighestVisiblePoint(path, yourElevation));
-            /*if (strResponse.equals(strResponses.get(3))) {*/
-                MapFunctions.addMarkerAt(googleMap, path.get(path.size()-1).getLocation().getLat(),
-                        path.get(path.size()-1).getLocation().getLng(), "First end of a group at index " + (i - 1));
-                MapFunctions.addMarkerAt(googleMap, path.get(0).getLocation().getLat(),
-                        path.get(0).getLocation().getLng(), "First start of a group. Index 0 - " + (i - 1));
-            /*}*/
-            path.clear();
+            List<Result> results = getResults(strResponse);
 
-            i++; // Skip your location
+            // Store the highest visible point of the first path of this response
+            highPoints.add(getHighestVisiblePoint(getFirstPath(results, samplesPerPath), yourElevation));
 
-            // If the group is just a start and an end path,
-            // i.e. is only: (Index after) first path, skip one for your location, plus the last path
-            // then skip your location to trigger code to add any 'last path's
-            if (i + 1 + samplesPerPath == results.size())
-                i++;
+            int indexOfSecondPath = samplesPerPath + 1; // Skipping the first path and your location
+            int indexOfLastPath = getIndexOfLastPath(results.size(), samplesPerPath);
 
-            /*if (strResponse.equals(strResponses.get(3)))
-                Log.d(TAG, "onPostExecute: Skipped your location to be at the start of the next ones. " + i + " should be 31. 30 is your location");*/
-            int startI;
-            boolean duplicate = false;
-            // The paths in the middle (these have duplicates where we've headed back to your location
-            while (i < results.size() - samplesPerPath) {
-                startI = i;
+            if (indexOfSecondPath != indexOfLastPath)
+                highPoints = findMidHighPoints(highPoints, results, indexOfSecondPath, indexOfLastPath, yourElevation);
 
-                // Use the ones heading from your location to the end of the path
-                // Ignore the ones heading back to your location
-                for (; i < startI + samplesPerPath; i++)
-                    if (!duplicate)
-                        path.add(results.get(i));
-
-                if (path.size() != 0) {
-                    highPoints.add(getHighestVisiblePoint(path, yourElevation));
-                    //Log.e(TAG, "onPostExecute: a Mid path is " + path);
-                    //Log.e(TAG, "onPostExecute: Hi point from that is " + highPoints.get(highPoints.size()-1));
-
-                    /*
-                    if (path.size() != 0 && strResponse.equals(strResponses.get(3))) {*/
-                        MapFunctions.addMarkerAt(googleMap, path.get(path.size() - 1).getLocation().getLat(),
-                                path.get(path.size() - 1).getLocation().getLng(), "End of a middle path at " + (i-1));
-                        MapFunctions.addMarkerAt(googleMap, path.get(0).getLocation().getLat(),
-                                path.get(0).getLocation().getLng(), "Start of a middle path: " + startI + " - " + (i-1));
-                    /*}*/
-                    path.clear();
-                }
-
-                // Next results will be the opposite - needed or not
-                duplicate = !duplicate;
-
-            }
-
-            startI = i;
             // The last path
-            for (; i < results.size(); i++) {
-                path.add(results.get(i));
-            }
+            List<Result> path = getLastPath(results, indexOfLastPath);
+
             if (path.size() != 0) {
                 //Log.e(TAG, "onPostExecute: Last path " + path);
                 /*
-                if (strResponse.equals(strResponses.get(3))) {*/
+                if (strResponse.equals(strResponses.get(3))) {
+                    startI = i;
                     MapFunctions.addMarkerAt(googleMap, path.get(path.size() - 1).getLocation().getLat(),
                             path.get(path.size() - 1).getLocation().getLng(), "Last end of a group at " + i);
                     MapFunctions.addMarkerAt(googleMap, path.get(0).getLocation().getLat(),
                             path.get(0).getLocation().getLng(), "Start of an end path: " + startI + " - " + i);
-                /*}*/
+                }*/
                 highPoints.add(getHighestVisiblePoint(path, yourElevation));
             }
         }
@@ -157,6 +104,74 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
         // Match up the horizons
         Log.d(TAG, "onPostExecute: Going to match up horizons");
         HorizonMatching.matchUpHorizons(edgeCoords, elevationsCoords, edgeDetection.bmp, activity);
+    }
+
+    public static int getIndexOfLastPath(int resultsLength, int samplesPerPath) {
+        int distFromEnd = (resultsLength - 2) % samplesPerPath;
+        return resultsLength - distFromEnd - 1;
+    }
+
+    // First path is got in reverse, get it the proper way: from your location outwards
+    private List<Result> getFirstPath(List<Result> results, int length) {
+        List<Result> path = new ArrayList<>();
+        for (int i = 0; i < length; i++)
+            path.add(results.get(length - i - 1));
+        return path;
+    }
+
+    // The paths in the middle (these have duplicates where we've headed back to your location
+    private List<Result> findMidHighPoints(List<Result> highPoints, List<Result> results,
+                                           int indexOfSecondPath, int indexOfLastPath,
+                                           double yourElevation) {
+        int startI;
+        int i = indexOfSecondPath; // Skipping the first path and your location
+        boolean duplicate = false;
+        List<Result> path = new ArrayList<>();
+
+        // Go through the middle paths of this result
+        while (i < indexOfLastPath) {
+            startI = i;
+
+            // Use the ones heading from your location to the end of the path
+            // Ignore the ones heading back to your location
+            for (; i < startI + indexOfSecondPath - 1; i++)
+                if (!duplicate)
+                    path.add(results.get(i));
+
+            if (path.size() != 0) {
+                highPoints.add(getHighestVisiblePoint(path, yourElevation));
+                //Log.e(TAG, "onPostExecute: a Mid path is " + path);
+                //Log.e(TAG, "onPostExecute: Hi point from that is " + highPoints.get(highPoints.size()-1));
+                /*
+                if (path.size() != 0 && strResponse.equals(strResponses.get(3))) {
+                    MapFunctions.addMarkerAt(googleMap, path.get(path.size() - 1).getLocation().getLat(),
+                            path.get(path.size() - 1).getLocation().getLng(), "End of a middle path at " + (i-1));
+                    MapFunctions.addMarkerAt(googleMap, path.get(0).getLocation().getLat(),
+                            path.get(0).getLocation().getLng(), "Start of a middle path: " + startI + " - " + (i-1));
+                }*/
+                path.clear();
+            }
+
+            // Next results will be the opposite - needed or not
+            duplicate = !duplicate;
+
+        }
+        return highPoints;
+    }
+
+    // Will be at the biggest *samplesPerPath* long. Smaller if we run out of results
+    private List<Result> getLastPath(List<Result> results, int i) {
+        List<Result> path = new ArrayList<>();
+        for (; i < results.size(); i++)
+            path.add(results.get(i));
+        return path;
+    }
+
+    // Get the results as an object from the string reponse of the request
+    private List<Result> getResults(String strResponse) {
+        Gson gson = new GsonBuilder().setLenient().create(); //Todo is lenient needed? could just do new Gson instead, like I used to have.
+        Response response = gson.fromJson(strResponse, Response.class);
+        return response.getResults();
     }
 
     // From right up being positive to right down
