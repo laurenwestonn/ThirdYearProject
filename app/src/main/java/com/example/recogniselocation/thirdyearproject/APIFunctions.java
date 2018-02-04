@@ -181,9 +181,9 @@ public class APIFunctions {
             // from you, i.e. step
 
             if (angleOfThisElevation > currentHiAng) {
-                Log.d(TAG, "getHighestVisiblePoint: Ooh ("+ r.getLocation() +") at distance "
+                /*Log.d(TAG, "getHighestVisiblePoint: Ooh ("+ r.getLocation() +") at distance "
                         + thisOnesDistance + "\t at elevation " + r.getElevation() + " at angle " + angleOfThisElevation
-                        + "\t is bigger than our current max " + currentHiAng);
+                        + "\t is bigger than our current max " + currentHiAng);*/
                 hiLat = r.getLocation().getLat();
                 hiLng = r.getLocation().getLng();
                 hiEl = r.getElevation() - yourElevation;
@@ -192,7 +192,7 @@ public class APIFunctions {
             }
         }
         double highestAngle = currentHiAng;
-        Log.e(TAG, "getHighestVisiblePoint: Highest angle of that path is at " + hiLat + ", " + hiLng + " at an angle of " + highestAngle + " and a distance of " + hiDis);
+        //Log.d(TAG, "getHighestVisiblePoint: Highest angle of that path is at " + hiLat + ", " + hiLng + " at an angle of " + highestAngle + " and a distance of " + hiDis);
         if (highestAngle != Integer.MIN_VALUE) // If we found a highest visible peak
             return new Result(new LatLng(hiLat, hiLng),hiEl, hiDis, highestAngle,0 );
         else {

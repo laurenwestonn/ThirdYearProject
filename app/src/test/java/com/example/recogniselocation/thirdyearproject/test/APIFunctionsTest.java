@@ -11,9 +11,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
 
 public class APIFunctionsTest {
-    @Test
-    public void getElevations() throws Exception {
-    }
 
     @Test
     public void checkIndexingString() {

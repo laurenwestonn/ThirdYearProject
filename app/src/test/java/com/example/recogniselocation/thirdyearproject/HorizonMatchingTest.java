@@ -2,7 +2,9 @@ package com.example.recogniselocation.thirdyearproject;
 
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -180,6 +182,33 @@ public class HorizonMatchingTest {
         assertThat(HorizonMatching.findMaximaMinima(input, 1), is(expectedOutput));
 
         // Can't have two minimas in a row, in between must be a maxima. No test for that as doesn't exist
+
+    }
+
+    @Test
+    public void getSearchWidthTest() throws Exception {
+        List<Point> coords = new ArrayList<>();
+        coords.add(new Point(1,1));
+        assertThat(HorizonMatching.getSearchWidth(coords), is(1));
+
+
+        coords.add(new Point(2,2));
+        assertThat(HorizonMatching.getSearchWidth(coords), is(1));
+
+
+        for (int i = 3; i <= 49; i++)
+            coords.add(new Point(i,i));
+
+        // 49 coords
+        assertThat(HorizonMatching.getSearchWidth(coords), is(1));
+
+        // 50 coords
+        coords.add(new Point(50,50));
+        assertThat(HorizonMatching.getSearchWidth(coords), is(2));
+
+        // 51 coords
+        coords.add(new Point(51,51));
+        assertThat(HorizonMatching.getSearchWidth(coords), is(2));
 
     }
 }
