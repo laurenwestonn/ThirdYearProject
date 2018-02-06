@@ -1,12 +1,19 @@
 <resources>
     <string name="app_name">Third Year Project</string>
     <string name="title_activity_maps">Map</string>
-    <string name="title_image_to_detect">Image</string>
+
+    <string name="title_photo">Image</string>
+    <string name="title_graph">Graph</string>
     <string name="title_map">Map</string>
+
     <string name="image_button_description">Button with the horizon to detect on it</string>
-    <string name="location_text">You\'re at </string>
+    <string name="location_text">You\'re at</string>
     <string name="url_start">https://maps.googleapis.com/maps/api/elevation/json?path=</string>
 
     <string name="CUSTOM_ACTION_PHOTO">com.example.recogniselocation.thirdyearproject.PHOTO</string>
+    <string name="CUSTOM_ACTION_MAP">com.example.recogniselocation.thirdyearproject.MAP</string>
+    <string name="CUSTOM_ACTION_GRAPH">com.example.recogniselocation.thirdyearproject.GRAPH</string>
+
+    <string name="title_activity_start">Start</string>
 
 </resources>

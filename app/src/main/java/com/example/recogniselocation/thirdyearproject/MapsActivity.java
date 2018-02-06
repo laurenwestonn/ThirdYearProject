@@ -25,6 +25,7 @@ import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.jjoe64.graphview.GraphView;
 
+// THE ORIGINAL ACTIVITY
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     //ToDo: Make configurable
@@ -109,7 +110,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         yourLocation = getYourCoordinates(location, demo);
 
         // Inform the user of their location
-        String loc = getString(R.string.location_text) + yourLocation.toString();
+        String loc = getString(R.string.location_text) + " " + yourLocation.toString();
         TextView textView = (TextView) findViewById(R.id.text);
         textView.setText(loc);
 
@@ -215,7 +216,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         switch (view.getId()) {
             case R.id.photo: {
                 Intent intent = new Intent(this.getString(R.string.CUSTOM_ACTION_PHOTO));
-                startActivity(intent);  // Go to the ImageToDetect activity
+                startActivity(intent);  // Go to the PhotoActivity activity
             }
         }
     }

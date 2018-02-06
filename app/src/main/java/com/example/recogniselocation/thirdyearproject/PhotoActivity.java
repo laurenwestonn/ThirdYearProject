@@ -2,25 +2,20 @@ package com.example.recogniselocation.thirdyearproject;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static android.content.ContentValues.TAG;
-
-public class ImageToDetect extends Activity {
+// This is the class that was originally used when you tapped the photo on the old main page
+// Now I'll adapt it to be my full screen photo (as it kinda already was) to be used in the final UI
+public class PhotoActivity extends Activity {
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.image_to_detect);
+        setContentView(R.layout.photo_activity);
     }
 
     public void detectHorizon(View view) {
