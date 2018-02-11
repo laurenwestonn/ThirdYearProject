@@ -12,10 +12,7 @@ import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.util.List;
 
-import static android.content.ContentValues.TAG;
 import static com.example.recogniselocation.thirdyearproject.APIFunctions.noOfPaths;
-import static com.example.recogniselocation.thirdyearproject.APIFunctions.samplesPerPath;
-import static com.example.recogniselocation.thirdyearproject.APIFunctions.searchLength;
 
 public class MapFunctions extends Activity {
 
@@ -39,7 +36,7 @@ public class MapFunctions extends Activity {
 
     public static void goToLocation(double lat, double lng, float zoom) {
         CameraUpdate update = CameraUpdateFactory.newLatLngZoom(new com.google.android.gms.maps.model.LatLng(lat, lng), zoom);
-        MapsActivity.googleMap.moveCamera(update);
+        OriginalMapsActivity.googleMap.moveCamera(update);
         Log.d("MapFunctions", "Moved to location " + lat + ", " + lng);
     }
 
@@ -73,10 +70,10 @@ public class MapFunctions extends Activity {
             // Show a marker at each peak if there aren't many
             //  - Many markers looks cluttered
             if (noOfPaths <= 15)
-                addMarkerAt(MapsActivity.googleMap, highPoint.getLocation().getLat(), highPoint.getLocation().getLng());
+                addMarkerAt(OriginalMapsActivity.googleMap, highPoint.getLocation().getLat(), highPoint.getLocation().getLng());
 
         }
-        MapsActivity.googleMap.addPolyline(polylineOptions);
+        OriginalMapsActivity.googleMap.addPolyline(polylineOptions);
     }
 
     private static double diffFromFirst(double comparisonDistance, double thisPeaksAngle, double comparisonElevation)

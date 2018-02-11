@@ -12,14 +12,12 @@ import com.google.gson.GsonBuilder;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.security.auth.login.LoginException;
-
 import static android.content.ContentValues.TAG;
 import static com.example.recogniselocation.thirdyearproject.APIFunctions.getHighestVisiblePoint;
 import static com.example.recogniselocation.thirdyearproject.APIFunctions.samplesPerPath;
 import static com.example.recogniselocation.thirdyearproject.ImageManipulation.fineWidth;
-import static com.example.recogniselocation.thirdyearproject.MapsActivity.googleMap;
-import static com.example.recogniselocation.thirdyearproject.MapsActivity.yourLocation;
+import static com.example.recogniselocation.thirdyearproject.OriginalMapsActivity.googleMap;
+import static com.example.recogniselocation.thirdyearproject.OriginalMapsActivity.yourLocation;
 
 public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>  {
 

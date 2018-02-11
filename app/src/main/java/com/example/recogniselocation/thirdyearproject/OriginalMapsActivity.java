@@ -26,7 +26,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.jjoe64.graphview.GraphView;
 
 // THE ORIGINAL ACTIVITY
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
+public class OriginalMapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     //ToDo: Make configurable
     int demo = 5;   // 0: Your location. 1: Kinder Scout 2: Wast water TWO 3: Wast Water, 4:Blencathra, 5: Rocky Mountains
@@ -87,13 +87,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                     int ALLOWED = PackageManager.PERMISSION_GRANTED;
 
-                    if (ActivityCompat.checkSelfPermission(MapsActivity.this,
+                    if (ActivityCompat.checkSelfPermission(OriginalMapsActivity.this,
                             Manifest.permission.ACCESS_FINE_LOCATION) == ALLOWED
-                            && ActivityCompat.checkSelfPermission(MapsActivity.this,
+                            && ActivityCompat.checkSelfPermission(OriginalMapsActivity.this,
                             Manifest.permission.ACCESS_COARSE_LOCATION) == ALLOWED) {
                         locationManager.requestLocationUpdates("gps", 0, 5, locationListener);
                     } else
-                        ActivityCompat.requestPermissions(MapsActivity.this, new String[]{
+                        ActivityCompat.requestPermissions(OriginalMapsActivity.this, new String[]{
                                 Manifest.permission.ACCESS_FINE_LOCATION,
                                 Manifest.permission.ACCESS_COARSE_LOCATION,
                                 Manifest.permission.INTERNET
@@ -177,9 +177,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     public void loadLocation() {
-        if (ActivityCompat.checkSelfPermission(MapsActivity.this,
+        if (ActivityCompat.checkSelfPermission(OriginalMapsActivity.this,
                 Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(MapsActivity.this,
+                && ActivityCompat.checkSelfPermission(OriginalMapsActivity.this,
                 Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             locationManager.requestLocationUpdates("gps", 0, 10, locationListener);
         } else {

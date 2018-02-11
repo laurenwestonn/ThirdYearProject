@@ -47,7 +47,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".MapsActivity"
+            android:name=".OriginalMapsActivity"
             android:label="@string/title_activity_maps"
             android:screenOrientation="landscape">
             <intent-filter>

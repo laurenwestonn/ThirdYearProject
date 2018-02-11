@@ -102,8 +102,8 @@ class HorizonMatching {
                 bestMatching = allMatchings.get(i);
 
         Log.d(TAG, "matchUpHorizons: The best matching is " + bestMatching);
-        MapsActivity.graph.addSeries(bestMatching.getSeries());
-        /*RetrieveURLTask.setBounds(MapsActivity.graph,bestMatching.getSeries().getLowestValueX(),
+        OriginalMapsActivity.graph.addSeries(bestMatching.getSeries());
+        /*RetrieveURLTask.setBounds(OriginalMapsActivity.graph,bestMatching.getSeries().getLowestValueX(),
                 bestMatching.getSeries().getHighestValueX(),
                 bestMatching.getSeries().getLowestValueY(),
                 bestMatching.getSeries().getHighestValueY());

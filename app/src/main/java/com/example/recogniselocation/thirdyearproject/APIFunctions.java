@@ -25,7 +25,7 @@ public class APIFunctions {
     static double searchLength = 0.05;  // radius of the search
     private static final int LONLAT_TO_METRES = 111111; // roughly
 
-    // MapsActivity calls this once it knows your direction and location
+    // OriginalMapsActivity calls this once it knows your direction and location
     static void getElevations(double dir, LatLng loc, Activity activity)
     {
         Log.d("APIFunctions", "Building up URLs to request");
@@ -221,8 +221,8 @@ public class APIFunctions {
             series.appendData(new DataPoint(x,y), true, points.size());
         }
 
-        MapsActivity.graph.addSeries(series);
-        setBounds(MapsActivity.graph,0,  x, series.getLowestValueY(), series.getHighestValueY());
+        OriginalMapsActivity.graph.addSeries(series);
+        setBounds(OriginalMapsActivity.graph,0,  x, series.getLowestValueY(), series.getHighestValueY());
         HorizonMatching.graphHeight =  series.getHighestValueY();
 
         return horizonCoords;
