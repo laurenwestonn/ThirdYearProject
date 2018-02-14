@@ -10,10 +10,17 @@
     <string name="location_text">You\'re at</string>
     <string name="url_start">https://maps.googleapis.com/maps/api/elevation/json?path=</string>
 
-    <string name="CUSTOM_ACTION_PHOTO">com.example.recogniselocation.thirdyearproject.PHOTO</string>
-    <string name="CUSTOM_ACTION_MAP">com.example.recogniselocation.thirdyearproject.MAP</string>
-    <string name="CUSTOM_ACTION_GRAPH">com.example.recogniselocation.thirdyearproject.GRAPH</string>
+    <!-- The names for each activity, used to go to each activity -->
+    <string name="START_ACTIVITY">com.example.recogniselocation.thirdyearproject.START</string>
+    <string name="PHOTO_ACTIVITY">com.example.recogniselocation.thirdyearproject.PHOTO</string>
+    <string name="MAP_ACTIVITY">com.example.recogniselocation.thirdyearproject.MAP</string>
+    <string name="GRAPH_ACTIVITY">com.example.recogniselocation.thirdyearproject.GRAPH</string>
 
     <string name="title_activity_start">Start</string>
+    <string name="camera">Detect whats ahead of you</string>
+    <string name="demo1">Run the first demo</string>
+    <string name="demo2">Run the second demo</string>
+    <string name="demo3">Run the third demo</string>
+    <string name="demo4">Run the fourth demo</string>
 
 </resources>

@@ -166,7 +166,7 @@ public class OriginalMapsActivity extends FragmentActivity implements OnMapReady
 
     // Initialise the content and assign the map
     private void initMap() {
-        setContentView(R.layout.activity_maps);
+        setContentView(R.layout.orig_activity_maps);
         MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.mapFragment);
         if (mapFragment == null)
             Log.e("Hi", "Couldn't find mapFragment");
@@ -215,7 +215,7 @@ public class OriginalMapsActivity extends FragmentActivity implements OnMapReady
     public void buttonClicked(View view) {
         switch (view.getId()) {
             case R.id.photo: {
-                Intent intent = new Intent(this.getString(R.string.CUSTOM_ACTION_PHOTO));
+                Intent intent = new Intent(this.getString(R.string.PHOTO_ACTIVITY));
                 startActivity(intent);  // Go to the PhotoActivity activity
             }
         }

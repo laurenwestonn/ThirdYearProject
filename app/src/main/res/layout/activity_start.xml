@@ -1,33 +1,101 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.example.recogniselocation.thirdyearproject.Start">
+    tools:context=".Start"
+    android:weightSum="1">
 
-    <android.support.design.widget.AppBarLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:theme="@style/AppTheme.AppBarOverlay">
+    <ImageButton
+        android:id="@+id/camera"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:background="@color/colorAccent"
+        android:contentDescription="@string/camera"
+        android:layout_marginTop="25dp"
+        android:layout_centerHorizontal="true"/>
 
-        <android.support.v7.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
-            app:popupTheme="@style/AppTheme.PopupOverlay" />
+    <Button
+        android:id="@+id/demo1"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:background="@color/colorAccent"
+        android:contentDescription="@string/demo1"
+        android:fontFamily="casual"
+        android:textAlignment="center"
+        android:textColor="@android:color/white"
+        android:textSize="48sp"
+        android:textStyle="bold"
+        tools:text="1"
+        android:layout_toStartOf="@id/demo2"
+        android:layout_marginEnd="30dp"
+        android:layout_marginTop="30dp"
+        android:layout_below="@+id/camera"
+        android:onClick="buttonClicked"/>
 
-    </android.support.design.widget.AppBarLayout>
 
-    <include layout="@layout/content_start" />
+    <Button
+        android:id="@+id/demo2"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:background="@color/colorAccent"
+        android:contentDescription="@string/demo2"
+        android:fontFamily="casual"
+        android:textAlignment="center"
+        android:textColor="@android:color/white"
+        android:textSize="48sp"
+        android:textStyle="bold"
+        tools:text="2"
+        android:layout_marginTop="30dp"
+        android:layout_below="@+id/camera"
+        android:layout_toStartOf="@id/centre"
+        android:layout_marginEnd="15dp"
+        android:onClick="buttonClicked"/>
 
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="@dimen/fab_margin"
-        app:srcCompat="@android:drawable/ic_dialog_email" />
+    <Space
+        android:id="@+id/centre"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"/>
 
-</android.support.design.widget.CoordinatorLayout>
+    <Button
+        android:id="@+id/demo3"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:background="@color/colorAccent"
+        android:contentDescription="@string/demo3"
+        android:fontFamily="casual"
+        android:textAlignment="center"
+        android:textColor="@android:color/white"
+        android:textSize="48sp"
+        android:textStyle="bold"
+        tools:text="3"
+        android:layout_marginTop="30dp"
+        android:layout_below="@+id/camera"
+        android:layout_toEndOf="@id/centre"
+        android:layout_marginStart="15dp"
+        android:onClick="buttonClicked"
+        />
+
+
+    <Button
+        android:id="@+id/demo4"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:background="@color/colorAccent"
+        android:contentDescription="@string/demo4"
+        android:fontFamily="casual"
+        android:textAlignment="center"
+        android:textColor="@android:color/white"
+        android:textSize="48sp"
+        android:textStyle="bold"
+        tools:text="4"
+        android:layout_marginTop="30dp"
+        android:layout_below="@+id/camera"
+        android:layout_toEndOf="@id/demo3"
+        android:layout_marginStart="30dp"
+        android:onClick="buttonClicked"/>
+
+</RelativeLayout>
