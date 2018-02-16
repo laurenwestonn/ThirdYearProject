@@ -1,19 +1,18 @@
 package com.example.recogniselocation.thirdyearproject;
 
-import java.util.List;
+import android.graphics.Bitmap;
 
-/**
- * Created by LaUrE on 28/10/2017.
- */
+import java.util.List;
 
 public class StandardDeviation {
 
-    double mean;
-    double sd;
-    int minRange;
-    int maxRange;
+    private double mean;
+    private double sd;
+    private int minRange;
+    private int maxRange;
+    private Bitmap bmp;
 
-    public StandardDeviation(List<Integer> range, int heightFromCentre) {
+    StandardDeviation(List<Integer> range, int heightFromCentre) {
         mean = calcMean(range);
         sd = calcSD(range, mean);
         minRange = (int) (mean - 3*sd) - heightFromCentre;  // Get more above the horizon
@@ -41,7 +40,7 @@ public class StandardDeviation {
         return Math.sqrt(sd / numArray.size());
     }
 
-    public static double calcSD(List<Integer> numArray, double mean)
+    private static double calcSD(List<Integer> numArray, double mean)
     {
         double sd = 0;
 
@@ -52,7 +51,7 @@ public class StandardDeviation {
         return Math.sqrt(sd / numArray.size());
     }
 
-    public static double calcMean(List<Integer> numArray) {
+    private static double calcMean(List<Integer> numArray) {
         int sum = 0;
 
         for (int num : numArray) {
@@ -60,5 +59,30 @@ public class StandardDeviation {
         }
 
         return sum / numArray.size();
+    }
+
+    void setBitmap(Bitmap bmp)
+    {
+        this.bmp = bmp;
+    }
+
+    public double getMean() {
+        return mean;
+    }
+
+    public double getSd() {
+        return sd;
+    }
+
+    public int getMinRange() {
+        return minRange;
+    }
+
+    public int getMaxRange() {
+        return maxRange;
+    }
+
+    public Bitmap getBmp() {
+        return bmp;
     }
 }

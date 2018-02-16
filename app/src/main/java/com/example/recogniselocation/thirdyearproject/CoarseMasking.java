@@ -2,23 +2,22 @@ package com.example.recogniselocation.thirdyearproject;
 
 import android.graphics.Bitmap;
 
-
 import java.util.List;
 
-public class EdgeDetection {
+public class CoarseMasking {
 
-    private List<List<Integer>> coords;
+    private List<Integer> ys;
     private Bitmap bmp;
 
-    EdgeDetection(List<List<Integer>> coords, Bitmap bmp)
+    CoarseMasking(List<Integer> ys, Bitmap bmp)
     {
-        this.coords = coords;
+        this.ys = ys;
         this.bmp = bmp;
     }
 
-    List<List<Integer>> getCoords()
+    List<Integer> getYs()
     {
-        return coords;
+        return ys;
     }
 
     Bitmap getBitmap()

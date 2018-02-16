@@ -45,10 +45,10 @@ public class PhotoActivity extends Activity {
 
         // Get the image off the button as a bitmap
         if (bmp != null)
-            edgeDetection = ImageManipulation.detectEdge(bmp);
+            edgeDetection = ImageManipulation.detectEdge(bmp, false, false, true, true);
 
         if (edgeDetection != null)
-            ((ImageButton) view).setImageBitmap(edgeDetection.bmp);
+            ((ImageButton) view).setImageBitmap(edgeDetection.getBitmap());
     }
 
 

@@ -87,9 +87,10 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
 
         // Detect the edge from an image
         EdgeDetection edgeDetection;
-        edgeDetection = ImageManipulation.detectEdge(BitmapFactory.decodeResource(activity.getResources(), photoID));
+        edgeDetection = ImageManipulation.detectEdge(BitmapFactory.decodeResource(activity.getResources(), photoID),
+                false, false, true, true);
         Log.d(TAG, "onPostExecute: Edge Detected");
-        List<List<Integer>> edgeCoords2D = edgeDetection.coords;
+        List<List<Integer>> edgeCoords2D = edgeDetection.getCoords();
 
         // Quick fix to simplify coordinates
         // It is originally a list of a list, to take into account many points in one column
@@ -101,7 +102,7 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
 
         // Match up the horizons
         Log.d(TAG, "onPostExecute: Going to match up horizons");
-        HorizonMatching.matchUpHorizons(edgeCoords, elevationsCoords, edgeDetection.bmp, activity);
+        HorizonMatching.matchUpHorizons(edgeCoords, elevationsCoords, edgeDetection.getBitmap(), activity);
     }
 
     public static int getIndexOfLastPath(int resultsLength, int samplesPerPath) {

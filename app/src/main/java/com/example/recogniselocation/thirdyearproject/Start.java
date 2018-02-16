@@ -34,12 +34,19 @@ public class Start extends AppCompatActivity {
 
         // Use the location orientation to perform the location recognition
 
-        // Get the bitmap of the image
+        // Get a mutable bitmap of the image
+        BitmapFactory.Options opt = new BitmapFactory.Options();
+        opt.inMutable = true;
         Bitmap bmp = BitmapFactory.decodeResource(getResources(),
-                getResources().getIdentifier(loc.getName(), "drawable", getPackageName()));
+                getResources().getIdentifier(loc.getName(), "drawable", getPackageName()), opt);
 
         // Detect the image
-        EdgeDetection edgeDetection = ImageManipulation.detectEdge(bmp);
+        // Todo: allow customisation
+        boolean showCoarse = false;   // Show results of the coarse or the fine?
+        boolean sdDetail = false;     // Want to draw SD and log info under tag "sd"?
+        boolean useThinning = true;   // Thin to have only one point per column?
+        boolean showEdgeOnly = true;  // Colour in just the edge, or all searched area?
+        EdgeDetection edgeDetection = ImageManipulation.detectEdge(bmp, showCoarse, sdDetail, useThinning, showEdgeOnly);
 
         if (edgeDetection != null)
             Log.d(TAG, "buttonClicked: Yep be detected the edge of " + loc.getName() + " to be " + edgeDetection.getCoords());
