@@ -2,6 +2,7 @@ package com.example.recogniselocation.thirdyearproject;
 
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -17,42 +18,77 @@ class ImageManipulation {
 
     private static List<List<Integer>> edgeCoords;
     static int fineWidth;
+    private static int fineHeight;
+    private static int fineWidthRadius;
+    private static int fineHeightRadius;
 
-    static EdgeDetection detectEdge(Bitmap bmp,
-                                    boolean showCoarse, boolean sdDetail,
-                                    boolean useThinning, boolean showEdgeOnly) {
+    static Edge detectEdge(Bitmap bmp,
+                           boolean showCoarse, boolean sdDetail,
+                           boolean useThinning, boolean showEdgeOnly) {
         // Save these variables globally for now Todo: This better
         gShowCoarse = showCoarse;
         gShowEdgeOnly = showEdgeOnly;
+        Bitmap resultBMP;
 
-        ////////////// Coarse Mask /////////////////
+        ////////////// COARSE MASK /////////////////
         CoarseMasking coarse = coarseMask(bmp);
 
         ///////////// Standard Deviation //////////////
         StandardDeviation coarseSD = findStandardDeviation(coarse.getBitmap(), coarse.getYs(), sdDetail);
 
-        ///////////////////// FINE MASK //////////////////
+        // Whether SD was drawn on or not, the coarse mask will get returned from the above
+        if (showCoarse)
+            resultBMP = coarseSD.getBitmap();
+        else {
+            ///////////////////// FINE MASK //////////////////
+            Edge fine = fineMask(bmp, coarseSD);
+            resultBMP = fine.getBitmap();
+            edgeCoords = fine.getCoords();
 
+            ////////// THINNING //////////
+            if (useThinning) {
+                //Log.d("Hi", "Going to thin out edgeCoords: " + edgeCoords.toString());
+                // Unsure if finebmp and edgecoords get updated here
+                edgeCoords = ImageManipulation.thinBitmap(
+                        resultBMP, edgeCoords, fineWidth, fineHeight, fineWidthRadius);
+                Log.d(TAG, "detectEdge: Result of thinning edgeCoords:  " + edgeCoords.toString());
+            }
+
+            ///////// SHOW EDGES ONLY? /////////
+            if (showEdgeOnly) {
+                // Get a new copy of the photo to draw the edge on top of
+                resultBMP = bmp.copy(bmp.getConfig(), true);
+                // Draw the edge on top of the photo from the edge coordinates we saved in edgeCoords
+                ImageManipulation.colourFineBitmap(resultBMP, edgeCoords,
+                        fineWidthRadius, fineHeightRadius, fineWidthRadius/2);
+            }
+        }
+
+        return new Edge(edgeCoords, resultBMP);
+    }
+
+    @NonNull
+    private static Edge fineMask(Bitmap origBMP, StandardDeviation coarseSD) {
         //  1   0   1   0   1
         //  0   0   0   0   0
         //  -1  0   -1  0   -1
 
         // Get a copy of the original photo to use the fine mask on
-        Bitmap fineBMP = bmp.copy(bmp.getConfig(), true);
+        Bitmap resultBMP = origBMP.copy(origBMP.getConfig(), true);
 
-        int fineWidthRadius = fineBMP.getWidth() / 250; // 1 would make a mask of width 3, 2 would give width 5
+        fineWidthRadius = resultBMP.getWidth() / 250; // 1 would make a mask of width 3, 2 would give width 5
         fineWidth = fineWidthRadius * 2 + 1;    // Width of the fine mask
-        int fineHeightRadius = fineBMP.getHeight() / 120;
-        int fineHeight = fineHeightRadius * 2 + 1;
+        fineHeightRadius = resultBMP.getHeight() / 120;
+        fineHeight = fineHeightRadius * 2 + 1;
         int pointWidth = fineWidthRadius;       // The width of point to colour in
         int pointWidthRadius = pointWidth / 2;
 
         boolean relevantEdge;
-        edgeCoords = new ArrayList<>();
+        List<List<Integer>> edgeCoords = new ArrayList<>();
 
         // Use a fine mask on the area found to be the horizon by the coarse mask
         for(int y = coarseSD.getMinRange() + fineHeightRadius; y <= coarseSD.getMaxRange(); y+= fineHeightRadius)
-            for (int x = fineWidthRadius; x < fineBMP.getWidth(); x+= fineWidthRadius) {
+            for (int x = fineWidthRadius; x < resultBMP.getWidth(); x+= fineWidthRadius) {
 
                 // Have a list for each column
                 if (y == coarseSD.getMinRange() + fineHeightRadius)
@@ -61,43 +97,18 @@ class ImageManipulation {
                 /////// NEIGHBOURING THRESHOLD ///////
 
                 // Thresholds
-                int pointThreshold = bmp.getHeight() / 35; // The threshold to determine an edge for a point
+                int pointThreshold = origBMP.getHeight() / 35; // The threshold to determine an edge for a point
                 int neighbThreshold = (int) (pointThreshold * 0.9); // A point that is neighbouring an edge's threshold
 
                 // Is this a edge?
-                relevantEdge = ImageManipulation.colourFineMaskPoint(bmp, fineBMP, x, y, fineWidth, fineHeight, pointThreshold, neighbThreshold);
+                relevantEdge = ImageManipulation.colourFineMaskPoint(origBMP, resultBMP, x, y, fineWidth, fineHeight, pointThreshold, neighbThreshold);
                 if (relevantEdge)
                     // This should hold the location of every edge found with the fine mask
                     edgeCoords.get((x - pointWidthRadius) / pointWidth).add(y);
             }
         Log.d(TAG, "detectEdge: Fine Masking done");
 
-        //// THINNING ////
-        if (useThinning) {
-            //Log.d("Hi", "Going to thin out edgeCoords: " + edgeCoords.toString());
-            // Unsure if finebmp and edgecoords get updated here
-            edgeCoords = ImageManipulation.thinBitmap(fineBMP, edgeCoords,
-                    fineWidth, fineHeight, fineWidthRadius);
-            //Log.d("Hi", "Have thinned out edgeCoords:  " + edgeCoords.toString());
-        }
-        Log.d(TAG, "detectEdge: Thinning done");
-
-        ///// SHOW EDGES ONLY? /////
-        Bitmap edgeBMP = null;
-        if (showEdgeOnly) {
-            // Get a new copy of the photo to draw the edge on top of
-            edgeBMP = bmp.copy(bmp.getConfig(), true);
-            // Draw the edge on top of the photo from the edge coordinates we saved in edgeCoords
-            ImageManipulation.colourFineBitmap(edgeBMP, edgeCoords,
-                    fineWidthRadius, fineHeightRadius, fineWidthRadius/2);
-        }
-
-        if (showCoarse)
-            return new EdgeDetection(edgeCoords, coarseSD.getBitmap());
-        else if (edgeBMP != null && showEdgeOnly)
-            return new EdgeDetection(edgeCoords, edgeBMP);
-        else
-            return new EdgeDetection(edgeCoords, fineBMP);
+        return new Edge(edgeCoords, resultBMP);
     }
 
     private static StandardDeviation findStandardDeviation(Bitmap bmp, List<Integer> ys, boolean sdDetail) {
@@ -128,6 +139,7 @@ class ImageManipulation {
     }
 
     // Run a large mask over the image to find roughly where the horizon is
+    @NonNull
     private static CoarseMasking coarseMask(Bitmap bmp) {
 
         // Decide upon the size of the mask, based on the size of the image
@@ -156,6 +168,8 @@ class ImageManipulation {
         Log.d(TAG, "detectEdge: Coarse Masking done");
         return new CoarseMasking(ysOfEdges, bmp);
     }
+
+
 
 
     /////////////////////// COARSE /////

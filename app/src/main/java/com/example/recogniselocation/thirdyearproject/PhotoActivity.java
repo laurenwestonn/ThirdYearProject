@@ -3,6 +3,7 @@ package com.example.recogniselocation.thirdyearproject;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -21,34 +22,48 @@ public class PhotoActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.photo_activity);
 
-        /* Not going to pass through the demo ID
-        // Check get the demo that was passed through
-        Bundle b = getIntent().getExtras();
-        LocationOrientation loc;
-        if (b != null) {
-            loc = Demos.getDemo(b.getInt("Demo"));
-            Log.d(TAG, "onCreate: Got location " + loc);
+        // Perform the program
+        // Get the result of the edge detection that was passed through
+        Edge edge = getIntent().getParcelableExtra("Edge");
+
+        if (edge == null)
+            Log.e(TAG, "onCreate: Edge came through as null!");
+        else if (edge.getCoords() == null)
+            Log.e(TAG, "onCreate: Coords came through as null, and bitmap probably has too " + edge.getBitmap());
+        else
+            Log.d(TAG, "onCreate: Yay in the photo activity we got the edge " + edge.getCoords());
+        
+        // Put the result of it on the image
+        this.findViewById(R.id.photo).setBackground(null);
+        this.findViewById(R.id.photo).setBackgroundColor(Color.YELLOW);
+        Log.d(TAG, "onCreate: Made image yellow");
+
+        BitmapDrawable drawable;
+
+        // TODO: FIND OUT WHY THIS DOESN'T PUT THE BITMAP ON
+        if (edge.getBitmap() != null) {
+            drawable = new BitmapDrawable(this.getResources(), edge.getBitmap());
+            this.findViewById(R.id.photo).setBackground(drawable);
+            Log.d(TAG, "onCreate: Put the edge detected image on the button");
         }
         else
-            Log.e(TAG, "onCreate: Couldn't find bundle");
-        */
+            Log.e(TAG, "onCreate: Bitmap got in the photo activity is null! " + edge.getBitmap());
 
-        // Perform the program
-
-        // Put the result of it on the image
+        this.findViewById(R.id.photo).setBackgroundColor(Color.RED);
+        Log.d(TAG, "onCreate: Made image red");
     }
 
     public void detectHorizon(View view) {
         ImageButton imageButton = (ImageButton) view;
         Bitmap bmp = ((BitmapDrawable)imageButton.getDrawable()).getBitmap();
-        EdgeDetection edgeDetection = null;
+        Edge edge = null;
 
         // Get the image off the button as a bitmap
         if (bmp != null)
-            edgeDetection = ImageManipulation.detectEdge(bmp, false, false, true, true);
+            edge = ImageManipulation.detectEdge(bmp, false, false, true, true);
 
-        if (edgeDetection != null)
-            ((ImageButton) view).setImageBitmap(edgeDetection.getBitmap());
+        if (edge != null)
+            ((ImageButton) view).setImageBitmap(edge.getBitmap());
     }
 
 

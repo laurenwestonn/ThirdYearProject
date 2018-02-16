@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
-import android.widget.ImageButton;
 
 public class Start extends AppCompatActivity {
 
@@ -46,17 +45,23 @@ public class Start extends AppCompatActivity {
         boolean sdDetail = false;     // Want to draw SD and log info under tag "sd"?
         boolean useThinning = true;   // Thin to have only one point per column?
         boolean showEdgeOnly = true;  // Colour in just the edge, or all searched area?
-        EdgeDetection edgeDetection = ImageManipulation.detectEdge(bmp, showCoarse, sdDetail, useThinning, showEdgeOnly);
+        Edge edge = ImageManipulation.detectEdge(bmp, showCoarse, sdDetail, useThinning, showEdgeOnly);
 
-        if (edgeDetection != null)
-            Log.d(TAG, "buttonClicked: Yep be detected the edge of " + loc.getName() + " to be " + edgeDetection.getCoords());
+        if (edge != null)
+            Log.d(TAG, "buttonClicked: Yep be detected the edge of " + loc.getName() + " to be " + edge.getCoords());
+
+        // Todo: Check that the bitmap will always fit
+        double resizeBy = 0.1;
+        edge.setBitmap(Bitmap.createScaledBitmap(edge.getBitmap(), (int) (edge.getBitmap().getWidth() * resizeBy), (int) (edge.getBitmap().getHeight() * resizeBy), true));
+        Log.d(TAG, "buttonClicked: Size of the bitmap once resized by " + resizeBy + " is " + edge.getBitmap().getByteCount() + " bytes. Config: " + edge.getBitmap().getConfig().toString());
 
         switch (view.getId()) {
             case R.id.demo1: {
                 Intent intent = new Intent(this.getString(R.string.PHOTO_ACTIVITY));
-                Bundle b = new Bundle();
-                //b.putInt("Demo", view.getId()); // Pass through which demo was requested
-                intent.putExtra("Demo", view.getId());
+                intent.putExtra("Edge", edge);
+                //intent.putExtra("EdgeCoords", edge.getCoords());
+                //intent.putExtra("EdgeBitmap", edge.getBitmap());
+                Log.d(TAG, "buttonClicked: Put the edge into the extras");
                 startActivity(intent);
                 finish();
                 break;
