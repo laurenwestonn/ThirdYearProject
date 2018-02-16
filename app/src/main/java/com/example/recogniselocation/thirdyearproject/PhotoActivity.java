@@ -21,6 +21,7 @@ public class PhotoActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.photo_activity);
 
+        /* Not going to pass through the demo ID
         // Check get the demo that was passed through
         Bundle b = getIntent().getExtras();
         LocationOrientation loc;
@@ -30,7 +31,7 @@ public class PhotoActivity extends Activity {
         }
         else
             Log.e(TAG, "onCreate: Couldn't find bundle");
-
+        */
 
         // Perform the program
 
