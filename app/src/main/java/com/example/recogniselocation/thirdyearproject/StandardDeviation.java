@@ -82,7 +82,7 @@ public class StandardDeviation {
         return maxRange;
     }
 
-    public Bitmap getBmp() {
+    public Bitmap getBitmap() {
         return bmp;
     }
 }

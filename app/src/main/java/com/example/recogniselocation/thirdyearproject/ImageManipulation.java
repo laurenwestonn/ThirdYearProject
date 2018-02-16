@@ -27,11 +27,9 @@ class ImageManipulation {
 
         ////////////// Coarse Mask /////////////////
         CoarseMasking coarse = coarseMask(bmp);
-        Bitmap coarseBMP = coarse.getBitmap();
 
         ///////////// Standard Deviation //////////////
         StandardDeviation coarseSD = findStandardDeviation(coarse.getBitmap(), coarse.getYs(), sdDetail);
-
 
         ///////////////////// FINE MASK //////////////////
 
@@ -95,7 +93,7 @@ class ImageManipulation {
         }
 
         if (showCoarse)
-            return new EdgeDetection(edgeCoords, coarseBMP);
+            return new EdgeDetection(edgeCoords, coarseSD.getBitmap());
         else if (edgeBMP != null && showEdgeOnly)
             return new EdgeDetection(edgeCoords, edgeBMP);
         else
