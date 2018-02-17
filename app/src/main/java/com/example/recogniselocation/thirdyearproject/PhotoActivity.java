@@ -3,6 +3,7 @@ package com.example.recogniselocation.thirdyearproject;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
@@ -33,24 +34,18 @@ public class PhotoActivity extends Activity {
         else
             Log.d(TAG, "onCreate: Yay in the photo activity we got the edge " + edge.getCoords());
         
-        // Put the result of it on the image
-        this.findViewById(R.id.photo).setBackground(null);
-        this.findViewById(R.id.photo).setBackgroundColor(Color.YELLOW);
-        Log.d(TAG, "onCreate: Made image yellow");
+        // Bitmap is too big to send so find image from resources using the image name sent
+        String locName = getIntent().getStringExtra("locName"); // The image name sent
 
-        BitmapDrawable drawable;
+        // Get a mutable bitmap of the image
+        BitmapFactory.Options opt = new BitmapFactory.Options();
+        opt.inMutable = true;
+        Bitmap bmp = BitmapFactory.decodeResource(getResources(),
+                getResources().getIdentifier(locName, "drawable", getPackageName()), opt);
 
-        // TODO: FIND OUT WHY THIS DOESN'T PUT THE BITMAP ON
-        if (edge.getBitmap() != null) {
-            drawable = new BitmapDrawable(this.getResources(), edge.getBitmap());
-            this.findViewById(R.id.photo).setBackground(drawable);
-            Log.d(TAG, "onCreate: Put the edge detected image on the button");
-        }
-        else
-            Log.e(TAG, "onCreate: Bitmap got in the photo activity is null! " + edge.getBitmap());
-
-        this.findViewById(R.id.photo).setBackgroundColor(Color.RED);
-        Log.d(TAG, "onCreate: Made image red");
+        // Put bitmap onto imagebutton
+        this.findViewById(R.id.photo).setBackground(new BitmapDrawable(this.getResources(), bmp));
+        Log.d(TAG, "onCreate: Put the image " + locName + " on the button");
     }
 
     public void detectHorizon(View view) {

@@ -33,6 +33,7 @@ public class Start extends AppCompatActivity {
 
         // Use the location orientation to perform the location recognition
 
+        /////// EDGE DETECTION ///////
         // Get a mutable bitmap of the image
         BitmapFactory.Options opt = new BitmapFactory.Options();
         opt.inMutable = true;
@@ -50,17 +51,15 @@ public class Start extends AppCompatActivity {
         if (edge != null)
             Log.d(TAG, "buttonClicked: Yep be detected the edge of " + loc.getName() + " to be " + edge.getCoords());
 
-        // Todo: Check that the bitmap will always fit
-        double resizeBy = 0.1;
-        edge.setBitmap(Bitmap.createScaledBitmap(edge.getBitmap(), (int) (edge.getBitmap().getWidth() * resizeBy), (int) (edge.getBitmap().getHeight() * resizeBy), true));
-        Log.d(TAG, "buttonClicked: Size of the bitmap once resized by " + resizeBy + " is " + edge.getBitmap().getByteCount() + " bytes. Config: " + edge.getBitmap().getConfig().toString());
+
+        //////// ELEVATION CONSTRUCTION ///////
+        // Todo: Construct the elevation
 
         switch (view.getId()) {
             case R.id.demo1: {
                 Intent intent = new Intent(this.getString(R.string.PHOTO_ACTIVITY));
-                intent.putExtra("Edge", edge);
-                //intent.putExtra("EdgeCoords", edge.getCoords());
-                //intent.putExtra("EdgeBitmap", edge.getBitmap());
+                intent.putExtra("Edge", edge);  // Can't seem to pass a 2D list, so pass this obj
+                intent.putExtra("locName", loc.getName());  // Name of the image we're working with
                 Log.d(TAG, "buttonClicked: Put the edge into the extras");
                 startActivity(intent);
                 finish();

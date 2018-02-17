@@ -14,7 +14,7 @@ import static android.content.ContentValues.TAG;
 public class Edge implements Parcelable {
 
     private List<List<Integer>> coords;
-    private Bitmap bmp;
+    private Bitmap bmp = null;
 
     Edge(List<List<Integer>> coords, Bitmap bmp)
     {
@@ -52,7 +52,8 @@ public class Edge implements Parcelable {
             Log.e(TAG, "Edge: Didn't find the coordinates from the parcel");
         }
 
-        bmp = in.readParcelable(Bitmap.class.getClassLoader());
+        // Bitmap is too big to send, just gonna send the name of the image to locate later
+        //bmp = in.readParcelable(Bitmap.class.getClassLoader());
 
 
 /*
@@ -80,9 +81,9 @@ public class Edge implements Parcelable {
             Log.d(TAG, "writeToParcel: Couldn't write coords to parcel");
         }
         if (bmp != null) {
-            dest.writeByte((byte) (0X01));
-            dest.writeValue(bmp);
-            Log.d(TAG, "writeToParcel: Written bitmap to parcel");
+            //dest.writeByte((byte) (0X01));
+            //dest.writeValue(bmp);
+            Log.d(TAG, "writeToParcel: Bitmap existed as " + bmp.toString() + ". " + bmp.getConfig());
         } else {
             dest.writeByte((byte) (0x00));
             Log.d(TAG, "writeToParcel: Couldn't write bitmap to parcel");
