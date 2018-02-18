@@ -2,6 +2,7 @@ package com.example.recogniselocation.thirdyearproject;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
@@ -61,11 +62,11 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
 
 
         /////// EDGE DETECTION //////
-        int photoID = R.drawable.kinder_scout;    // Todo: Need to get this depending on the button clicked
+        int photoID = Start.drawableID;    // Todo: Deal with using an uploaded photo of your location
         Bitmap bmp = BitmapFactory.decodeResource(activity.getResources(), photoID);
         Edge edge = ImageManipulation.detectEdge(
                 bmp,false, false, true, true);
-        List<List<Integer>> edgeCoords2D = edge.getCoords();
+        List<List<Integer>> photoCoords2D = edge.getCoords();
         Log.d(TAG, "onPostExecute: Edge Detected");
         /////// EDGE DETECTION //////
 
@@ -75,19 +76,38 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
         // It is originally a list of a list, to take into account many points in one column
         // but as thinning should have been used (but we may not have it 'on' to test
         // other algorithms) there should only be one point per column, so List<Int> will do
-        List<Integer> edgeCoordsIntegers = HorizonMatching.removeDimensionFromCoords(edgeCoords2D);
+        List<Integer> photoCoordsIntegers = HorizonMatching.removeDimensionFromCoords(photoCoords2D);
         int pointWidth = (fineWidth-1)/2;
-        List<Point> edgeCoords = HorizonMatching.convertToPoints(edgeCoordsIntegers, pointWidth);
+        List<Point> photoCoords = HorizonMatching.convertToPoints(photoCoordsIntegers, pointWidth);
 
         // Convert these coordinates to be in line with the bitmaps coordinate system
         elevationsCoords = convertCoordSystem(elevationsCoords);
 
         Log.d(TAG, "onPostExecute: Going to match up horizons");
-        HorizonMatching.matchUpHorizons(edgeCoords, elevationsCoords, edge.getBitmap(), activity);
+        HorizonMatching.matchUpHorizons(photoCoords, elevationsCoords, edge.getBitmap(), activity);
         /////// MATCH UP HORIZONS //////
 
-        // Todo: Start the next activity
+        ////// START NEXT ACTIVITY //////
+        Intent intent = new Intent(activity.getString(R.string.PHOTO_ACTIVITY));
         // Todo: Send the required results on to the activity
+
+        // For the photo activity
+        intent.putExtra("drawableID", Start.drawableID);  // Bitmap is too big, find it via ID
+        //intent.putParcelableArrayListExtra(photoCoords);      // To draw the edge // Todo: make Point parcelable
+        //intent.putIntegerArrayListExtra(matchedPhotoPoints);  // To mark on the matched points // Todo: make Point parcelable
+
+        // For the map activity
+        //intent.putExtra("highPoints", highPoints);  // Todo: make Result parcelable
+        //intent.putExtra("yourLocation", Start.yourLocation); How to send a LatLng
+
+        // For the graph activity (already have the photo coords)
+        //intent.putParcelableArrayListExtra("elevationsCoords", elevationsCoords);  // Todo: make Point parcelable
+        //intent.putExtra("matchedMapPoints", matchedMapPoints);  // To mark on the matched points Todo: save the matched up points
+
+        Log.d(TAG, "buttonClicked: Put at the relevant info into the intent. Start the activity.");
+        activity.startActivity(intent);
+        activity.finish();
+
     }
 
     private List<Result> getHighPoints(List<String> strResponses, double yourElevation) {

@@ -3,6 +3,7 @@ package com.example.recogniselocation.thirdyearproject;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Location;
@@ -21,7 +22,10 @@ public class Start extends AppCompatActivity {
     private static final String TAG = "Start";
     private LocationManager locationManager;
     private LocationListener locationListener;
+
+    // Todo: Try pass these to the Async method if possible
     static LatLng yourLocation;
+    static int drawableID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,8 +72,10 @@ public class Start extends AppCompatActivity {
     public void buttonClicked(View view) {
         // Find which, if any, demo is to be used
         LocationDirection locDir = null;
-        if (view.getId() != R.id.camera)
+        if (view.getId() != R.id.camera) {
             locDir = Demos.getDemo(view.getId());
+            drawableID = Resources.getSystem().getIdentifier(locDir.getName(), "drawable", getPackageName());
+        }
 
         // Use the location and direction to perform the location recognition
         Log.d(TAG, "onCreate: Going to recognise from "
@@ -125,33 +131,6 @@ public class Start extends AppCompatActivity {
                 intent.putExtra("Edge", edge);  // Can't seem to pass a 2D list, so pass this obj
                 intent.putExtra("locName", locDir.getName());  // Name of the image we're working with
                 Log.d(TAG, "buttonClicked: Put the edge into the extras");
-                startActivity(intent);
-                finish();
-                break;
-            }
-            case R.id.demo2: {
-                Intent intent = new Intent(this.getString(R.string.PHOTO_ACTIVITY));
-                Bundle b = new Bundle();
-                //b.putInt("Demo", view.getId()); // Pass through which demo was requested
-                intent.putExtra("Demo", view.getId());
-                startActivity(intent);
-                finish();
-                break;
-            }
-            case R.id.demo3: {
-                Intent intent = new Intent(this.getString(R.string.PHOTO_ACTIVITY));
-                Bundle b = new Bundle();
-                //b.putInt("Demo", view.getId()); // Pass through which demo was requested
-                intent.putExtra("Demo", view.getId());
-                startActivity(intent);
-                finish();
-                break;
-            }
-            case R.id.demo4: {
-                Intent intent = new Intent(this.getString(R.string.PHOTO_ACTIVITY));
-                Bundle b = new Bundle();
-                //b.putInt("Demo", view.getId()); // Pass through which demo was requested
-                intent.putExtra("Demo", view.getId());
                 startActivity(intent);
                 finish();
                 break;
