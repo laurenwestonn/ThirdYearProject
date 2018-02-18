@@ -1,6 +1,8 @@
 package com.example.recogniselocation.thirdyearproject;
 
 
+import android.location.Location;
+
 public class LatLng {
     private double lat;
     private double lng;
@@ -9,6 +11,12 @@ public class LatLng {
     {
         this.lat = givenLat;
         this.lng = givenLng;
+    }
+
+    public LatLng(Location loc)
+    {
+        this.lat = loc.getLatitude();
+        this.lng = loc.getLongitude();
     }
 
     public double getLat() { return lat; }

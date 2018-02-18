@@ -115,7 +115,7 @@ public class OriginalMapsActivity extends FragmentActivity implements OnMapReady
         textView.setText(loc);
 
         // Find what you are looking at
-        APIFunctions.getElevations(yourDirection, yourLocation, this);
+        APIFunctions.getElevations(new LocationDirection("", yourLocation, yourDirection), this);
     }
 
     private LatLng getYourCoordinates(Location yourLocation, int demo) {

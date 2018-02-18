@@ -1,6 +1,7 @@
 package com.example.recogniselocation.thirdyearproject;
 
 import android.app.Activity;
+import android.location.Location;
 import android.util.Log;
 
 import com.jjoe64.graphview.GraphView;
@@ -25,11 +26,11 @@ public class APIFunctions {
     static double searchLength = 0.05;  // radius of the search
     private static final int LONLAT_TO_METRES = 111111; // roughly
 
-    // OriginalMapsActivity calls this once it knows your direction and location
-    static void getElevations(double dir, LatLng loc, Activity activity)
+    // This is called at the start, once you know your location and direction
+    static void getElevations(LocationDirection locDir, Activity activity)
     {
         Log.d("APIFunctions", "Building up URLs to request");
-        List<String> urls = getURLsToRequest(dir, loc, widthOfSearch, noOfPaths, noOfPathsPerGroup,
+        List<String> urls = getURLsToRequest(locDir, widthOfSearch, noOfPaths, noOfPathsPerGroup,
                 samplesPerPath, searchLength, activity.getString(R.string.google_maps_key));
 
         // Requesting the elevations from the Google Maps API
@@ -39,15 +40,16 @@ public class APIFunctions {
     }
 
     // Returns a list of the URLs to request
-    public static List<String> getURLsToRequest(double dir, LatLng loc, int widthOfSearch,
+    public static List<String> getURLsToRequest(LocationDirection locDir, int widthOfSearch,
                                                 int noOfPaths, int noOfPathsPerGroup,
-                                                int samplesPerPath, double searchLength, String key) {
-
+                                                int samplesPerPath, double searchLength, String key)
+    {
         double step = widthOfSearch / (noOfPaths - 1);
-        double start = dir + step/2 + step*(noOfPaths/2-1);
+        double start = locDir.getDirection() + step/2 + step*(noOfPaths/2-1);
         List<String> urls = new ArrayList<>();
         StringBuilder url = new StringBuilder();
         int samplesPerGroup = getSamplesPerGroup(noOfPathsPerGroup, samplesPerPath);
+        LatLng loc = locDir.getLocation();
         int i = 0;
 
         for (; i < noOfPaths; i++) {

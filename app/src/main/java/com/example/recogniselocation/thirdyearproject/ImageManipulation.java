@@ -106,7 +106,7 @@ class ImageManipulation {
                     // This should hold the location of every edge found with the fine mask
                     edgeCoords.get((x - pointWidthRadius) / pointWidth).add(y);
             }
-        Log.d(TAG, "detectEdge: Fine Masking done");
+        Log.d(TAG, "fineMask: Fine Masking done");
 
         return new Edge(edgeCoords, resultBMP);
     }
@@ -133,7 +133,7 @@ class ImageManipulation {
             ImageManipulation.colourArea(bmp, bmp.getWidth()/2,sd.getMaxRange()-drawnSDRadius,
                     Color.RED,bmp.getWidth()-1, 30);
         }
-        Log.d(TAG, "detectEdge: SD got");
+        Log.d(TAG, "findStandardDeviation: SD got");
         sd.setBitmap(bmp);
         return sd;
     }
@@ -165,7 +165,7 @@ class ImageManipulation {
                 if (relevantEdge)
                     ysOfEdges.add(y);
             }
-        Log.d(TAG, "detectEdge: Coarse Masking done");
+        Log.d(TAG, "CoarseMasking: Coarse Masking done");
         return new CoarseMasking(ysOfEdges, bmp);
     }
 
