@@ -21,6 +21,7 @@ public class Start extends AppCompatActivity {
     private static final String TAG = "Start";
     private LocationManager locationManager;
     private LocationListener locationListener;
+    static LatLng yourLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,6 +36,7 @@ public class Start extends AppCompatActivity {
             public void onLocationChanged(Location location) {
                 //Todo: Get your direction, I've just hardcoded 60 degrees :/
                 // *Todo: Check, this isn't going to get called every 5 ms is it? If so, only carry on if has changed from last time (global variabel required)
+                yourLocation = new LatLng(location);
                 LocationDirection locDir = new LocationDirection(null, new LatLng(location),60);
                 detectWhatsAheadOfYou(locDir);
             }

@@ -48,6 +48,7 @@ class HorizonMatching {
             Log.d("matching", "Best maxima minima of " + photoMMs + "is ");
             Log.d("matching", "\t\t\t\t\t" + photoMM);
         }
+
         // Mark these best ones on the image
         markMaximaMinimaOnPhoto(photoMM, bmp, a);
 
@@ -102,8 +103,8 @@ class HorizonMatching {
                 bestMatching = allMatchings.get(i);
 
         Log.d(TAG, "matchUpHorizons: The best matching is " + bestMatching);
-        OriginalMapsActivity.graph.addSeries(bestMatching.getSeries());
-        /*RetrieveURLTask.setBounds(OriginalMapsActivity.graph,bestMatching.getSeries().getLowestValueX(),
+        GraphActivity.graph.addSeries(bestMatching.getSeries());
+        /*RetrieveURLTask.setBounds(GraphActivity.graph,bestMatching.getSeries().getLowestValueX(),
                 bestMatching.getSeries().getHighestValueX(),
                 bestMatching.getSeries().getLowestValueY(),
                 bestMatching.getSeries().getHighestValueY());

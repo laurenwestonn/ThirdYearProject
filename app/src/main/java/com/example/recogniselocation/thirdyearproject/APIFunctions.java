@@ -223,8 +223,8 @@ public class APIFunctions {
             series.appendData(new DataPoint(x,y), true, points.size());
         }
 
-        OriginalMapsActivity.graph.addSeries(series);
-        setBounds(OriginalMapsActivity.graph,0,  x, series.getLowestValueY(), series.getHighestValueY());
+        GraphActivity.graph.addSeries(series);
+        setBounds(GraphActivity.graph,0,  x, series.getLowestValueY(), series.getHighestValueY());
         HorizonMatching.graphHeight =  series.getHighestValueY();
 
         return horizonCoords;

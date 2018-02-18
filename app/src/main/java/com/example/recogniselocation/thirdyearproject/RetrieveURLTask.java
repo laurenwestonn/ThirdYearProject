@@ -2,6 +2,7 @@ package com.example.recogniselocation.thirdyearproject;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.util.Log;
@@ -16,34 +17,81 @@ import static android.content.ContentValues.TAG;
 import static com.example.recogniselocation.thirdyearproject.APIFunctions.getHighestVisiblePoint;
 import static com.example.recogniselocation.thirdyearproject.APIFunctions.samplesPerPath;
 import static com.example.recogniselocation.thirdyearproject.ImageManipulation.fineWidth;
-import static com.example.recogniselocation.thirdyearproject.OriginalMapsActivity.googleMap;
-import static com.example.recogniselocation.thirdyearproject.OriginalMapsActivity.yourLocation;
+import static com.example.recogniselocation.thirdyearproject.MapActivity.googleMap;
+import static com.example.recogniselocation.thirdyearproject.Start.yourLocation;
 
 public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>  {
 
     @SuppressLint("StaticFieldLeak")
     private Activity activity;
-    private int photoID = R.drawable.rocky_mountains;
+    //private int photoID = R.drawable.rocky_mountains; Not using this for the next version
 
     RetrieveURLTask(Activity a)
     {
         this.activity = a;
     }
 
+    // Sending off the URLs and passing on the responses to onPostExecute
     protected List<String> doInBackground(List<String>... urls)
     {
         Log.d("RetrieveURLTask", "Going to take some time getting the results from the API");
         return APIFunctions.requestURL(urls[0]);
     }
 
+    // Interpreting the responses
     protected void onPostExecute(List<String> strResponses)
     {
+        ///////// CONSTRUCT HORIZON FROM ELEVATIONS /////////
+        // Set up Gson to convert string responses to GSON objects
         Log.d("onPostExecute", "API gave response " + strResponses);
-        List<Result> highPoints = new ArrayList<>();
         Gson gson = new GsonBuilder().setLenient().create(); //Todo is lenient needed? could just do new Gson instead, like I used to have.
         double yourElevation = gson.fromJson(strResponses.get(0), Response.class).getResults().get(samplesPerPath).getElevation();
-        Log.d(TAG, "getHighestVisiblePoint: Your Elevation is " + yourElevation);
 
+        // Find the highest point in each path for each response
+        List<Result> highPoints = getHighPoints(strResponses, yourElevation);
+        Log.d("onPostExecute", "Got high points " + highPoints);
+
+        // Todo: Check I've set up graph and map properly.. Log.d's are to show if error happened here, remove when sure
+        // Show results of the highest peaks in all directions ahead on the map and graph
+        Log.d(TAG, "onPostExecute: Going to plot on the map");
+        MapFunctions.plotPoints(googleMap, highPoints, yourLocation);
+        Log.d(TAG, "onPostExecute: Going to plot on the graph");
+        List<Point> elevationsCoords = APIFunctions.drawOnGraph(highPoints);
+        ///////// CONSTRUCT HORIZON FROM ELEVATIONS /////////
+
+
+        /////// EDGE DETECTION //////
+        int photoID = R.drawable.kinder_scout;    // Todo: Need to get this depending on the button clicked
+        Bitmap bmp = BitmapFactory.decodeResource(activity.getResources(), photoID);
+        Edge edge = ImageManipulation.detectEdge(
+                bmp,false, false, true, true);
+        List<List<Integer>> edgeCoords2D = edge.getCoords();
+        Log.d(TAG, "onPostExecute: Edge Detected");
+        /////// EDGE DETECTION //////
+
+
+        /////// MATCH UP HORIZONS //////
+        // Quick fix to simplify coordinates
+        // It is originally a list of a list, to take into account many points in one column
+        // but as thinning should have been used (but we may not have it 'on' to test
+        // other algorithms) there should only be one point per column, so List<Int> will do
+        List<Integer> edgeCoordsIntegers = HorizonMatching.removeDimensionFromCoords(edgeCoords2D);
+        int pointWidth = (fineWidth-1)/2;
+        List<Point> edgeCoords = HorizonMatching.convertToPoints(edgeCoordsIntegers, pointWidth);
+
+        // Convert these coordinates to be in line with the bitmaps coordinate system
+        elevationsCoords = convertCoordSystem(elevationsCoords);
+
+        Log.d(TAG, "onPostExecute: Going to match up horizons");
+        HorizonMatching.matchUpHorizons(edgeCoords, elevationsCoords, edge.getBitmap(), activity);
+        /////// MATCH UP HORIZONS //////
+
+        // Todo: Start the next activity
+        // Todo: Send the required results on to the activity
+    }
+
+    private List<Result> getHighPoints(List<String> strResponses, double yourElevation) {
+        List<Result> highPoints = new ArrayList<>();
         for (String strResponse : strResponses) {
 
             List<Result> results = getResults(strResponse);
@@ -54,55 +102,20 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
             int indexOfSecondPath = samplesPerPath + 1; // Skipping the first path and your location
             int indexOfLastPath = getIndexOfLastPath(results.size(), samplesPerPath);
 
+            // Get the highest visible points for each of the paths in the middle of a response
             if (indexOfSecondPath != indexOfLastPath)
                 highPoints = findMidHighPoints(highPoints, results, indexOfSecondPath, indexOfLastPath, yourElevation);
 
             // The last path
-            List<Result> path = getLastPath(results, indexOfLastPath);
+            highPoints = getLastPath(highPoints, results, yourElevation, indexOfLastPath);
 
-            if (path.size() != 0) {
-                //Log.e(TAG, "onPostExecute: Last path " + path);
-                /*
-                if (strResponse.equals(strResponses.get(3))) {
-                    startI = i;
-                    MapFunctions.addMarkerAt(googleMap, path.get(path.size() - 1).getLocation().getLat(),
-                            path.get(path.size() - 1).getLocation().getLng(), "Last end of a group at " + i);
-                    MapFunctions.addMarkerAt(googleMap, path.get(0).getLocation().getLat(),
-                            path.get(0).getLocation().getLng(), "Start of an end path: " + startI + " - " + i);
-                }*/
-                highPoints.add(getHighestVisiblePoint(path, yourElevation));
-            }
+            // Todo: Draw on the area searched using a poly line of the end points and your location
+
         }
-
         // Find the differences between the elevations so we can plot them
         highPoints = MapFunctions.findDiffBetweenElevations(highPoints);
-        Log.d("onPostExecute", "Got high points " + highPoints.toString());
 
-        // Show results of the highest peaks in all directions ahead on the map and graph
-        MapFunctions.plotPoints(googleMap, highPoints, yourLocation.getLat(), yourLocation.getLng());
-        List<Point> elevationsCoords = APIFunctions.drawOnGraph(highPoints);
-
-        // Convert these coordinates to be in line with the bitmaps coordinate system
-        elevationsCoords = convertCoordSystem(elevationsCoords);
-
-        // Detect the edge from an image
-        Edge edge;
-        edge = ImageManipulation.detectEdge(BitmapFactory.decodeResource(activity.getResources(), photoID),
-                false, false, true, true);
-        Log.d(TAG, "onPostExecute: Edge Detected");
-        List<List<Integer>> edgeCoords2D = edge.getCoords();
-
-        // Quick fix to simplify coordinates
-        // It is originally a list of a list, to take into account many points in one column
-        // but as thinning should have been used (but we may not have it 'on' to test
-        // other algorithms) there should only be one point per column, so List<Int> will do
-        List<Integer> edgeCoordsIntegers = HorizonMatching.removeDimensionFromCoords(edgeCoords2D);
-        int pointWidth = (fineWidth-1)/2;
-        List<Point> edgeCoords = HorizonMatching.convertToPoints(edgeCoordsIntegers, pointWidth);
-
-        // Match up the horizons
-        Log.d(TAG, "onPostExecute: Going to match up horizons");
-        HorizonMatching.matchUpHorizons(edgeCoords, elevationsCoords, edge.getBitmap(), activity);
+        return highPoints;
     }
 
     public static int getIndexOfLastPath(int resultsLength, int samplesPerPath) {
@@ -159,11 +172,13 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
     }
 
     // Will be at the biggest *samplesPerPath* long. Smaller if we run out of results
-    private List<Result> getLastPath(List<Result> results, int i) {
+    private List<Result> getLastPath(List<Result> highPoints, List<Result> results, double yourElevation, int i) {
         List<Result> path = new ArrayList<>();
         for (; i < results.size(); i++)
             path.add(results.get(i));
-        return path;
+        if (path.size() != 0)
+            highPoints.add(getHighestVisiblePoint(path, yourElevation));
+        return highPoints;
     }
 
     // Get the results as an object from the string reponse of the request

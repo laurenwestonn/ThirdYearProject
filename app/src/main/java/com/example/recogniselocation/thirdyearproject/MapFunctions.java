@@ -20,15 +20,15 @@ public class MapFunctions extends Activity {
 
 
     // Draw a line around the points, add a marker to where you are
-    public static void plotPoints(GoogleMap map, List<Result> highPoints, double x, double y)
+    public static void plotPoints(GoogleMap map, List<Result> highPoints, LatLng p)
     {
         // Centre the camera around the middle of the points and your location
         LatLng midHorizon = highPoints.get(noOfPaths / 2).getLocation();
-        double avLat = (x + midHorizon.getLat()) / 2;
-        double avLng = (y + midHorizon.getLng()) / 2;
+        double avLat = (p.getLat() + midHorizon.getLat()) / 2;
+        double avLng = (p.getLng() + midHorizon.getLng()) / 2;
         goToLocation(avLat, avLng, 11);
 
-        addMarkerAt(map, x, y, "You are here!");
+        addMarkerAt(map, p, "You are here!");
 
         // Plot a line and add markers for each of the visible peaks
         showVisiblePeaks(highPoints);
@@ -36,24 +36,22 @@ public class MapFunctions extends Activity {
 
     public static void goToLocation(double lat, double lng, float zoom) {
         CameraUpdate update = CameraUpdateFactory.newLatLngZoom(new com.google.android.gms.maps.model.LatLng(lat, lng), zoom);
-        OriginalMapsActivity.googleMap.moveCamera(update);
+        MapActivity.googleMap.moveCamera(update);
         Log.d("MapFunctions", "Moved to location " + lat + ", " + lng);
     }
 
-    // Add marker to map at  x and y that says the string
-    public static void addMarkerAt(GoogleMap map, double x, double y, String msg)
+    // Add marker to map at the specified location that says the string
+    public static void addMarkerAt(GoogleMap map, LatLng p, String msg)
     {
         map.addMarker(new MarkerOptions()
                 .title(msg)
-                .position(new com.google.android.gms.maps.model.LatLng(x, y)));
+                .position(new com.google.android.gms.maps.model.LatLng(p.getLat(), p.getLng())));
     }
 
-    // Add marker to map at  x and y with no message
-    public static void addMarkerAt(GoogleMap map, double x, double y)
+    // Add marker to map at the specified location with no message
+    public static void addMarkerAt(GoogleMap map, LatLng p)
     {
-        map.addMarker(new MarkerOptions()
-                .title("You are here!")
-                .position(new com.google.android.gms.maps.model.LatLng(x, y)));
+        addMarkerAt(map, p, "");
     }
 
     public static void showVisiblePeaks(List<Result> highPoints)
@@ -70,10 +68,10 @@ public class MapFunctions extends Activity {
             // Show a marker at each peak if there aren't many
             //  - Many markers looks cluttered
             if (noOfPaths <= 15)
-                addMarkerAt(OriginalMapsActivity.googleMap, highPoint.getLocation().getLat(), highPoint.getLocation().getLng());
+                addMarkerAt(MapActivity.googleMap, highPoint.getLocation());
 
         }
-        OriginalMapsActivity.googleMap.addPolyline(polylineOptions);
+        MapActivity.googleMap.addPolyline(polylineOptions);
     }
 
     private static double diffFromFirst(double comparisonDistance, double thisPeaksAngle, double comparisonElevation)
