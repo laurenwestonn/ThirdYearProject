@@ -74,7 +74,11 @@ public class Start extends AppCompatActivity {
         LocationDirection locDir = null;
         if (view.getId() != R.id.camera) {
             locDir = Demos.getDemo(view.getId());
-            drawableID = Resources.getSystem().getIdentifier(locDir.getName(), "drawable", getPackageName());
+            yourLocation = locDir.getLocation();
+            if ((drawableID = Start.this.getResources().getIdentifier(
+                    locDir.getName(),"drawable", Start.this.getPackageName() ))
+                    == 0)
+                Log.e(TAG, "buttonClicked: Couldn't find the ID for the drawable " + locDir.getName());
         }
 
         // Use the location and direction to perform the location recognition
@@ -144,6 +148,7 @@ public class Start extends AppCompatActivity {
     }
 
 
+    // Todo: Rewrite/ remove this. New gui doesn't write where you are now
     private void detectWhatsAheadOfYou(LocationDirection locDir) {
         // Inform the user of their location
         String info;
@@ -151,7 +156,7 @@ public class Start extends AppCompatActivity {
             info = getString(R.string.youre_at) + " " + locDir.toString();
         else
             info = getString(R.string.youre_at) + " " + locDir.getLocation();
-        ((TextView) findViewById(R.id.text)).setText(info);
+        //((TextView) findViewById(R.id.text)).setText(info);
 
         // Find what you are looking at
         APIFunctions.getElevations(locDir, this);

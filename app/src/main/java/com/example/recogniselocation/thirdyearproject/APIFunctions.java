@@ -203,7 +203,7 @@ public class APIFunctions {
         }
     }
 
-    static List<Point> drawOnGraph(List<Result> points)
+    static GraphData findGraphData(List<Result> points)
     {
         List<Point> horizonCoords = new ArrayList<>();
 
@@ -211,10 +211,10 @@ public class APIFunctions {
         int count = -1;
         int x;
         double y;
-        x = 0;
+        int distBetwPoints = (int) findDistanceBetweenPlots(points.get(0));
 
         for (Result point : points) {
-            x = ++count * (int) findDistanceBetweenPlots(points.get(0));
+            x = ++count * distBetwPoints;
             y = point.getDifference();
 
             horizonCoords.add(new Point(x,y));
@@ -223,11 +223,7 @@ public class APIFunctions {
             series.appendData(new DataPoint(x,y), true, points.size());
         }
 
-        GraphActivity.graph.addSeries(series);
-        setBounds(GraphActivity.graph,0,  x, series.getLowestValueY(), series.getHighestValueY());
-        HorizonMatching.graphHeight =  series.getHighestValueY();
-
-        return horizonCoords;
+        return new GraphData(horizonCoords, series);
     }
 
     // Allows you to draw onto the graph
@@ -238,17 +234,5 @@ public class APIFunctions {
 
         return distanceToFirstPeakInMetres / Math.sin(Math.toRadians((180-step) / 2))
                 * Math.sin(Math.toRadians(step));
-    }
-
-    static void setBounds(GraphView graph, double minX, double maxX, double minY, double maxY)
-    {
-        // Set bounds on the x axis
-        graph.getViewport().setXAxisBoundsManual(true);
-        graph.getViewport().setMinX(minX);
-        graph.getViewport().setMaxX(maxX);
-        // Set bounds on the y axis
-        graph.getViewport().setYAxisBoundsManual(true);
-        graph.getViewport().setMinY(minY);
-        graph.getViewport().setMaxY(maxY);
     }
 }

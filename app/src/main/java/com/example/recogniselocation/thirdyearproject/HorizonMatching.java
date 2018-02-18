@@ -9,6 +9,7 @@ import android.widget.ImageButton;
 
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
+import com.jjoe64.graphview.series.Series;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,10 +18,10 @@ import static android.content.ContentValues.TAG;
 
 class HorizonMatching {
     static double graphHeight;
-    private static boolean debug = true;   // Can't log when testing
+    private static boolean debug = false;   // Can't log when testing
 
-    static void matchUpHorizons(List<Point> photoCoords, List<Point> elevationCoords,
-                                                                        Bitmap bmp, Activity a) {
+    // Returns the horizon you manage to match up from the photo as a series so can plot on graph
+    static Series<DataPoint> matchUpHorizons(List<Point> photoCoords, List<Point> elevationCoords) {
         // Find all minimas and maximas of both horizons
         List<Point> photoMMs = findMaximaMinima(photoCoords, true);
         if (debug)
@@ -48,9 +49,6 @@ class HorizonMatching {
             Log.d("matching", "Best maxima minima of " + photoMMs + "is ");
             Log.d("matching", "\t\t\t\t\t" + photoMM);
         }
-
-        // Mark these best ones on the image
-        markMaximaMinimaOnPhoto(photoMM, bmp, a);
 
         // Store how accurate each min max pairing is
         List<Matching> allMatchings = new ArrayList<>();
@@ -103,13 +101,8 @@ class HorizonMatching {
                 bestMatching = allMatchings.get(i);
 
         Log.d(TAG, "matchUpHorizons: The best matching is " + bestMatching);
-        GraphActivity.graph.addSeries(bestMatching.getSeries());
-        /*RetrieveURLTask.setBounds(GraphActivity.graph,bestMatching.getSeries().getLowestValueX(),
-                bestMatching.getSeries().getHighestValueX(),
-                bestMatching.getSeries().getLowestValueY(),
-                bestMatching.getSeries().getHighestValueY());
-*/
 
+        return bestMatching.getSeries();
     }
 
     public static List<Point> getTheNextElevationMM(List<Point> photoMaxMinPair, List<Point> elevationMMs, int i)
@@ -145,24 +138,6 @@ class HorizonMatching {
             i = 1;  // The index of the first minima of the elevations
 
         return i;
-    }
-
-    // Colour maxima in red, minima in blue
-    private static void markMaximaMinimaOnPhoto(List<Point> photoMM, Bitmap bmp, Activity a)
-    {
-        // If the first is a maxima, start from the first index
-        int maxInd = photoMM.size() == 2 ? 0 : 2;
-        ImageManipulation.colourArea(bmp,   (int) photoMM.get(maxInd).getX(),
-                                            (int) photoMM.get(maxInd).getY(),
-                                            Color.RED, 40, 40);
-        ImageManipulation.colourArea(bmp,   (int) photoMM.get(1).getX(),
-                                            (int) photoMM.get(1).getY(),
-                                            Color.BLUE, 40, 40);
-
-        // Put this on the image button
-        ImageButton imageButton = (ImageButton) a.findViewById(R.id.photo);
-        BitmapDrawable drawable = new BitmapDrawable(a.getResources(), bmp);
-        imageButton.setBackground(drawable);
     }
 
     // Transforms coordinate system so that transformMM matches with baseMM

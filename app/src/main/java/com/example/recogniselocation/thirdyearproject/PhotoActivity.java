@@ -12,6 +12,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 
+import java.util.List;
+
 import static android.content.ContentValues.TAG;
 
 // This is the class that was originally used when you tapped the photo on the old main page
@@ -24,29 +26,51 @@ public class PhotoActivity extends Activity {
         setContentView(R.layout.photo_activity);
 
         // Perform the program
-        // Get the result of the edge detection that was passed through
-        Edge edge = getIntent().getParcelableExtra("Edge");
 
-        if (edge == null)
-            Log.e(TAG, "onCreate: Edge came through as null!");
-        else if (edge.getCoords() == null)
-            Log.e(TAG, "onCreate: Coords came through as null, and bitmap probably has too " + edge.getBitmap());
+        // Get values passed through to this activity via the intent
+        // Todo: Get the others passed through as well as the ID
+        // Bitmap is too big to send so find image from resources using ID sent
+        int drawableID = getIntent().getIntExtra("drawableID", 0);
+
+        if (drawableID == 0)
+            Log.e(TAG, "onCreate: ID didn't come through. Thinks its 0");
         else
-            Log.d(TAG, "onCreate: Yay in the photo activity we got the edge " + edge.getCoords());
-        
-        // Bitmap is too big to send so find image from resources using the image name sent
-        String locName = getIntent().getStringExtra("locName"); // The image name sent
+            Log.d(TAG, "onCreate: Yay ID came through as " + drawableID);
+
 
         // Get a mutable bitmap of the image
         BitmapFactory.Options opt = new BitmapFactory.Options();
         opt.inMutable = true;
-        Bitmap bmp = BitmapFactory.decodeResource(getResources(),
-                getResources().getIdentifier(locName, "drawable", getPackageName()), opt);
+        Bitmap bmp = BitmapFactory.decodeResource(getResources(), drawableID, opt);
 
-        // Put bitmap onto imagebutton
+
+        // Put bitmap onto the image button
         this.findViewById(R.id.photo).setBackground(new BitmapDrawable(this.getResources(), bmp));
-        Log.d(TAG, "onCreate: Put the image " + locName + " on the button");
+        Log.d(TAG, "onCreate: Put the image with id " + drawableID + " on the button");
+
+        //Todo: Draw all coordinates onto the bitmap (and the matched max/mins)
+        // e.g. drawCoordsOnMap();
+        //markMaximaMinimaOnPhoto(photoMaximaMinima, bmp, this);
     }
+
+    // Colour maxima in red, minima in blue
+    private static void markMaximaMinimaOnPhoto(List<Point> photoMM, Bitmap bmp, Activity a)
+    {
+        // If the first is a maxima, start from the first index
+        int maxInd = photoMM.size() == 2 ? 0 : 2;
+        ImageManipulation.colourArea(bmp,   (int) photoMM.get(maxInd).getX(),
+                (int) photoMM.get(maxInd).getY(),
+                Color.RED, 40, 40);
+        ImageManipulation.colourArea(bmp,   (int) photoMM.get(1).getX(),
+                (int) photoMM.get(1).getY(),
+                Color.BLUE, 40, 40);
+
+        // Put this on the image button
+        ImageButton imageButton = (ImageButton) a.findViewById(R.id.photo);
+        BitmapDrawable drawable = new BitmapDrawable(a.getResources(), bmp);
+        imageButton.setBackground(drawable);
+    }
+
 
     public void detectHorizon(View view) {
         ImageButton imageButton = (ImageButton) view;
@@ -60,9 +84,6 @@ public class PhotoActivity extends Activity {
         if (edge != null)
             ((ImageButton) view).setImageBitmap(edge.getBitmap());
     }
-
-
-
 
 
     // Deal with button clicks

@@ -25,6 +25,10 @@ class ImageManipulation {
     static Edge detectEdge(Bitmap bmp,
                            boolean showCoarse, boolean sdDetail,
                            boolean useThinning, boolean showEdgeOnly) {
+
+        if (bmp == null)
+            Log.e(TAG, "Null bitmap was passed to detectEdge");
+
         // Save these variables globally for now Todo: This better
         gShowCoarse = showCoarse;
         gShowEdgeOnly = showEdgeOnly;
@@ -324,10 +328,15 @@ class ImageManipulation {
         } else if (y + height >= bmp.getHeight())
             height = bmp.getHeight() - y - 1;
 
+        // Ensure the Bitmap is mutable so that it can be coloured
+        if (!bmp.isMutable()) {
+            bmp = bmp.copy(bmp.getConfig(), true);
+        }
+
         //Log.d("Hi", "Trying to colour from " + x + ", " + y + ". Width x height: "
           //      + width + "x" + height + " BMP: " + bmp.getWidth() + ", " + bmp.getHeight());
         bmp.setPixels(colours, 0,       // array to colour in this area, no offset
-                width,      // stride, width of what you wanna colour in
+                width,      // stride, width of what you want to colour in
                 x,          // x co-ord of first pixel to colour
                 y,          // y co-ord of first pixel to colour
                 width,      // width of area to colour

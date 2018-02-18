@@ -10,6 +10,8 @@ import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.jjoe64.graphview.series.DataPoint;
+import com.jjoe64.graphview.series.Series;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,8 +20,6 @@ import static android.content.ContentValues.TAG;
 import static com.example.recogniselocation.thirdyearproject.APIFunctions.getHighestVisiblePoint;
 import static com.example.recogniselocation.thirdyearproject.APIFunctions.samplesPerPath;
 import static com.example.recogniselocation.thirdyearproject.ImageManipulation.fineWidth;
-import static com.example.recogniselocation.thirdyearproject.MapActivity.googleMap;
-import static com.example.recogniselocation.thirdyearproject.Start.yourLocation;
 
 public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>  {
 
@@ -52,17 +52,22 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
         List<Result> highPoints = getHighPoints(strResponses, yourElevation);
         Log.d("onPostExecute", "Got high points " + highPoints);
 
-        // Todo: Check I've set up graph and map properly.. Log.d's are to show if error happened here, remove when sure
         // Show results of the highest peaks in all directions ahead on the map and graph
-        Log.d(TAG, "onPostExecute: Going to plot on the map");
-        MapFunctions.plotPoints(googleMap, highPoints, yourLocation);
-        Log.d(TAG, "onPostExecute: Going to plot on the graph");
-        List<Point> elevationsCoords = APIFunctions.drawOnGraph(highPoints);
+        // Todo: Plot on map within the MapActivity
+        //MapFunctions.plotPoints(googleMap, highPoints, yourLocation);
+        // Get the coordinates and the series for the graph (draw on in GraphActivity)
+        // Todo: Pass on gd.getSeries() in order to draw graph in GraphActivity
+        GraphData gd = APIFunctions.findGraphData(highPoints);
+        Series<DataPoint> elevSeries = gd.getSeries();
+        List<Point> elevationsCoords = gd.getCoords();
+
+
         ///////// CONSTRUCT HORIZON FROM ELEVATIONS /////////
 
 
         /////// EDGE DETECTION //////
         int photoID = Start.drawableID;    // Todo: Deal with using an uploaded photo of your location
+
         Bitmap bmp = BitmapFactory.decodeResource(activity.getResources(), photoID);
         Edge edge = ImageManipulation.detectEdge(
                 bmp,false, false, true, true);
@@ -84,7 +89,7 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
         elevationsCoords = convertCoordSystem(elevationsCoords);
 
         Log.d(TAG, "onPostExecute: Going to match up horizons");
-        HorizonMatching.matchUpHorizons(photoCoords, elevationsCoords, edge.getBitmap(), activity);
+        Series<DataPoint> photoMatchedSeries = HorizonMatching.matchUpHorizons(photoCoords, elevationsCoords);
         /////// MATCH UP HORIZONS //////
 
         ////// START NEXT ACTIVITY //////
@@ -103,6 +108,8 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
         // For the graph activity (already have the photo coords)
         //intent.putParcelableArrayListExtra("elevationsCoords", elevationsCoords);  // Todo: make Point parcelable
         //intent.putExtra("matchedMapPoints", matchedMapPoints);  // To mark on the matched points Todo: save the matched up points
+        //intent.putParcelableArrayListExtra("elevSeries", elevSeries); // Todo: Make Series parcelable
+        //intent.putParcelableArrayListExtra("photoMatchedSeries", photoMatchedSeries); // Todo: Make Series parcelable
 
         Log.d(TAG, "buttonClicked: Put at the relevant info into the intent. Start the activity.");
         activity.startActivity(intent);
