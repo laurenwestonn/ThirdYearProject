@@ -110,7 +110,7 @@ public class OriginalMapsActivity extends FragmentActivity implements OnMapReady
         yourLocation = getYourCoordinates(location, demo);
 
         // Inform the user of their location
-        String loc = getString(R.string.location_text) + " " + yourLocation.toString();
+        String loc = getString(R.string.youre_at) + " " + yourLocation.toString();
         TextView textView = (TextView) findViewById(R.id.text);
         textView.setText(loc);
 
