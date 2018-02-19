@@ -12,6 +12,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static android.content.ContentValues.TAG;
@@ -121,10 +122,36 @@ public class PhotoActivity extends Activity {
                 finish();
                 break;
             }
+            case R.id.before: {
+                Log.d(TAG, "Go back to the graph");
+                //Todo: Pass all results to the intent
+                Intent intent = new Intent(this.getString(R.string.GRAPH_ACTIVITY));
+
+                // For the photo activity
+                int drawableID = getIntent().getIntExtra("drawableID", 0);
+                List<Point> photoCoords = getIntent().getParcelableArrayListExtra("photoCoords");
+                List<Point> matchedPhotoCoords = getIntent().getParcelableArrayListExtra("matchedPhotoCoords");
+                intent.putExtra("drawableID", drawableID);  // Bitmap is too big, find it via ID
+                intent.putParcelableArrayListExtra("photoCoords", (ArrayList) photoCoords);      // To draw the edge
+                intent.putParcelableArrayListExtra("matchedPhotoCoords", (ArrayList) matchedPhotoCoords);  // To mark on the matched points
+
+                startActivity(intent);
+                finish();
+                break;
+            }
             case R.id.next: {
                 Log.d(TAG, "buttonClicked: Go to the map");
-                //Todo: Pass results to the intent
+                //Todo: Pass all results to the intent
                 Intent intent = new Intent(this.getString(R.string.MAP_ACTIVITY));
+
+                // For the photo activity
+                int drawableID = getIntent().getIntExtra("drawableID", 0);
+                List<Point> photoCoords = getIntent().getParcelableArrayListExtra("photoCoords");
+                List<Point> matchedPhotoCoords = getIntent().getParcelableArrayListExtra("matchedPhotoCoords");
+                intent.putExtra("drawableID", drawableID);  // Bitmap is too big, find it via ID
+                intent.putParcelableArrayListExtra("photoCoords", (ArrayList) photoCoords);      // To draw the edge
+                intent.putParcelableArrayListExtra("matchedPhotoCoords", (ArrayList) matchedPhotoCoords);  // To mark on the matched points
+
                 startActivity(intent);
                 finish();
                 break;
