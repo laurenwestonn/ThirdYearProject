@@ -117,20 +117,20 @@ public class PhotoActivity extends Activity {
             case R.id.back: {
                 Log.d(TAG, "buttonClicked: Go back to the start page");
                 Intent intent = new Intent(this.getString(R.string.START_ACTIVITY));
-                Bundle b = new Bundle();
-                //b.putInt("Demo", view.getId()); // Pass through which demo was requested
-                intent.putExtra("Demo", view.getId());
                 startActivity(intent);
                 finish();
                 break;
             }
             case R.id.next: {
-                Log.d(TAG, "buttonClicked: Go to the next page (not yet implemented)");
+                Log.d(TAG, "buttonClicked: Go to the map");
+                //Todo: Pass results to the intent
+                Intent intent = new Intent(this.getString(R.string.MAP_ACTIVITY));
+                startActivity(intent);
+                finish();
+                break;
             }
             default:
                 Log.d(TAG, "buttonClicked: didn't recognise id " + view.getId() + " of view " + view.toString());
-                // Do for the other demos... or just do all in this one and have one
-                // more for the photo button
         }
     }
 

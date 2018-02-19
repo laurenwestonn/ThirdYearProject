@@ -1,12 +1,17 @@
 package com.example.recogniselocation.thirdyearproject;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.util.Log;
+import android.view.View;
 
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
+
+import static android.content.ContentValues.TAG;
 
 public class GraphActivity extends Activity {
 
@@ -47,5 +52,29 @@ public class GraphActivity extends Activity {
         graph.getViewport().setYAxisBoundsManual(true);
         graph.getViewport().setMinY(minY);
         graph.getViewport().setMaxY(maxY);
+    }
+
+    // Deal with button clicks
+    public void buttonClicked(View view) {
+        Log.d(TAG, "buttonClicked: A button was clicked");
+        switch (view.getId()) {
+            case R.id.back: {
+                Log.d(TAG, "buttonClicked: Go back to the start page");
+                Intent intent = new Intent(this.getString(R.string.START_ACTIVITY));
+                startActivity(intent);
+                finish();
+                break;
+            }
+            case R.id.next: {
+                Log.d(TAG, "buttonClicked: Go to the photo");
+                //Todo: Pass results to the intent
+                Intent intent = new Intent(this.getString(R.string.PHOTO_ACTIVITY));
+                startActivity(intent);
+                finish();
+                break;
+            }
+            default:
+                Log.d(TAG, "buttonClicked: didn't recognise id " + view.getId() + " of view " + view.toString());
+        }
     }
 }

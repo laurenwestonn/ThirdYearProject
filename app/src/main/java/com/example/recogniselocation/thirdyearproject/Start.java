@@ -42,7 +42,7 @@ public class Start extends AppCompatActivity {
                 // *Todo: Check, this isn't going to get called every 5 ms is it? If so, only carry on if has changed from last time (global variabel required)
                 yourLocation = new LatLng(location);
                 LocationDirection locDir = new LocationDirection(null, new LatLng(location),60);
-                detectWhatsAheadOfYou(locDir);
+                APIFunctions.getElevations(locDir, Start.this);
             }
 
             @Override
@@ -104,62 +104,10 @@ public class Start extends AppCompatActivity {
                 }, 10);
 
         } else // You're doing a demo, and faking your location. Go ahead
-            detectWhatsAheadOfYou(locDir);
+            APIFunctions.getElevations(locDir, this);
         //////// RECOGNITION ///////
 
-
         // Method above is asynchronous, wont return here after.
-
-        /*/////// EDGE DETECTION ///////
-        // Get a mutable bitmap of the image
-        BitmapFactory.Options opt = new BitmapFactory.Options();
-        opt.inMutable = true;
-        Bitmap bmp = BitmapFactory.decodeResource(getResources(),
-                getResources().getIdentifier(locDir.getName(), "drawable", getPackageName()), opt);
-
-        // Detect the image
-        // Todo: allow customisation
-        boolean showCoarse = false;   // Show results of the coarse or the fine?
-        boolean sdDetail = false;     // Want to draw SD and log info under tag "sd"?
-        boolean useThinning = true;   // Thin to have only one point per column?
-        boolean showEdgeOnly = true;  // Colour in just the edge, or all searched area?
-        Edge edge = ImageManipulation.detectEdge(bmp, showCoarse, sdDetail, useThinning, showEdgeOnly);
-
-        if (edge != null)
-            Log.d(TAG, "buttonClicked: Yep be detected the edge of " + locDir.getName() + " to be " + edge.getCoords());
-        /////// EDGE DETECTION ///////*/
-        /*
-        switch (view.getId()) {
-            case R.id.demo1: {
-                Intent intent = new Intent(this.getString(R.string.PHOTO_ACTIVITY));
-                intent.putExtra("Edge", edge);  // Can't seem to pass a 2D list, so pass this obj
-                intent.putExtra("locName", locDir.getName());  // Name of the image we're working with
-                Log.d(TAG, "buttonClicked: Put the edge into the extras");
-                startActivity(intent);
-                finish();
-                break;
-            }
-            default:
-                Log.d(TAG, "buttonClicked: didn't recognise id " + view.getId() + " of view " + view.toString());
-            // Do for the other demos... or just do all in this one and have one
-            // more for the photo button
-        }
-        */
-    }
-
-
-    // Todo: Rewrite/ remove this. New gui doesn't write where you are now
-    private void detectWhatsAheadOfYou(LocationDirection locDir) {
-        // Inform the user of their location
-        String info;
-        if (locDir.getName() != null)
-            info = getString(R.string.youre_at) + " " + locDir.toString();
-        else
-            info = getString(R.string.youre_at) + " " + locDir.getLocation();
-        //((TextView) findViewById(R.id.text)).setText(info);
-
-        // Find what you are looking at
-        APIFunctions.getElevations(locDir, this);
     }
 
 }
