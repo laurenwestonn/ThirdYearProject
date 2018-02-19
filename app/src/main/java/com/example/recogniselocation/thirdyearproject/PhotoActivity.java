@@ -6,7 +6,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
-import android.media.Image;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -44,16 +43,16 @@ public class PhotoActivity extends Activity {
         opt.inMutable = true;
         Bitmap bmp = BitmapFactory.decodeResource(getResources(), drawableID, opt);
 
-        // Colour onto the bitmap the edge we've detected, marking the matched points
+        // Colour onto the bitmap the edge we've detected
         List<Point> photoCoords = getIntent().getParcelableArrayListExtra("photoCoords");
         bmp = markEdgeCoords(bmp, photoCoords);
 
-        //List<Point> matchedCoords = getIntent().getParcelableArrayListExtra("matchedPhotoCoords");
-        //bmp = markMaximasMinimasOnPhoto(bmp, matchedCoords);
+        // Mark the maximas and minimas (common with the map)
+        List<Point> matchedCoords = getIntent().getParcelableArrayListExtra("matchedPhotoCoords");
+        bmp = markMaximasMinimasOnPhoto(bmp, matchedCoords);
 
         // Put bitmap onto the image button
         this.findViewById(R.id.photo).setBackground(new BitmapDrawable(this.getResources(), bmp));
-        Log.d(TAG, "onCreate: Put the image with id " + drawableID + " on the button");
     }
 
     private Bitmap markEdgeCoords(Bitmap bmp, List<Point> photoCoords) {
@@ -85,11 +84,13 @@ public class PhotoActivity extends Activity {
     // Mark of the maximas and minimas in varying colours
     private static Bitmap markMaximasMinimasOnPhoto(Bitmap bmp, List<Point> photoMMs)
     {
-        int colour = Color.BLACK;
+        int colour = 100;
 
         for (Point p : photoMMs) {
-            bmp = ImageManipulation.colourArea(bmp, (int) p.getX(), (int) p.getY(), colour, 40, 40);
-            colour += 1000;
+            if (p != null) {
+                bmp = ImageManipulation.colourArea(bmp, (int) p.getX(), (int) p.getY(), colour, 40, 40);
+                colour *= colour; // Todo: Think of a way to vary colours
+            }
         }
         return bmp;
     }

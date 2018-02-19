@@ -89,7 +89,10 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
         elevationsCoords = convertCoordSystem(elevationsCoords);
 
         Log.d(TAG, "onPostExecute: Going to match up horizons");
-        Series<DataPoint> photoMatchedSeries = HorizonMatching.matchUpHorizons(photoCoords, elevationsCoords);
+        Horizon horizon = HorizonMatching.matchUpHorizons(photoCoords, elevationsCoords);
+        // Todo: Possibly just send the horizon object as one, not as its elements seperately
+        Series<DataPoint> photoMatchedSeries = horizon.getSeries();
+        List<Point> matchedPhotoCoords = horizon.getPhotoMMs();
         /////// MATCH UP HORIZONS //////
 
         ////// START NEXT ACTIVITY //////
@@ -99,7 +102,7 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
         // For the photo activity
         intent.putExtra("drawableID", Start.drawableID);  // Bitmap is too big, find it via ID
         intent.putParcelableArrayListExtra("photoCoords", (ArrayList) photoCoords);      // To draw the edge
-        //intent.putParcelableArrayListExtra("matchedPhotoCoords", matchedPhotoCoords);  // To mark on the matched points
+        intent.putParcelableArrayListExtra("matchedPhotoCoords", (ArrayList) matchedPhotoCoords);  // To mark on the matched points
 
         // For the map activity
         //intent.putExtra("highPoints", highPoints);  // Todo: make Result parcelable

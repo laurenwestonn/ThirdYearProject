@@ -21,7 +21,7 @@ class HorizonMatching {
     private static boolean debug = false;   // Can't log when testing
 
     // Returns the horizon you manage to match up from the photo as a series so can plot on graph
-    static Series<DataPoint> matchUpHorizons(List<Point> photoCoords, List<Point> elevationCoords) {
+    static Horizon matchUpHorizons(List<Point> photoCoords, List<Point> elevationCoords) {
         // Find all minimas and maximas of both horizons
         List<Point> photoMMs = findMaximaMinima(photoCoords, true);
         if (debug)
@@ -102,7 +102,7 @@ class HorizonMatching {
 
         Log.d(TAG, "matchUpHorizons: The best matching is " + bestMatching);
 
-        return bestMatching.getSeries();
+        return new Horizon(photoMMs, bestMatching.getSeries());
     }
 
     public static List<Point> getTheNextElevationMM(List<Point> photoMaxMinPair, List<Point> elevationMMs, int i)
