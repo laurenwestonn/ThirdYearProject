@@ -63,7 +63,7 @@ class ImageManipulation {
                 // Get a new copy of the photo to draw the edge on top of
                 resultBMP = bmp.copy(bmp.getConfig(), true);
                 // Draw the edge on top of the photo from the edge coordinates we saved in edgeCoords
-                ImageManipulation.colourFineBitmap(resultBMP, edgeCoords,
+                colourFineBitmap(resultBMP, edgeCoords,
                         fineWidthRadius, fineHeightRadius, fineWidthRadius/2);
             }
         }
@@ -304,7 +304,7 @@ class ImageManipulation {
     }
 
     // Colour a wxh block of pixels around (i,j) in the requested colour
-    static void colourArea(Bitmap bmp, int i, int j, int colour, int width, int height) {
+    static Bitmap colourArea(Bitmap bmp, int i, int j, int colour, int width, int height) {
 
         // setPixels needs an int array of colours
         int[] colours = new int[width * height];
@@ -341,6 +341,8 @@ class ImageManipulation {
                 y,          // y co-ord of first pixel to colour
                 width,      // width of area to colour
                 height);    // height of area to colour
+
+        return bmp;
     }
 
 
@@ -555,10 +557,25 @@ class ImageManipulation {
                 // Colour point in white if edge, black if not
                 int colour = (brightness > threshold) ? Color.WHITE : Color.BLACK;
 
-                ImageManipulation.colourArea(thresholdBMP, x, y, colour, pointDiamm, pointDiamm);
+                colourArea(thresholdBMP, x, y, colour, pointDiamm, pointDiamm);
             }
 
         return thresholdBMP;
     }
 
+    public static Bitmap colourBitmapCoords(Bitmap bmp, List<Point> coords, int colour, int size) {
+        for (Point p : coords)
+            bmp = colourArea(bmp, (int) p.getX() , (int) p.getY(), colour, size, size);
+        return bmp;
+    }
+
+    public static Bitmap markMatchedCoords(Bitmap bmp, List<Point> coords) {
+        int colour = Color.BLACK;
+
+        for (Point p : coords) {
+            bmp = colourArea(bmp, (int) p.getX(), (int) p.getY(), colour, 10, 10);
+            colour += 1000;
+        }
+        return bmp;
+    }
 }

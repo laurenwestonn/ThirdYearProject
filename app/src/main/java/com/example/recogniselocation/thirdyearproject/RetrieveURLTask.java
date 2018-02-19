@@ -98,16 +98,16 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
 
         // For the photo activity
         intent.putExtra("drawableID", Start.drawableID);  // Bitmap is too big, find it via ID
-        //intent.putParcelableArrayListExtra(photoCoords);      // To draw the edge // Todo: make Point parcelable
-        //intent.putIntegerArrayListExtra(matchedPhotoPoints);  // To mark on the matched points // Todo: make Point parcelable
+        intent.putParcelableArrayListExtra("photoCoords", (ArrayList) photoCoords);      // To draw the edge
+        //intent.putParcelableArrayListExtra("matchedPhotoCoords", matchedPhotoCoords);  // To mark on the matched points
 
         // For the map activity
         //intent.putExtra("highPoints", highPoints);  // Todo: make Result parcelable
         //intent.putExtra("yourLocation", Start.yourLocation); How to send a LatLng
 
         // For the graph activity (already have the photo coords)
-        //intent.putParcelableArrayListExtra("elevationsCoords", elevationsCoords);  // Todo: make Point parcelable
-        //intent.putExtra("matchedMapPoints", matchedMapPoints);  // To mark on the matched points Todo: save the matched up points
+        intent.putParcelableArrayListExtra("elevationsCoords", (ArrayList) elevationsCoords);
+        //intent.putExtra("matchedMapPoints", matchedMapCoords);  // To mark on the matched points Todo: save the matched up points
         //intent.putParcelableArrayListExtra("elevSeries", elevSeries); // Todo: Make Series parcelable
         //intent.putParcelableArrayListExtra("photoMatchedSeries", photoMatchedSeries); // Todo: Make Series parcelable
 

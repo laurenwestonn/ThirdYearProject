@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
+import android.media.Image;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -43,18 +44,24 @@ public class PhotoActivity extends Activity {
         opt.inMutable = true;
         Bitmap bmp = BitmapFactory.decodeResource(getResources(), drawableID, opt);
 
+        // Colour onto the bitmap the edge we've detected, marking the matched points
+        List<Point> photoCoords = getIntent().getParcelableArrayListExtra("photoCoords");
+        bmp = markEdgeCoords(bmp, photoCoords);
+
+        //List<Point> matchedCoords = getIntent().getParcelableArrayListExtra("matchedPhotoCoords");
+        //bmp = markMaximasMinimasOnPhoto(bmp, matchedCoords);
 
         // Put bitmap onto the image button
         this.findViewById(R.id.photo).setBackground(new BitmapDrawable(this.getResources(), bmp));
         Log.d(TAG, "onCreate: Put the image with id " + drawableID + " on the button");
+    }
 
-        //Todo: Draw all coordinates onto the bitmap (and the matched max/mins)
-        // e.g. drawCoordsOnMap();
-        //markMaximaMinimaOnPhoto(photoMaximaMinima, bmp, this);
+    private Bitmap markEdgeCoords(Bitmap bmp, List<Point> photoCoords) {
+        return ImageManipulation.colourBitmapCoords(bmp, photoCoords, Color.WHITE, 20);
     }
 
     // Colour maxima in red, minima in blue
-    private static void markMaximaMinimaOnPhoto(List<Point> photoMM, Bitmap bmp, Activity a)
+    private static Bitmap markMaximaMinimaOnPhoto(Bitmap bmp, List<Point> photoMM, Activity a)
     {
         // If the first is a maxima, start from the first index
         int maxInd = photoMM.size() == 2 ? 0 : 2;
@@ -65,10 +72,26 @@ public class PhotoActivity extends Activity {
                 (int) photoMM.get(1).getY(),
                 Color.BLUE, 40, 40);
 
+
         // Put this on the image button
         ImageButton imageButton = (ImageButton) a.findViewById(R.id.photo);
         BitmapDrawable drawable = new BitmapDrawable(a.getResources(), bmp);
         imageButton.setBackground(drawable);
+
+
+        return bmp;
+    }
+
+    // Mark of the maximas and minimas in varying colours
+    private static Bitmap markMaximasMinimasOnPhoto(Bitmap bmp, List<Point> photoMMs)
+    {
+        int colour = Color.BLACK;
+
+        for (Point p : photoMMs) {
+            bmp = ImageManipulation.colourArea(bmp, (int) p.getX(), (int) p.getY(), colour, 40, 40);
+            colour += 1000;
+        }
+        return bmp;
     }
 
 
