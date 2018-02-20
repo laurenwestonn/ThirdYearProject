@@ -26,7 +26,7 @@ public class MapFunctions extends Activity {
         LatLng midHorizon = highPoints.get(noOfPaths / 2).getLocation();
         double avLat = (p.getLat() + midHorizon.getLat()) / 2;
         double avLng = (p.getLng() + midHorizon.getLng()) / 2;
-        goToLocation(avLat, avLng, 11);
+        goToLocation(map, avLat, avLng);
 
         addMarkerAt(map, p, "You are here!");
 
@@ -34,9 +34,11 @@ public class MapFunctions extends Activity {
         showVisiblePeaks(highPoints);
     }
 
-    public static void goToLocation(double lat, double lng, float zoom) {
-        CameraUpdate update = CameraUpdateFactory.newLatLngZoom(new com.google.android.gms.maps.model.LatLng(lat, lng), zoom);
-        MapActivity.googleMap.moveCamera(update);
+    public static void goToLocation(GoogleMap map, double lat, double lng) {
+        CameraUpdate update = CameraUpdateFactory.newLatLngZoom(
+                new com.google.android.gms.maps.model.LatLng(lat, lng), 11);
+        Log.d("df", "goToLocation: Moving camera for map " + map);
+        map.moveCamera(update);
         Log.d("MapFunctions", "Moved to location " + lat + ", " + lng);
     }
 

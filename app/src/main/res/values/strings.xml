@@ -23,4 +23,10 @@
     <string name="demo3">Run the third demo</string>
     <string name="demo4">Run the fourth demo</string>
 
+
+    <string name="one">1</string>
+    <string name="two">2</string>
+    <string name="three">3</string>
+    <string name="four">4</string>
+
 </resources>

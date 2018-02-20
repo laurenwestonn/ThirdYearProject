@@ -45,7 +45,7 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
         ///////// CONSTRUCT HORIZON FROM ELEVATIONS /////////
         // Set up Gson to convert string responses to GSON objects
         Log.d("onPostExecute", "API gave response " + strResponses);
-        Gson gson = new GsonBuilder().setLenient().create(); //Todo is lenient needed? could just do new Gson instead, like I used to have.
+        Gson gson = new GsonBuilder().create();
         double yourElevation = gson.fromJson(strResponses.get(0), Response.class).getResults().get(samplesPerPath).getElevation();
 
         // Find the highest point in each path for each response
@@ -97,7 +97,6 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
 
         ////// START NEXT ACTIVITY //////
         Intent intent = new Intent(activity.getString(R.string.PHOTO_ACTIVITY));
-        // Todo: Send the required results on to the activity
 
         // For the photo activity
         intent.putExtra("drawableID", Start.drawableID);  // Bitmap is too big, find it via ID
@@ -105,12 +104,12 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
         intent.putParcelableArrayListExtra("matchedPhotoCoords", (ArrayList) matchedPhotoCoords);  // To mark on the matched points
 
         // For the map activity
-        //intent.putExtra("highPoints", highPoints);  // Todo: make Result parcelable
-        //intent.putExtra("yourLocation", Start.yourLocation); How to send a LatLng
+        intent.putParcelableArrayListExtra("highPoints", (ArrayList) highPoints);
+        intent.putExtra("yourLocation", Start.yourLocation);
+        // Todo: Pass through max and mins found on the map, to mark on
 
         // For the graph activity (already have the photo coords)
-        intent.putParcelableArrayListExtra("elevationsCoords", (ArrayList) elevationsCoords);
-        //intent.putExtra("matchedMapPoints", matchedMapCoords);  // To mark on the matched points Todo: save the matched up points
+        //intent.putParcelableArrayListExtra("elevationsCoords", (ArrayList) elevationsCoords);         Are these needed?
         //intent.putParcelableArrayListExtra("elevSeries", elevSeries); // Todo: Make Series parcelable
         //intent.putParcelableArrayListExtra("photoMatchedSeries", photoMatchedSeries); // Todo: Make Series parcelable
 
@@ -213,7 +212,7 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
 
     // Get the results as an object from the string reponse of the request
     private List<Result> getResults(String strResponse) {
-        Gson gson = new GsonBuilder().setLenient().create(); //Todo is lenient needed? could just do new Gson instead, like I used to have.
+        Gson gson = new GsonBuilder().create();
         Response response = gson.fromJson(strResponse, Response.class);
         return response.getResults();
     }

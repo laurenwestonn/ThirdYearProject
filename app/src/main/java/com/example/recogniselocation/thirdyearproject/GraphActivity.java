@@ -81,6 +81,12 @@ public class GraphActivity extends Activity {
                 intent.putParcelableArrayListExtra("photoCoords", (ArrayList) photoCoords);      // To draw the edge
                 intent.putParcelableArrayListExtra("matchedPhotoCoords", (ArrayList) matchedPhotoCoords);  // To mark on the matched points
 
+                // For the map activity
+                LatLng yourLocation = getIntent().getParcelableExtra("yourLocation");
+                intent.putExtra("yourLocation", yourLocation);
+                List<Result> highPoints = getIntent().getParcelableArrayListExtra("highPoints");
+                intent.putParcelableArrayListExtra("highPoints", (ArrayList) highPoints);
+
                 startActivity(intent);
                 finish();
                 break;
@@ -98,6 +104,12 @@ public class GraphActivity extends Activity {
                 intent.putExtra("drawableID", drawableID);  // Bitmap is too big, find it via ID
                 intent.putParcelableArrayListExtra("photoCoords", (ArrayList) photoCoords);      // To draw the edge
                 intent.putParcelableArrayListExtra("matchedPhotoCoords", (ArrayList) matchedPhotoCoords);  // To mark on the matched points
+
+                // For the map activity
+                LatLng yourLocation = getIntent().getParcelableExtra("yourLocation");
+                intent.putExtra("yourLocation", yourLocation);
+                List<Result> highPoints = getIntent().getParcelableArrayListExtra("highPoints");
+                intent.putParcelableArrayListExtra("highPoints", (ArrayList) highPoints);
 
                 startActivity(intent);
                 finish();
