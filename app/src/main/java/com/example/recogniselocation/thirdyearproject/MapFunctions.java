@@ -42,6 +42,16 @@ public class MapFunctions extends Activity {
         Log.d("MapFunctions", "Moved to location " + lat + ", " + lng);
     }
 
+    // Add a list of LatLng markers to the map
+    public static void addMarkersAt(GoogleMap map, List<LatLng> locations)
+    {
+        boolean even = true;
+        for (LatLng l : locations) {
+            addMarkerAt(map, l, (even ? "Maxima" : "Minima"));
+            even = !even;
+        }
+    }
+
     // Add marker to map at the specified location that says the string
     public static void addMarkerAt(GoogleMap map, LatLng p, String msg)
     {

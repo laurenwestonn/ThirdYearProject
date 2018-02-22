@@ -93,6 +93,7 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
         // Todo: Possibly just send the horizon object as one, not as its elements seperately
         Series<DataPoint> photoMatchedSeries = horizon.getSeries();
         List<Point> matchedPhotoCoords = horizon.getPhotoMMs();
+        List<Integer> matchedElevCoordsIndexes = horizon.getElevMMIndexes();
         /////// MATCH UP HORIZONS //////
 
         ////// START NEXT ACTIVITY //////
@@ -100,13 +101,13 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
 
         // For the photo activity
         intent.putExtra("drawableID", Start.drawableID);  // Bitmap is too big, find it via ID
-        intent.putParcelableArrayListExtra("photoCoords", (ArrayList) photoCoords);      // To draw the edge
-        intent.putParcelableArrayListExtra("matchedPhotoCoords", (ArrayList) matchedPhotoCoords);  // To mark on the matched points
+        intent.putParcelableArrayListExtra("photoCoords", (ArrayList<Point>) photoCoords);      // To draw the edge
+        intent.putParcelableArrayListExtra("matchedPhotoCoords", (ArrayList<Point>) matchedPhotoCoords);  // To mark on the matched points
 
         // For the map activity
-        intent.putParcelableArrayListExtra("highPoints", (ArrayList) highPoints);
+        intent.putParcelableArrayListExtra("highPoints", (ArrayList<Result>) highPoints);
         intent.putExtra("yourLocation", Start.yourLocation);
-        // Todo: Pass through max and mins found on the map, to mark on
+        intent.putIntegerArrayListExtra("matchedElevCoordsIndexes", (ArrayList<Integer>) matchedElevCoordsIndexes);  // To mark on the matched points
 
         // For the graph activity (already have the photo coords)
         //intent.putParcelableArrayListExtra("elevationsCoords", (ArrayList) elevationsCoords);         Are these needed?

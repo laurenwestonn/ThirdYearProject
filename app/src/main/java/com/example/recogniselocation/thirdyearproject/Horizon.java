@@ -14,16 +14,24 @@ import java.util.List;
 class Horizon implements Series<DataPoint> {
 
     private List<Point> photoMaximasMinimas;
+    private List<Integer> elevMaximasMinimasIndexes;
     private LineGraphSeries<DataPoint> series;
 
-    Horizon(List<Point> photoMMs, LineGraphSeries<DataPoint> series) {
+    Horizon(List<Point> photoMMs, List<Integer> elevMMIndexes,
+            LineGraphSeries<DataPoint> series) {
         this.photoMaximasMinimas = photoMMs;
+        this.elevMaximasMinimasIndexes = elevMMIndexes;
         this.series = series;
     }
 
     public List<Point> getPhotoMMs()
     {
         return photoMaximasMinimas;
+    }
+
+    public List<Integer> getElevMMIndexes()
+    {
+        return elevMaximasMinimasIndexes;
     }
 
     public LineGraphSeries<DataPoint> getSeries()

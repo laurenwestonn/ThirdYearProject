@@ -131,7 +131,7 @@ public class HorizonMatchingTest {
     }
 
     @Test
-    public void findMaximaMinimaTest() throws Exception {
+    public void findMaximasMinimasTest() throws Exception {
 
         // Remember that in this coordinate system, the larger y will be the minimum
         // Because of how I flipped the coordinate system, the highest max that there could
@@ -142,44 +142,44 @@ public class HorizonMatchingTest {
         List<Point> expectedOutput = Arrays.asList(new Point(1,1), new Point(2, 50));
         assertThat(Arrays.asList(2,3), is(Arrays.asList(2,3)));
         assertThat(new Point(2,3), is(new Point(2,3)));
-        assertThat(HorizonMatching.findMaximaMinima(input, false), is(expectedOutput));
+        assertThat(HorizonMatching.findMaximasMinimas(input, false), is(expectedOutput));
 
         // Pointy min, pointy max  \/\
         input = Arrays.asList(new Point(0,1), new Point(1,50), new Point(2,1), new Point(3, 50));
         expectedOutput = Arrays.asList(null, new Point(1,50), new Point(2, 1));
-        assertThat(HorizonMatching.findMaximaMinima(input, false), is(expectedOutput));
+        assertThat(HorizonMatching.findMaximasMinimas(input, false), is(expectedOutput));
 
         // Flat min, pointy max \___/\
         input = Arrays.asList(new Point(0,1), new Point(1,50), new Point(2,50), new Point(3,50), new Point(4,1), new Point(5, 50));
         expectedOutput = Arrays.asList(null, new Point(2,50), new Point(4, 1));
-        assertThat(HorizonMatching.findMaximaMinima(input, false), is(expectedOutput));
+        assertThat(HorizonMatching.findMaximasMinimas(input, false), is(expectedOutput));
         //                        ___
         // Pointy min, flat max \/   \
         input = Arrays.asList(new Point(0,1), new Point(1,50), new Point(2,1), new Point(3,1), new Point(4,1), new Point(5, 50));
         expectedOutput = Arrays.asList(null, new Point(1,50), new Point(3, 1));
-        assertThat(HorizonMatching.findMaximaMinima(input, false), is(expectedOutput));
+        assertThat(HorizonMatching.findMaximasMinimas(input, false), is(expectedOutput));
         //                         ___
         // Flat min, flat max \___/   \
         input = Arrays.asList(new Point(0,1), new Point(1,50), new Point(2,50), new Point(3,50), new Point(4,1), new Point(5, 1), new Point(6, 1), new Point(7, 50));
         expectedOutput = Arrays.asList(null, new Point(2,50), new Point(5, 1));
-        assertThat(HorizonMatching.findMaximaMinima(input, false), is(expectedOutput));
+        assertThat(HorizonMatching.findMaximasMinimas(input, false), is(expectedOutput));
         //                             _._
         // Smooth min, smooth max \___/   \
         input = Arrays.asList(new Point(0,1), new Point(1,45), new Point(2,50), new Point(3,47), new Point(4,5), new Point(5, 2), new Point(6, 10), new Point(7, 50));
         expectedOutput = Arrays.asList(null, new Point(2,50), new Point(5, 2));
-        assertThat(HorizonMatching.findMaximaMinima(input, false), is(expectedOutput));
+        assertThat(HorizonMatching.findMaximasMinimas(input, false), is(expectedOutput));
 
         // Many max/min  \  ./\   /\.
         //                \./  \./  \
         input = Arrays.asList(new Point(0,1), new Point(1,50), new Point(2,20), new Point(3,1), new Point(4,50), new Point(5, 1), new Point(6, 10), new Point(7, 50));
         expectedOutput = Arrays.asList(null, new Point(1,50), new Point(3, 1), new Point(4, 50), new Point(5, 1));
-        assertThat(HorizonMatching.findMaximaMinima(input, false), is(expectedOutput));
+        assertThat(HorizonMatching.findMaximasMinimas(input, false), is(expectedOutput));
 
         // Does it ignore minimas that are too small    \  /~\  /
         //                                               \/   \/        What is too small? Maybe test thresholding? Is picking up a difference of 0.1 when graph is 0 -> 50
         input = Arrays.asList(new Point(0,1), new Point(1,50), new Point(2,1), new Point(3, 2), new Point(4, 1), new Point(5, 50), new Point(6, 1));
         expectedOutput = Arrays.asList(null, new Point(1,50), new Point(3, 2 ), new Point(5, 50));
-        assertThat(HorizonMatching.findMaximaMinima(input, false), is(expectedOutput));
+        assertThat(HorizonMatching.findMaximasMinimas(input, false), is(expectedOutput));
 
         // Can't have two minimas in a row, in between must be a maxima. No test for that as doesn't exist
 

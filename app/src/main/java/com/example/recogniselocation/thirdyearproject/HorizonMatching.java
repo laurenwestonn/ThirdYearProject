@@ -1,15 +1,10 @@
 package com.example.recogniselocation.thirdyearproject;
 
-import android.app.Activity;
-import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.graphics.drawable.BitmapDrawable;
 import android.util.Log;
-import android.widget.ImageButton;
 
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
-import com.jjoe64.graphview.series.Series;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,14 +18,17 @@ class HorizonMatching {
     // Returns the horizon you manage to match up from the photo as a series so can plot on graph
     static Horizon matchUpHorizons(List<Point> photoCoords, List<Point> elevationCoords) {
         // Find all minimas and maximas of both horizons
-        List<Point> photoMMs = findMaximaMinima(photoCoords, true);
+        MaximasMinimas photoMMsObj = findMaximasMinimas(photoCoords, true);
+        List<Point> photoMMs = photoMMsObj.getCoords();
         if (debug)
             Log.d(TAG, "matchUpHorizons: Now check elevationMMs from coords: " + elevationCoords);
-        List<Point> elevationMMs = findMaximaMinima(elevationCoords, false);// Todo: This better. Using a looser(...is it?) threshold here because my edge detection is too thick to notice subtle dips
+        MaximasMinimas elevMMsObj = findMaximasMinimas(elevationCoords, false);// Todo: This better. Using a looser(...is it?) threshold here because my edge detection is too thick to notice subtle dips
+        List<Point> elevationMMs = elevMMsObj.getCoords();
+        List<Integer> elevationMMsIndexes = elevMMsObj.getIndexes();
 
         if (photoMMs == null || elevationMMs == null                        // None found
                 ||photoMMs.size() < 2 || elevationMMs.size() < 2            // Just a maxima found
-                || photoMMs.get(0) == null && photoMMs.size() == 2          // Just a minima found
+                || photoMMs.get(0) == null && photoMMs.size() <= 2          // Just a minima found
                 || elevationMMs.get(0) == null && elevationMMs.size() == 2) // Just a minima found
             Log.e(TAG, "matchUpHorizons: Didn't find enough maximas and minimas; "
                     + "Elevation ones: " + elevationMMs + "\tPhoto ones: " + photoMMs);
@@ -102,7 +100,7 @@ class HorizonMatching {
 
         Log.d(TAG, "matchUpHorizons: The best matching is " + bestMatching);
 
-        return new Horizon(photoMMs, bestMatching.getSeries());
+        return new Horizon(photoMMs, elevMMsObj.getIndexes(), bestMatching.getSeries());
     }
 
     public static List<Point> getTheNextElevationMM(List<Point> photoMaxMinPair, List<Point> elevationMMs, int i)
@@ -222,7 +220,9 @@ class HorizonMatching {
         for (; i < maximasMinimas.size() - 1; i++) {
             //Log.d(TAG, "findBestMaximaMinima: Checking pair " + maximasMinimas.get(i)
               //                                              + " and " + maximasMinimas.get(i+1));
-            if ((thisYDiff = Math.abs(maximasMinimas.get(i).getY() - maximasMinimas.get(i+1).getY())) > maxYDiff) {
+            if (maximasMinimas.get(i) != null
+                    && (thisYDiff = Math.abs(maximasMinimas.get(i).getY() - maximasMinimas.get(i+1).getY()))
+                    > maxYDiff) {
                 //Log.d(TAG, "findBestMaximaMinima: Yes this difference (" + thisYDiff + ") is bigger than our current max difference " + maxYDiff);
                 maxYDiff = thisYDiff;
                 bestIndex = i;
@@ -269,21 +269,22 @@ class HorizonMatching {
 
     // Find all maximum and minimum point of a line when given the coordinates
     // Returned in the form where maximas are are even indexes, minima at odd indexes
-    public static List<Point> findMaximaMinima(List<Point> coords, boolean loosenThreshold)
+    public static MaximasMinimas findMaximasMinimas(List<Point> coords, boolean loosenThreshold)
     {
+        Log.d(TAG, "findMaximasMinimas: Finding maximas and minimas of " + coords.toString());
         int arrayIndex = 0;
-        double nextGradient = 999;
-        List<Point> maxMin = new ArrayList<>();
+        double nextGradient = Integer.MAX_VALUE;
+        MaximasMinimas mms = new MaximasMinimas(new ArrayList<Point>(), new ArrayList<Integer>());
         boolean wereGoingUp = true;    //  Whether the hill is heading up or down. Updated.
         double threshold = getThreshold(coords) * (loosenThreshold ? 4 : 1);
         int searchWidth = getSearchWidth(coords);
         if (debug)
-            Log.d(TAG, "findMaximaMinima: Using a noise threshold of " + threshold + " and searching a width of " + searchWidth);
+            Log.d(TAG, "findMaximasMinimas: Using a noise threshold of " + threshold + " and searching a width of " + searchWidth);
 
         while ((arrayIndex + searchWidth - 1) < coords.size()) { // While there is a horizon ahead
             if (debug) {
                 Log.d("gradient", " ");
-                Log.d("gradient", "findMaximaMinima: Ahead of " + coords.get(arrayIndex) + ", index "
+                Log.d("gradient", "findMaximasMinimas: Ahead of " + coords.get(arrayIndex) + ", index "
                         + arrayIndex + " is steepness " + gradientAhead(coords, arrayIndex, searchWidth));
             }
 
@@ -291,7 +292,7 @@ class HorizonMatching {
             if (arrayIndex == 0) {
                 arrayIndex = skipOverInitialFlatAreas(coords, threshold, searchWidth);
                 if (debug)
-                    Log.d("gradient", "findMaximaMinima: Skipped flat area until " + coords.get(arrayIndex) + ", index "
+                    Log.d("gradient", "findMaximasMinimas: Skipped flat area until " + coords.get(arrayIndex) + ", index "
                         + arrayIndex);
 
                 // Now there's an up or down direction, remember it
@@ -307,11 +308,11 @@ class HorizonMatching {
             while (arrayIndex + searchWidth - 1 < coords.size()
                     && Math.abs(nextGradient = gradientAhead(coords, arrayIndex, searchWidth)) > threshold) {
 
-                addAnyPointyPeaks(coords, arrayIndex, wereGoingUp, nextGradient, maxMin, threshold);
+                mms = addAnyPointyPeaks(coords, arrayIndex, wereGoingUp, nextGradient, mms, threshold);
                 wereGoingUp = (nextGradient < 0);   // y coords are +ve downwards for bitmaps
 
                 if(debug) {
-                    Log.d("gradient", "findMaximaMinima: Ahead of " + coords.get(arrayIndex) + ", index "
+                    Log.d("gradient", "findMaximasMinimas: Ahead of " + coords.get(arrayIndex) + ", index "
                             + arrayIndex + " is " + nextGradient + " which is significantly "
                             + (wereGoingUp ?  "up" : "down") +", so check what it is from "
                             + coords.get(arrayIndex + searchWidth - 1) + ", index "
@@ -326,7 +327,7 @@ class HorizonMatching {
 
             // Now you've got a straight area ahead
             if (debug)
-                Log.d("gradient", "findMaximaMinima: Ahead of " + coords.get(arrayIndex) + ", index "
+                Log.d("gradient", "findMaximasMinimas: Ahead of " + coords.get(arrayIndex) + ", index "
                         + arrayIndex + " is " + nextGradient + " which is quite flat, could be max/min");
             int iAtStartOfFlat = arrayIndex++;  // Increment index so it is at the second flat point
 
@@ -338,7 +339,7 @@ class HorizonMatching {
                 break;
 
             if (debug)
-                Log.d("gradient", "findMaximaMinima: Skipped flat area until " + coords.get(arrayIndex) + ", index "
+                Log.d("gradient", "findMaximasMinimas: Skipped flat area until " + coords.get(arrayIndex) + ", index "
                         + arrayIndex);
 
             // Got a gradient ahead again, see which direction it is to
@@ -352,10 +353,9 @@ class HorizonMatching {
             int iOfMaxOrMin = iAtStartOfFlat + centreOfFlat;
 
             nextGradient = gradientAhead(coords, arrayIndex, searchWidth);
-            wereGoingUp = addAnyMaximaMinima(coords, iOfMaxOrMin, maxMin, wereGoingUp, nextGradient);
+            wereGoingUp = addAnyMaximaMinima(coords, iOfMaxOrMin, mms, wereGoingUp, nextGradient);
         }
-
-        return maxMin;
+        return mms;
     }
 
     public static int getSearchWidth(List<Point> coords) {
@@ -396,7 +396,7 @@ class HorizonMatching {
         return index;
     }
 
-    private static boolean addAnyMaximaMinima(List<Point> coords, int maxOrMinIndex, List<Point> maxMin,
+    private static boolean addAnyMaximaMinima(List<Point> coords, int maxOrMinIndex, MaximasMinimas mms,
                                               boolean wereGoingUp, double nextGradient)
     {
         boolean areNowGoingUp = nextGradient < 0;
@@ -407,10 +407,11 @@ class HorizonMatching {
             wereGoingUp = false; // Bug fix to avoid adding duplicate pointy points
 
             // Ensure that maximas are stored at even indexes
-            if (maxMin.size() % 2 == 1)
-                maxMin.add(null);
+            if (mms.getCoords().size() % 2 == 1)
+                mms.getCoords().add(null);
 
-            maxMin.add(coords.get(maxOrMinIndex));
+            mms.getCoords().add(coords.get(maxOrMinIndex));
+            mms.getIndexes().add(maxOrMinIndex);
 
                                                             //  MINIMA
         } else if (!wereGoingUp && areNowGoingUp) {         //          \_______/
@@ -419,10 +420,11 @@ class HorizonMatching {
             wereGoingUp = true; // Bug fix to avoid adding duplicate pointy points
 
             // Ensure that minimas are stored at odd indexes
-            if (maxMin.size() % 2 == 0)
-                maxMin.add(null);
+            if (mms.getCoords().size() % 2 == 0)
+                mms.getCoords().add(null);
 
-            maxMin.add(coords.get(maxOrMinIndex));
+            mms.getCoords().add(coords.get(maxOrMinIndex));
+            mms.getIndexes().add(maxOrMinIndex);
 
                             // \_____   or    _____/
         } else              //       \       /
@@ -433,8 +435,10 @@ class HorizonMatching {
         return wereGoingUp;
     }
 
-    private static void addAnyPointyPeaks(List<Point> coords, int arrayIndex, boolean wereGoingUp,
-                                          double nextGradient, List<Point> maxMin, double threshold)
+    // Todo: Fix this, not going up doesn't necessarily mean not going down so 'weregoingUp' bool makes no sense
+    // Todo: Pass through prevGradient, compare it against the threshold
+    private static MaximasMinimas addAnyPointyPeaks(List<Point> coords, int arrayIndex, boolean wereGoingUp,
+                                          double nextGradient, MaximasMinimas mms, double threshold)
     {
         // Check if the direction has flipped, if so, this is a maxima or minima
         if (wereGoingUp & nextGradient > threshold) {
@@ -442,19 +446,20 @@ class HorizonMatching {
                 Log.d("gradient", "Adding Pointy maxima at " + coords.get(arrayIndex)
                         + ", index " + arrayIndex + ", where the gradient ahead is also significant at "
                         + nextGradient + ". We're checking that it's more than " + threshold);
-            if (maxMin.size() % 2 == 1) // Done this so that maximas are at even indexes
-                maxMin.add(null);
-
-            maxMin.add(coords.get(arrayIndex));
-
+            if (mms.getCoords().size() % 2 == 1) // Done this so that maximas are at even indexes
+                mms.getCoords().add(null);
         } else if (!wereGoingUp & nextGradient < -threshold) {
             if (debug)
                 Log.d("gradient", "Adding Pointy minima at " + coords.get(arrayIndex) + ", index " + arrayIndex);
-            if (maxMin.size() % 2 == 0) // Done this so that minima are odd
-                maxMin.add(null);
-
-            maxMin.add(coords.get(arrayIndex));
+            if (mms.getCoords().size() % 2 == 0) // Done this so that minima are odd
+                mms.getCoords().add(null);
         }
+        if ((wereGoingUp & nextGradient > threshold) || (!wereGoingUp & nextGradient < -threshold)) {
+            mms.getCoords().add(coords.get(arrayIndex));
+            mms.getIndexes().add(arrayIndex);
+        }
+
+        return mms;
     }
 
     private static int skipOverInitialFlatAreas(List<Point> coords, double threshold, int searchWidth)

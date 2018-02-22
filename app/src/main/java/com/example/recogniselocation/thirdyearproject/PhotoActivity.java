@@ -96,80 +96,56 @@ public class PhotoActivity extends Activity {
         return bmp;
     }
 
-
-    public void detectHorizon(View view) {
-        ImageButton imageButton = (ImageButton) view;
-        Bitmap bmp = ((BitmapDrawable)imageButton.getDrawable()).getBitmap();
-        Edge edge = null;
-
-        // Get the image off the button as a bitmap
-        if (bmp != null)
-            edge = ImageManipulation.detectEdge(bmp, false, false, true, true);
-
-        if (edge != null)
-            ((ImageButton) view).setImageBitmap(edge.getBitmap());
-    }
-
-
     // Deal with button clicks
     public void buttonClicked(View view) {
         Log.d(TAG, "buttonClicked: A button was clicked");
+        Intent intent = null;
+
         switch (view.getId()) {
             case R.id.back: {
                 Log.d(TAG, "buttonClicked: Go back to the start page");
-                Intent intent = new Intent(this.getString(R.string.START_ACTIVITY));
-                startActivity(intent);
-                finish();
+                intent = new Intent(this.getString(R.string.START_ACTIVITY));
                 break;
             }
             case R.id.before: {
                 Log.d(TAG, "Go back to the graph");
-                //Todo: Pass all results to the intent
-                Intent intent = new Intent(this.getString(R.string.GRAPH_ACTIVITY));
-
-                // For the photo activity
-                int drawableID = getIntent().getIntExtra("drawableID", 0);
-                List<Point> photoCoords = getIntent().getParcelableArrayListExtra("photoCoords");
-                List<Point> matchedPhotoCoords = getIntent().getParcelableArrayListExtra("matchedPhotoCoords");
-                intent.putExtra("drawableID", drawableID);  // Bitmap is too big, find it via ID
-                intent.putParcelableArrayListExtra("photoCoords", (ArrayList) photoCoords);      // To draw the edge
-                intent.putParcelableArrayListExtra("matchedPhotoCoords", (ArrayList) matchedPhotoCoords);  // To mark on the matched points
-
-                // For the map activity
-                LatLng yourLocation = getIntent().getParcelableExtra("yourLocation");
-                intent.putExtra("yourLocation", yourLocation);
-                List<Result> highPoints = getIntent().getParcelableArrayListExtra("highPoints");
-                intent.putParcelableArrayListExtra("highPoints", (ArrayList) highPoints);
-
-                startActivity(intent);
-                finish();
+                intent = new Intent(this.getString(R.string.GRAPH_ACTIVITY));
                 break;
             }
             case R.id.next: {
                 Log.d(TAG, "buttonClicked: Go to the map");
-                //Todo: Pass all results to the intent
-                Intent intent = new Intent(this.getString(R.string.MAP_ACTIVITY));
-
-                // For the photo activity
-                int drawableID = getIntent().getIntExtra("drawableID", 0);
-                List<Point> photoCoords = getIntent().getParcelableArrayListExtra("photoCoords");
-                List<Point> matchedPhotoCoords = getIntent().getParcelableArrayListExtra("matchedPhotoCoords");
-                intent.putExtra("drawableID", drawableID);  // Bitmap is too big, find it via ID
-                intent.putParcelableArrayListExtra("photoCoords", (ArrayList) photoCoords);      // To draw the edge
-                intent.putParcelableArrayListExtra("matchedPhotoCoords", (ArrayList) matchedPhotoCoords);  // To mark on the matched points
-
-                // For the map activity
-                LatLng yourLocation = getIntent().getParcelableExtra("yourLocation");
-                intent.putExtra("yourLocation", yourLocation);
-                List<Result> highPoints = getIntent().getParcelableArrayListExtra("highPoints");
-                intent.putParcelableArrayListExtra("highPoints", (ArrayList) highPoints);
-
-                startActivity(intent);
-                finish();
+                intent = new Intent(this.getString(R.string.MAP_ACTIVITY));
                 break;
             }
             default:
                 Log.d(TAG, "buttonClicked: didn't recognise id " + view.getId() + " of view " + view.toString());
+        }
+
+        if (view.getId() == R.id.before || view.getId() == R.id.next) {
+            // For the photo activity
+            int drawableID = getIntent().getIntExtra("drawableID", 0);
+            intent.putExtra("drawableID", drawableID);  // Bitmap is too big, find it via ID
+            ArrayList<Point> photoCoords = getIntent().getParcelableArrayListExtra("photoCoords");
+            intent.putParcelableArrayListExtra("photoCoords", photoCoords);      // To draw the edge
+            ArrayList<Point> matchedPhotoCoords = getIntent().getParcelableArrayListExtra("matchedPhotoCoords");
+            intent.putParcelableArrayListExtra("matchedPhotoCoords", matchedPhotoCoords);  // To mark on the matched points
+
+            // For the map activity
+            LatLng yourLocation = getIntent().getParcelableExtra("yourLocation");
+            intent.putExtra("yourLocation", yourLocation);
+            ArrayList<Result> highPoints = getIntent().getParcelableArrayListExtra("highPoints");
+            intent.putParcelableArrayListExtra("highPoints", highPoints);
+            ArrayList<Integer> matchedElevCoordsIndexes = getIntent().getIntegerArrayListExtra("matchedElevCoordsIndexes");
+            intent.putIntegerArrayListExtra("matchedElevCoordsIndexes", matchedElevCoordsIndexes);  // To mark on the matched points
+
+            Log.d(TAG, "PhotoAct: Sending the matchedIndexes " + matchedElevCoordsIndexes);
+        }
+
+        if (intent != null) {
+            startActivity(intent);
+            finish();
+        } else {
+            Log.e(TAG, "buttonClicked: Couldn't find an intent for id " + view.getId());
         }
     }
 
