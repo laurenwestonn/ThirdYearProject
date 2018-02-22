@@ -59,7 +59,6 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
         // Get the coordinates and the series for the graph (draw on in GraphActivity)
         // Todo: Pass on gd.getSeries() in order to draw graph in GraphActivity
         GraphData gd = APIFunctions.findGraphData(highPoints);
-        Series<DataPoint> elevSeries = gd.getSeries();
         List<Point> elevationsCoords = gd.getCoords();
 
 
@@ -85,18 +84,22 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
         List<Integer> photoCoordsIntegers = HorizonMatching.removeDimensionFromCoords(photoCoords2D);
         int pointWidth = (fineWidth-1)/2;
         List<Point> photoCoords = HorizonMatching.convertToPoints(photoCoordsIntegers, pointWidth);
+        photoCoords = invertY(photoCoords);
+        elevationsCoords = invertY(elevationsCoords);
 
-        Log.d(TAG, "onPostExecute: Going to match up horizons");
+        //Log.d(TAG, "onPostExecute: Going to match up horizons");
 
-        Horizon horizon = HorizonMatching.matchUpHorizons(convertCoordSystem(photoCoords), convertCoordSystem(elevationsCoords));
-        // Todo: Possibly just send the horizon object as one, not as its elements seperately
-        Series<DataPoint> photoMatchedSeries = horizon.getSeries();
+        // Todo: Check why I am inverting elevations coords, should already be in the graph coord system as
+        // todo: this is the only thing elev coords are used for.. Check against other photos - does the elevation look right?
+        Horizon horizon = HorizonMatching.matchUpHorizons(photoCoords, elevationsCoords);
+        // Todo: Possibly just send the horizon object as one, not as its elements separately
         List<Point> photoSeriesCoords = horizon.getPhotoSeriesCoords();
         List<Point> matchedPhotoCoords = horizon.getPhotoMMs();
         List<Integer> matchedElevCoordsIndexes = horizon.getElevMMIndexes();
 
-        // Todo: Convert these photo edge photoCoords and matched matchedPhotoCoords coordinates to work for the bitmap
-        //photoCoords = convertCoordSystem(photoCoords);
+        photoCoords = invertY(photoCoords);
+
+
         /////// MATCH UP HORIZONS //////
 
         ////// START NEXT ACTIVITY //////
@@ -115,8 +118,6 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
         // For the graph activity (already have the photo coords)
         intent.putParcelableArrayListExtra("elevationsCoords", (ArrayList<Point>) elevationsCoords);
         intent.putParcelableArrayListExtra("photoSeriesCoords", (ArrayList<Point>) photoSeriesCoords);
-        //intent.putParcelableArrayListExtra("elevSeries", elevSeries); // Todo: Make Series parcelable
-        //intent.putParcelableArrayListExtra("photoMatchedSeries", photoMatchedSeries); // Todo: Make Series parcelable
 
         Log.d(TAG, "buttonClicked: Put at the relevant info into the intent. Start the activity.");
         activity.startActivity(intent);
@@ -222,17 +223,17 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
         return response.getResults();
     }
 
-    // From right up being positive to right down
-    public static List<Point> convertCoordSystem(List<Point> coords)
+    // Flip on the x axis, doesn't matter where on the axes it ends up as gets scaled anyway
+    public static List<Point> invertY(List<Point> coords)
     {
-        Point maxPoint = findMaxPoint(coords);
+        List<Point> inverted = new ArrayList<>();
+        for(Point p : coords)
+            if (p != null)
+                inverted.add(new Point(p.getX(), p.getY() * -1));
+            else
+                Log.e(TAG, "invertSign: Can't invert a null point! " + coords);
 
-        // Now we know how tall the y axis can go we can convert the coordinate system
-        // by flipping the y coordinates
-        for (int i = 0; i < coords.size(); i++)
-            coords.set(i, new Point(coords.get(i).getX(),
-                        maxPoint.getY() - coords.get(i).getY() + 1)); // +1 deals with / 0
-        return coords;
+        return inverted;
     }
 
     private static Point findMaxPoint(List<Point> coords) {

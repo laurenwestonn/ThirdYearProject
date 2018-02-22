@@ -40,7 +40,7 @@ public class GraphActivity extends Activity {
         Log.d(TAG, "GraphAct: photoSeries: Y Range: " + photoSeries.getLowestValueY() + ", " + photoSeries.getHighestValueY());
 
         drawOnGraph(elevSeries, Color.BLACK);
-        drawOnGraph(photoSeries, Color.argb(255, 200, 150, 50));
+        drawOnGraph(photoSeries, Color.argb(255, 250, 150, 0));
     }
 
     private LineGraphSeries<DataPoint> coordsToSeries(List<Point> coords) {

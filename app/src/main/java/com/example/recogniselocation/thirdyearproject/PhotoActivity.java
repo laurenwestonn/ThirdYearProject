@@ -47,7 +47,6 @@ public class PhotoActivity extends Activity {
         // Colour onto the bitmap the edge we've detected
         List<Point> photoCoords = getIntent().getParcelableArrayListExtra("photoCoords");
         bmp = markEdgeCoords(bmp, photoCoords);
-
         // Mark the maximas and minimas (common with the map)
         List<Point> matchedCoords = getIntent().getParcelableArrayListExtra("matchedPhotoCoords");
         bmp = markMaximasMinimasOnPhoto(bmp, matchedCoords);
@@ -57,7 +56,7 @@ public class PhotoActivity extends Activity {
     }
 
     private Bitmap markEdgeCoords(Bitmap bmp, List<Point> photoCoords) {
-        return ImageManipulation.colourBitmapCoords(bmp, photoCoords, Color.WHITE, 20);
+        return ImageManipulation.colourBitmapCoords(bmp, photoCoords, Color.argb(255, 250, 150, 0), 20);
     }
 
     // Colour maxima in red, minima in blue

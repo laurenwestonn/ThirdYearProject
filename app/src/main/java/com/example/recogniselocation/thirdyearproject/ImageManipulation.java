@@ -317,13 +317,21 @@ class ImageManipulation {
         // Don't try colour in areas outside of the image
         if (x < 0) {
             width += x;
+            if (height < 0) {
+                Log.e(TAG, "colourArea: This pixel (" + i + ", " + j + ") and surrounding area is completely before the image (x is negative) So can't be coloured");
+                return bmp;
+            }
             x = 0;
         }
         else if (x + width >= bmp.getWidth())
             width = bmp.getWidth() - x - 1;
 
         if (y < 0) {
-            height += y;
+            height += y;    // Just colour in the difference from the edge
+            if (height < 0) {
+                Log.e(TAG, "colourArea: This pixel (" + i + ", " + j + ") and surrounding area is completely above the image (y is negative) So can't be coloured");
+                return bmp;
+            }
             y = 0;
         } else if (y + height >= bmp.getHeight())
             height = bmp.getHeight() - y - 1;
@@ -334,7 +342,7 @@ class ImageManipulation {
         }
 
         //Log.d("Hi", "Trying to colour from " + x + ", " + y + ". Width x height: "
-          //      + width + "x" + height + " BMP: " + bmp.getWidth() + ", " + bmp.getHeight());
+        //        + width + "x" + height + " BMP: " + bmp.getWidth() + ", " + bmp.getHeight());
         bmp.setPixels(colours, 0,       // array to colour in this area, no offset
                 width,      // stride, width of what you want to colour in
                 x,          // x co-ord of first pixel to colour
@@ -458,7 +466,7 @@ class ImageManipulation {
             colourArea(bmp, x, y, Color.BLUE, width, height);
             // New edge that we've already gone past so will not revisit
             // will have to add this to edgeCoords manually
-            if (edgeCoords != null)   // If it has been set (should be at this point)
+            if (edgeCoords != null && (x-widthFromCentre) / width < edgeCoords.size())   // If it has been set (should be at this point)
                 edgeCoords.get((x-widthFromCentre) / width).add(y);
             // Next time this point is checked it will be blue so we wouldn't enter
             // this area of code so the same coords can't be added twice
