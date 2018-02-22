@@ -15,13 +15,16 @@ class Horizon implements Series<DataPoint> {
 
     private List<Point> photoMaximasMinimas;
     private List<Integer> elevMaximasMinimasIndexes;
-    private LineGraphSeries<DataPoint> series;
+    List<Point> photoSeriesCoords;
+    private LineGraphSeries<DataPoint> photoSeries;
 
     Horizon(List<Point> photoMMs, List<Integer> elevMMIndexes,
-            LineGraphSeries<DataPoint> series) {
+            List<Point> photoSeriesCoords,
+            LineGraphSeries<DataPoint> photoSeries) {
         this.photoMaximasMinimas = photoMMs;
         this.elevMaximasMinimasIndexes = elevMMIndexes;
-        this.series = series;
+        this.photoSeriesCoords = photoSeriesCoords;
+        this.photoSeries = photoSeries;
     }
 
     public List<Point> getPhotoMMs()
@@ -36,7 +39,12 @@ class Horizon implements Series<DataPoint> {
 
     public LineGraphSeries<DataPoint> getSeries()
     {
-        return series;
+        return photoSeries;
+    }
+
+    public List<Point> getPhotoSeriesCoords()
+    {
+        return photoSeriesCoords;
     }
 
     @Override

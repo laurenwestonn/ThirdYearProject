@@ -2,7 +2,9 @@ package com.example.recogniselocation.thirdyearproject;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.View;
@@ -27,17 +29,26 @@ public class GraphActivity extends Activity {
         graph = (GraphView) findViewById(R.id.graph);
 
         // Get the coordinates for the graph
+        List<Point> elevationsCoords = getIntent().getParcelableArrayListExtra("elevationsCoords");
+        List<Point> photoSeriesCoords = getIntent().getParcelableArrayListExtra("photoSeriesCoords");
 
-        // Todo: Call drawOnGraph with these coords (series)
-        //drawOnGraph(series);
+        LineGraphSeries<DataPoint> elevSeries = coordsToSeries(elevationsCoords);
+        LineGraphSeries<DataPoint> photoSeries = coordsToSeries(photoSeriesCoords);
 
-        // Todo: and for the matched horizon
-        //drawOnGraph(photoMatchedSeries);
-
+        drawOnGraph(elevSeries, Color.BLACK);
+        drawOnGraph(photoSeries, Color.argb(255, 200, 150, 50));
     }
 
-    void drawOnGraph(LineGraphSeries<DataPoint> series)
+    private LineGraphSeries<DataPoint> coordsToSeries(List<Point> coords) {
+        LineGraphSeries<DataPoint> series = new LineGraphSeries<>();
+        for (Point p : coords)
+            series.appendData(new DataPoint(p.getX(), p.getY()), true, coords.size());
+        return series;
+    }
+
+    void drawOnGraph(LineGraphSeries<DataPoint> series, int colour)
     {
+        series.setColor(colour);
         GraphActivity.graph.addSeries(series);
         setBounds(GraphActivity.graph,
                 series.getLowestValueX(), series.getHighestValueX(),
@@ -49,12 +60,17 @@ public class GraphActivity extends Activity {
     {
         // Set bounds on the x axis
         graph.getViewport().setXAxisBoundsManual(true);
-        graph.getViewport().setMinX(minX);
+        if (minX < graph.getViewport().getMinX(true))
+            graph.getViewport().setMinX(minX);
+        if (maxX > graph.getViewport().getMaxX(true))
         graph.getViewport().setMaxX(maxX);
+
         // Set bounds on the y axis
         graph.getViewport().setYAxisBoundsManual(true);
-        graph.getViewport().setMinY(minY);
-        graph.getViewport().setMaxY(maxY);
+        if (minY < graph.getViewport().getMinY(true))
+            graph.getViewport().setMinY(minY);
+        if (maxY > graph.getViewport().getMaxY(true))
+            graph.getViewport().setMaxY(maxY);
     }
 
     // Deal with button clicks
@@ -98,6 +114,12 @@ public class GraphActivity extends Activity {
             intent.putParcelableArrayListExtra("highPoints", highPoints);
             ArrayList<Integer> matchedElevCoordsIndexes = getIntent().getIntegerArrayListExtra("matchedElevCoordsIndexes");
             intent.putIntegerArrayListExtra("matchedElevCoordsIndexes", matchedElevCoordsIndexes);  // To mark on the matched points
+
+            // For the graph activity
+            List<Point> elevationsCoords = getIntent().getParcelableArrayListExtra("elevationsCoords");
+            intent.putParcelableArrayListExtra("elevationsCoords", (ArrayList<Point>) elevationsCoords);
+            List<Point> photoSeriesCoords = getIntent().getParcelableArrayListExtra("photoSeriesCoords");
+            intent.putParcelableArrayListExtra("photoSeriesCoords", (ArrayList<Point>) photoSeriesCoords);
         }
 
         if (intent != null) {

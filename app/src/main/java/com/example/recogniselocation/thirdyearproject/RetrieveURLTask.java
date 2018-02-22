@@ -13,6 +13,7 @@ import com.google.gson.GsonBuilder;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.Series;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -92,6 +93,7 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
         Horizon horizon = HorizonMatching.matchUpHorizons(photoCoords, elevationsCoords);
         // Todo: Possibly just send the horizon object as one, not as its elements seperately
         Series<DataPoint> photoMatchedSeries = horizon.getSeries();
+        List<Point> photoSeriesCoords = horizon.getPhotoSeriesCoords();
         List<Point> matchedPhotoCoords = horizon.getPhotoMMs();
         List<Integer> matchedElevCoordsIndexes = horizon.getElevMMIndexes();
         /////// MATCH UP HORIZONS //////
@@ -110,7 +112,8 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
         intent.putIntegerArrayListExtra("matchedElevCoordsIndexes", (ArrayList<Integer>) matchedElevCoordsIndexes);  // To mark on the matched points
 
         // For the graph activity (already have the photo coords)
-        //intent.putParcelableArrayListExtra("elevationsCoords", (ArrayList) elevationsCoords);         Are these needed?
+        intent.putParcelableArrayListExtra("elevationsCoords", (ArrayList<Point>) elevationsCoords);
+        intent.putParcelableArrayListExtra("photoSeriesCoords", (ArrayList<Point>) photoSeriesCoords);
         //intent.putParcelableArrayListExtra("elevSeries", elevSeries); // Todo: Make Series parcelable
         //intent.putParcelableArrayListExtra("photoMatchedSeries", photoMatchedSeries); // Todo: Make Series parcelable
 

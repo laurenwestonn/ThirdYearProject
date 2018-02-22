@@ -138,6 +138,12 @@ public class PhotoActivity extends Activity {
             ArrayList<Integer> matchedElevCoordsIndexes = getIntent().getIntegerArrayListExtra("matchedElevCoordsIndexes");
             intent.putIntegerArrayListExtra("matchedElevCoordsIndexes", matchedElevCoordsIndexes);  // To mark on the matched points
 
+            // For the graph activity
+            List<Point> elevationsCoords = getIntent().getParcelableArrayListExtra("elevationsCoords");
+            intent.putParcelableArrayListExtra("elevationsCoords", (ArrayList<Point>) elevationsCoords);
+            List<Point> photoSeriesCoords = getIntent().getParcelableArrayListExtra("photoSeriesCoords");
+            intent.putParcelableArrayListExtra("photoSeriesCoords", (ArrayList<Point>) photoSeriesCoords);
+
             Log.d(TAG, "PhotoAct: Sending the matchedIndexes " + matchedElevCoordsIndexes);
         }
 

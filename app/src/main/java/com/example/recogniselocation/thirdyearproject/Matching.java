@@ -3,27 +3,33 @@ package com.example.recogniselocation.thirdyearproject;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
+import java.util.List;
+
 class Matching {
 
-    private LineGraphSeries<DataPoint> series;
+    private List<Point> photoCoords;
+    private LineGraphSeries<DataPoint> photoSeries;
     private double difference;
 
-    Matching(LineGraphSeries<DataPoint> series, double diff)
+    Matching(List<Point> photoCoords, LineGraphSeries<DataPoint> photoSeries, double diff)
     {
-        this.series = series;
+        this.photoCoords = photoCoords;
+        this.photoSeries = photoSeries;
         this.difference = diff;
     }
 
-    public double getDifference() {
+    double getDifference() {
         return difference;
     }
 
-    public LineGraphSeries<DataPoint> getSeries() {
-        return series;
+    LineGraphSeries<DataPoint> getPhotoSeries() {
+        return photoSeries;
     }
+
+    List<Point> getPhotoCoords() { return photoCoords; }
 
     @Override
     public String toString() {
-        return "\nDifference: " + difference + "\tSeries: " + series;
+        return "\nDifference: " + difference + "\tPhoto Coords: " + photoCoords + "\tPhoto Series: " + photoSeries;
     }
 }

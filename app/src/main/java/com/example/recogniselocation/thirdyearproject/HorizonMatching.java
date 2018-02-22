@@ -100,10 +100,11 @@ class HorizonMatching {
 
         Log.d(TAG, "matchUpHorizons: The best matching is " + bestMatching);
 
-        return new Horizon(photoMMs, elevMMsObj.getIndexes(), bestMatching.getSeries());
+        return new Horizon(photoMMs, elevMMsObj.getIndexes(), bestMatching.getPhotoCoords(),
+                bestMatching.getPhotoSeries());
     }
 
-    public static List<Point> getTheNextElevationMM(List<Point> photoMaxMinPair, List<Point> elevationMMs, int i)
+    private static List<Point> getTheNextElevationMM(List<Point> photoMaxMinPair, List<Point> elevationMMs, int i)
     {
         // Need to find the first index to start off with
         if (i == 0)
@@ -139,7 +140,8 @@ class HorizonMatching {
     }
 
     // Transforms coordinate system so that transformMM matches with baseMM
-    private static Matching howWellMatched(List<Point> transformMM, List<Point> baseMM, List<Point> transformCoords, List<Point> baseCoords)
+    private static Matching howWellMatched(List<Point> transformMM, List<Point> baseMM,
+                                           List<Point> transformCoords, List<Point> baseCoords)
     {
         double scaleX, scaleY, translateX, translateY;
 
@@ -156,7 +158,6 @@ class HorizonMatching {
         translateX = baseMM.get(i).getX() - transformMM.get(i).getX() * scaleX;
         translateY = baseMM.get(i).getY() - transformMM.get(i).getY() * scaleY;
 
-
         //Log.d("matching", "Scale x by " + scaleX + " and translate by " + translateX);
         //Log.d("matching", "Scale y by " + scaleY + " and translate by " + translateY);
 
@@ -164,6 +165,7 @@ class HorizonMatching {
         int numMatched = 0;
         double diffSum = 0;
         LineGraphSeries<DataPoint> series = new LineGraphSeries<>();
+        List<Point> coords = new ArrayList<>(); // Hold the series as points as is Parcelable
 
         for (Point c : transformCoords)
             if (c != null) { // Only check where an edge was detected
@@ -189,9 +191,11 @@ class HorizonMatching {
                 // Build up a series to plot
                 series.appendData(new DataPoint(tX, tY - diffFromCentre * 2), true, transformCoords.size());
                 series.setColor(Color.BLACK);
+                coords.add(new Point(tX, tY - diffFromCentre * 2));
+
             }
 
-        return new Matching(series, diffSum / numMatched);
+        return new Matching(coords, series, diffSum / numMatched);
     }
 
     // Return the coordinate that has this x value
@@ -353,6 +357,7 @@ class HorizonMatching {
             int iOfMaxOrMin = iAtStartOfFlat + centreOfFlat;
 
             nextGradient = gradientAhead(coords, arrayIndex, searchWidth);
+            // Updates the mms with any new maximas or minimas found
             wereGoingUp = addAnyMaximaMinima(coords, iOfMaxOrMin, mms, wereGoingUp, nextGradient);
         }
         return mms;
