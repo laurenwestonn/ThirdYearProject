@@ -19,11 +19,11 @@ class HorizonMatching {
     static Horizon matchUpHorizons(List<Point> photoCoords, List<Point> elevationCoords) {
         // Find all minimas and maximas of both horizons
         MaximasMinimas photoMMsObj = findMaximasMinimas(photoCoords, true);
-        List<Point> photoMMs = photoMMsObj.getCoords();
+        List<Point> photoMMs = photoMMsObj.getMaximasMinimas();
         if (debug)
             Log.d(TAG, "matchUpHorizons: Now check elevationMMs from coords: " + elevationCoords);
         MaximasMinimas elevMMsObj = findMaximasMinimas(elevationCoords, false);// Todo: This better. Using a looser(...is it?) threshold here because my edge detection is too thick to notice subtle dips
-        List<Point> elevationMMs = elevMMsObj.getCoords();
+        List<Point> elevationMMs = elevMMsObj.getMaximasMinimas();
         List<Integer> elevationMMsIndexes = elevMMsObj.getIndexes();
 
         if (photoMMs == null || elevationMMs == null                        // None found
@@ -55,7 +55,11 @@ class HorizonMatching {
 
         if (debug)
             Log.d(TAG, "matchUpHorizons: Going to check each elevation min max pair from " + elevationMMs);
-        for (int i = 0; i < elevationMMs.size() - 1; i += 2) {
+
+        // Start at the odd index if this starts with a minimum
+        int i = getFirstElevationIndex( photoMM.size() == 2,
+                elevationMMs.get(0) != null);
+        for (; i < elevationMMs.size() - 1; i += 2) {
             // Store this elevation maxima minima pair into elevationMM
             // As with the photoMM, this could hold 2 or three values
             List<Point> elevationMM = getTheNextElevationMM(photoMM, elevationMMs, i);
@@ -94,7 +98,7 @@ class HorizonMatching {
         // Find the best matching
         Matching bestMatching = allMatchings.get(0);
 
-        for (int i = 1; i < allMatchings.size(); i++)
+        for (i = 1; i < allMatchings.size(); i++)
             if (allMatchings.get(i).getDifference() < bestMatching.getDifference())
                 bestMatching = allMatchings.get(i);
 
@@ -106,21 +110,15 @@ class HorizonMatching {
 
     private static List<Point> getTheNextElevationMM(List<Point> photoMaxMinPair, List<Point> elevationMMs, int i)
     {
-        // Need to find the first index to start off with
-        if (i == 0)
-            i = getFirstElevationIndex( photoMaxMinPair.size() == 2, elevationMMs.get(0) != null);
-
-        List<Point> elevationMaxMinPair = new ArrayList<>();
-
-        if (i % 2 == 1)                     // If odd index, must start with a minima
-            elevationMaxMinPair.add(null);  // So null out the first (would-be max) index
-
         if (i + 1 >= elevationMMs.size()) {
             Log.e(TAG, "mUH: Can't access index " + (i + 1) + ". Size is " + elevationMMs.size()
                     + ". Try a broader search as could only find these elevation max mins: " + elevationMMs);
             return null;
-        }
-        else {
+        } else {
+            List<Point> elevationMaxMinPair = new ArrayList<>();
+            if (i % 2 == 1)                     // If odd index, must start with a minima
+                elevationMaxMinPair.add(null);  // So null out the first (would-be max) index
+
             elevationMaxMinPair.add(elevationMMs.get(i));       // add the first max/min
             elevationMaxMinPair.add(elevationMMs.get(i + 1));   // add the first min/max after the max/min
             return elevationMaxMinPair;
@@ -129,14 +127,11 @@ class HorizonMatching {
 
     // Depending on if maxima or minima was found first, decide which elevation index to start at
     public static int getFirstElevationIndex(boolean photoInTheOrderMaxMin, boolean elevaInTheOrderMaxMin) {
-        int i;
 
         if (photoInTheOrderMaxMin)    // Found a max, then min in the photo's horizon
-            i = elevaInTheOrderMaxMin ? 0 : 2;    // Get the index of the first maxima in the elevations
+            return elevaInTheOrderMaxMin ? 0 : 2;    // Get the index of the first maxima in the elevations
         else // Came across a minima first in the photo's horizon
-            i = 1;  // The index of the first minima of the elevations
-
-        return i;
+            return 1;  // The index of the first minima of the elevations
     }
 
     // Transforms coordinate system so that transformMM matches with baseMM
@@ -166,14 +161,16 @@ class HorizonMatching {
         double diffSum = 0;
         LineGraphSeries<DataPoint> series = new LineGraphSeries<>();
         List<Point> coords = new ArrayList<>(); // Hold the series as points as is Parcelable
-
+        Log.d(TAG, "howWellMatched: Matching photo max mins " + transformMM + " to elevation mms " + baseMM);
+        Log.d(TAG, "howWellMatched: Photo coords are " + transformCoords);
+        Log.d(TAG, "howWellMatched: Elev coords are " + baseCoords);
         for (Point c : transformCoords)
             if (c != null) { // Only check where an edge was detected
 
                 // Transform this coordinate
                 int tX = (int) (c.getX() * scaleX + translateX);
                 double tY = c.getY() * scaleY + translateY;
-                //Log.d(TAG, "howWellMatched:Translated " + c + " to " + tX + ", " + tY);
+                Log.d(TAG, "howWellMatched:Translated " + c + " to " + tX + ", " + tY);
 
                 // Get diff in height if this transformed coords can be found in the other coords
                 Point matchingBasePoint;
@@ -181,20 +178,18 @@ class HorizonMatching {
                         && (matchingBasePoint = findPointWithX(baseCoords, tX)) != null) {
                     // Find the difference between the heights of both points with common x values
                     diffSum += Math.abs(matchingBasePoint.getY() - tY);
-                    //Log.d(TAG, "howWellMatched: Diff between " + matchingBasePoint.getY() + " and " + tY + " is " + Math.abs(matchingBasePoint.getY() - tY));
+                    Log.d(TAG, "howWellMatched: Diff between " + matchingBasePoint.getY() + " and " + tY + " is " + Math.abs(matchingBasePoint.getY() - tY));
 
                     numMatched++;
                 }
 
-                double diffFromCentre = tY - graphHeight / 2;
-
                 // Build up a series to plot
-                series.appendData(new DataPoint(tX, tY - diffFromCentre * 2), true, transformCoords.size());
+                series.appendData(new DataPoint(tX, tY), true, transformCoords.size());
                 series.setColor(Color.BLACK);
-                coords.add(new Point(tX, tY - diffFromCentre * 2));
-
+                coords.add(new Point(tX, tY));
+                Log.d(TAG, "howWellMatched: Add to series as " + tX + ", " + tY);
             }
-
+        Log.d(TAG, " ");
         return new Matching(coords, series, diffSum / numMatched);
     }
 
@@ -275,7 +270,6 @@ class HorizonMatching {
     // Returned in the form where maximas are are even indexes, minima at odd indexes
     public static MaximasMinimas findMaximasMinimas(List<Point> coords, boolean loosenThreshold)
     {
-        Log.d(TAG, "findMaximasMinimas: Finding maximas and minimas of " + coords.toString());
         int arrayIndex = 0;
         double nextGradient = Integer.MAX_VALUE;
         MaximasMinimas mms = new MaximasMinimas(new ArrayList<Point>(), new ArrayList<Integer>());
@@ -412,10 +406,10 @@ class HorizonMatching {
             wereGoingUp = false; // Bug fix to avoid adding duplicate pointy points
 
             // Ensure that maximas are stored at even indexes
-            if (mms.getCoords().size() % 2 == 1)
-                mms.getCoords().add(null);
+            if (mms.getMaximasMinimas().size() % 2 == 1)
+                mms.getMaximasMinimas().add(null);
 
-            mms.getCoords().add(coords.get(maxOrMinIndex));
+            mms.getMaximasMinimas().add(coords.get(maxOrMinIndex));
             mms.getIndexes().add(maxOrMinIndex);
 
                                                             //  MINIMA
@@ -425,10 +419,10 @@ class HorizonMatching {
             wereGoingUp = true; // Bug fix to avoid adding duplicate pointy points
 
             // Ensure that minimas are stored at odd indexes
-            if (mms.getCoords().size() % 2 == 0)
-                mms.getCoords().add(null);
+            if (mms.getMaximasMinimas().size() % 2 == 0)
+                mms.getMaximasMinimas().add(null);
 
-            mms.getCoords().add(coords.get(maxOrMinIndex));
+            mms.getMaximasMinimas().add(coords.get(maxOrMinIndex));
             mms.getIndexes().add(maxOrMinIndex);
 
                             // \_____   or    _____/
@@ -451,16 +445,16 @@ class HorizonMatching {
                 Log.d("gradient", "Adding Pointy maxima at " + coords.get(arrayIndex)
                         + ", index " + arrayIndex + ", where the gradient ahead is also significant at "
                         + nextGradient + ". We're checking that it's more than " + threshold);
-            if (mms.getCoords().size() % 2 == 1) // Done this so that maximas are at even indexes
-                mms.getCoords().add(null);
+            if (mms.getMaximasMinimas().size() % 2 == 1) // Done this so that maximas are at even indexes
+                mms.getMaximasMinimas().add(null);
         } else if (!wereGoingUp & nextGradient < -threshold) {
             if (debug)
                 Log.d("gradient", "Adding Pointy minima at " + coords.get(arrayIndex) + ", index " + arrayIndex);
-            if (mms.getCoords().size() % 2 == 0) // Done this so that minima are odd
-                mms.getCoords().add(null);
+            if (mms.getMaximasMinimas().size() % 2 == 0) // Done this so that minima are odd
+                mms.getMaximasMinimas().add(null);
         }
         if ((wereGoingUp & nextGradient > threshold) || (!wereGoingUp & nextGradient < -threshold)) {
-            mms.getCoords().add(coords.get(arrayIndex));
+            mms.getMaximasMinimas().add(coords.get(arrayIndex));
             mms.getIndexes().add(arrayIndex);
         }
 

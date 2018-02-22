@@ -32,8 +32,12 @@ public class GraphActivity extends Activity {
         List<Point> elevationsCoords = getIntent().getParcelableArrayListExtra("elevationsCoords");
         List<Point> photoSeriesCoords = getIntent().getParcelableArrayListExtra("photoSeriesCoords");
 
-        LineGraphSeries<DataPoint> elevSeries = coordsToSeries(elevationsCoords);
-        LineGraphSeries<DataPoint> photoSeries = coordsToSeries(photoSeriesCoords);
+        LineGraphSeries<DataPoint> elevSeries = coordsToSeries(
+                (elevationsCoords));
+        Log.d(TAG, "GraphAct: photoSeriesCoords: " + photoSeriesCoords.toString());
+        LineGraphSeries<DataPoint> photoSeries = coordsToSeries(
+                (photoSeriesCoords));
+        Log.d(TAG, "GraphAct: photoSeries: Y Range: " + photoSeries.getLowestValueY() + ", " + photoSeries.getHighestValueY());
 
         drawOnGraph(elevSeries, Color.BLACK);
         drawOnGraph(photoSeries, Color.argb(255, 200, 150, 50));
@@ -60,16 +64,16 @@ public class GraphActivity extends Activity {
     {
         // Set bounds on the x axis
         graph.getViewport().setXAxisBoundsManual(true);
-        if (minX < graph.getViewport().getMinX(true))
+        //if (minX < graph.getViewport().getMinX(true))
             graph.getViewport().setMinX(minX);
-        if (maxX > graph.getViewport().getMaxX(true))
+        //if (maxX > graph.getViewport().getMaxX(true))
         graph.getViewport().setMaxX(maxX);
 
         // Set bounds on the y axis
         graph.getViewport().setYAxisBoundsManual(true);
-        if (minY < graph.getViewport().getMinY(true))
+        //if (minY < graph.getViewport().getMinY(true))
             graph.getViewport().setMinY(minY);
-        if (maxY > graph.getViewport().getMaxY(true))
+        //if (maxY > graph.getViewport().getMaxY(true))
             graph.getViewport().setMaxY(maxY);
     }
 

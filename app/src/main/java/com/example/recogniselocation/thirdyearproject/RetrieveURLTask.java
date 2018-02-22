@@ -86,16 +86,17 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
         int pointWidth = (fineWidth-1)/2;
         List<Point> photoCoords = HorizonMatching.convertToPoints(photoCoordsIntegers, pointWidth);
 
-        // Convert these coordinates to be in line with the bitmaps coordinate system
-        elevationsCoords = convertCoordSystem(elevationsCoords);
-
         Log.d(TAG, "onPostExecute: Going to match up horizons");
-        Horizon horizon = HorizonMatching.matchUpHorizons(photoCoords, elevationsCoords);
+
+        Horizon horizon = HorizonMatching.matchUpHorizons(convertCoordSystem(photoCoords), convertCoordSystem(elevationsCoords));
         // Todo: Possibly just send the horizon object as one, not as its elements seperately
         Series<DataPoint> photoMatchedSeries = horizon.getSeries();
         List<Point> photoSeriesCoords = horizon.getPhotoSeriesCoords();
         List<Point> matchedPhotoCoords = horizon.getPhotoMMs();
         List<Integer> matchedElevCoordsIndexes = horizon.getElevMMIndexes();
+
+        // Todo: Convert these photo edge photoCoords and matched matchedPhotoCoords coordinates to work for the bitmap
+        //photoCoords = convertCoordSystem(photoCoords);
         /////// MATCH UP HORIZONS //////
 
         ////// START NEXT ACTIVITY //////
@@ -222,7 +223,7 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
     }
 
     // From right up being positive to right down
-    private List<Point> convertCoordSystem(List<Point> coords)
+    public static List<Point> convertCoordSystem(List<Point> coords)
     {
         Point maxPoint = findMaxPoint(coords);
 
@@ -234,7 +235,7 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
         return coords;
     }
 
-    private Point findMaxPoint(List<Point> coords) {
+    private static Point findMaxPoint(List<Point> coords) {
         Point maxPoint = coords.get(0);
 
         for (Point p : coords)

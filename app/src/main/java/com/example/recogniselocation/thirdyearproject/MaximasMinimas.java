@@ -3,18 +3,18 @@ package com.example.recogniselocation.thirdyearproject;
 import java.util.List;
 
 class MaximasMinimas {
-    private List<Point> coords;
+    private List<Point> maximasMinimas;
     private List<Integer> indexes;
 
-    public MaximasMinimas(List<Point> coords, List<Integer> indexes)
+    public MaximasMinimas(List<Point> maximasMinimas, List<Integer> indexes)
     {
-        this.coords = coords;
+        this.maximasMinimas = maximasMinimas;
         this.indexes = indexes;
     }
 
-    List<Point> getCoords()
+    List<Point> getMaximasMinimas()
     {
-        return coords;
+        return maximasMinimas;
     }
 
     List<Integer> getIndexes()
