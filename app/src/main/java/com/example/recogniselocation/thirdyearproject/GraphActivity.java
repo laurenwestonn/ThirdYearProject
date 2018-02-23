@@ -17,6 +17,7 @@ import java.util.List;
 
 import static android.content.ContentValues.TAG;
 import static java.lang.Math.min;
+import static java.lang.StrictMath.max;
 
 public class GraphActivity extends Activity {
 
@@ -54,10 +55,9 @@ public class GraphActivity extends Activity {
 
         setBounds(GraphActivity.graph,
                 min(photoSeries.getLowestValueX(),elevSeries.getLowestValueX()),
-                min(photoSeries.getHighestValueX(),elevSeries.getHighestValueX()),
+                max(photoSeries.getHighestValueX(),elevSeries.getHighestValueX()),
                 min(photoSeries.getLowestValueY(),elevSeries.getLowestValueY()),
-                min(photoSeries.getHighestValueY(),elevSeries.getHighestValueY()));
-        HorizonMatching.graphHeight =  min(photoSeries.getHighestValueY(),elevSeries.getHighestValueY());
+                max(photoSeries.getHighestValueY(),elevSeries.getHighestValueY()));
     }
 
     private LineGraphSeries<DataPoint> coordsToSeries(List<Point> coords) {

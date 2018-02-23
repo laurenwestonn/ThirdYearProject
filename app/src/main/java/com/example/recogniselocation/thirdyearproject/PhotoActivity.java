@@ -59,38 +59,27 @@ public class PhotoActivity extends Activity {
         return ImageManipulation.colourBitmapCoords(bmp, photoCoords, Color.argb(255, 250, 100, 0), 20);
     }
 
-    // Colour maxima in red, minima in blue
-    private static Bitmap markMaximaMinimaOnPhoto(Bitmap bmp, List<Point> photoMM, Activity a)
-    {
-        // If the first is a maxima, start from the first index
-        int maxInd = photoMM.size() == 2 ? 0 : 2;
-        ImageManipulation.colourArea(bmp,   (int) photoMM.get(maxInd).getX(),
-                (int) photoMM.get(maxInd).getY(),
-                Color.RED, 40, 40);
-        ImageManipulation.colourArea(bmp,   (int) photoMM.get(1).getX(),
-                (int) photoMM.get(1).getY(),
-                Color.BLUE, 40, 40);
-
-
-        // Put this on the image button
-        ImageButton imageButton = (ImageButton) a.findViewById(R.id.photo);
-        BitmapDrawable drawable = new BitmapDrawable(a.getResources(), bmp);
-        imageButton.setBackground(drawable);
-
-
-        return bmp;
-    }
-
     // Mark of the maximas and minimas in varying colours
     private static Bitmap markMaximasMinimasOnPhoto(Bitmap bmp, List<Point> photoMMs)
     {
-        int colour = 100;
+        int minColour = Color.BLUE;
+        int maxColour = Color.RED;
+        boolean max = true;
 
         for (Point p : photoMMs) {
             if (p != null) {
-                bmp = ImageManipulation.colourArea(bmp, (int) p.getX(), (int) p.getY(), colour, 40, 40);
-                colour *= colour; // Todo: Think of a way to vary colours
+                if (max) {
+                    bmp = ImageManipulation.colourArea(bmp, (int) p.getX(), (int) p.getY(), maxColour, 40, 40);
+                    maxColour += 254 / photoMMs.size() / 2; // Varying reds
+                } else {
+                    bmp = ImageManipulation.colourArea(bmp, (int) p.getX(), (int) p.getY(), minColour, 40, 40);
+                    minColour += 254 / photoMMs.size() / 2; // Varying blues
+                }
+            } else {
+                Log.e(TAG, "markMaximasMinimasOnPhoto: Can't mark a null point! Got a null value in your photo maximas minimas");
+
             }
+            max = !max;
         }
         return bmp;
     }

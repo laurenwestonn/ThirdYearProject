@@ -6,14 +6,15 @@ import android.util.Log;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
+import java.nio.charset.IllegalCharsetNameException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import static android.content.ContentValues.TAG;
 
 class HorizonMatching {
-    static double graphHeight;
-    private static boolean debug = false;   // Can't log when testing
+    private static boolean debug = true;   // Can't log when testing
 
     // Returns the horizon you manage to match up from the photo as a series so can plot on graph
     static Horizon matchUpHorizons(List<Point> photoCoords, List<Point> elevationCoords) {
@@ -23,8 +24,6 @@ class HorizonMatching {
         MaximasMinimas elevMMsObj = findMaximasMinimas(elevationCoords, false);// Todo: This better. Using a looser(...is it?) threshold here because my edge detection is too thick to notice subtle dips
         List<Point> elevationMMs = elevMMsObj.getMaximasMinimas();
         List<Integer> elevationMMsIndexes = elevMMsObj.getIndexes();
-        if (debug)
-            Log.d(TAG, "matchUpHorizons: Photo MMS found" + photoMMs +" and elev MMs " + elevationMMs);
 
         if (photoMMs == null || elevationMMs == null                        // None found
                 ||photoMMs.size() < 2 || elevationMMs.size() < 2            // Just a maxima found
@@ -50,6 +49,7 @@ class HorizonMatching {
 
         // Store how accurate each min max pairing is
         List<Matching> allMatchings = new ArrayList<>();
+        boolean significantDifference;
 
         // Go through each maxima minima pair from the elevations
 
@@ -64,42 +64,24 @@ class HorizonMatching {
             // As with the photoMM, this could hold 2 or three values
             List<Point> elevationMM = getTheNextElevationMM(elevationMMs, i);
 
-            if (elevationMM != null){
-                // Only look at this pair if they're fairly far apart - we'll want mountains not dips
-                double signifWidth = elevationCoords.get(elevationCoords.size()-1).getX() / 8;
-                if (elevationMM.get(0) == null) {   // Starts with a minima
-                    if ((elevationMM.get(2).getX() - elevationMM.get(1).getX()) < signifWidth) {
-                        if (debug)
-                            Log.d(TAG, "matchUpHorizons: the width difference between this pair of elevations max/min \n"
-                                    + elevationMM + " and the chosen photo max/min \n" + photoMM + " is only \n"
-                                    + (elevationMM.get(2).getX() - elevationMM.get(1).getX())
-                                    + " which isn't *significant* -> " + signifWidth);
-                        continue;
-                    }
-                } else if ((elevationMM.get(1).getX() - elevationMM.get(0).getX()) < signifWidth) { //maxima
-                    if (debug)
-                        Log.d(TAG, "matchUpHorizons: the width difference between this pair of elevations max/min \n"
-                                + elevationMM + " and the chosen photo max/min \n" + photoMM + " is only \n"
-                                + (elevationMM.get(1).getX() - elevationMM.get(0).getX())
-                                + " which isn't significant - " + signifWidth);
-                    continue;
-                }
-            } else
-                Log.e(TAG, "matchUpHorizons: Didn't find a elevation MM pair. Try a broader search");
+            significantDifference = signifDiff(photoMM, elevationMM, elevationCoords);
 
-
-            if (debug)
-                Log.d("matching", "Checking elevation max min " + elevationMM);
-            allMatchings.add(howWellMatched(photoMM, elevationMM, photoCoords, elevationCoords));
+            if (significantDifference) {
+                if (debug)
+                    Log.d("matching", "Checking elevation max min " + elevationMM);
+                allMatchings.add(howWellMatched(photoMM, elevationMM, photoCoords, elevationCoords));
+            }
         }
 
         // Log the results of the matchings
         if (allMatchings.size() == 0)
             Log.e(TAG, "matchUpHorizons: No matchings were found");
         else {
-            Log.d(TAG, "matchUpHorizons: All matchings: ");
-            for (Matching m : allMatchings)
-                Log.d(TAG, m.toString());
+            if (debug) {
+                Log.d(TAG, "matchUpHorizons: All matchings: ");
+                for (Matching m : allMatchings)
+                    Log.d(TAG, m.toString());
+            }
         }
 
         // Find the best matching
@@ -109,10 +91,62 @@ class HorizonMatching {
             if (allMatchings.get(i).getDifference() < bestMatching.getDifference())
                 bestMatching = allMatchings.get(i);
 
-        Log.d(TAG, "matchUpHorizons: The best matching is " + bestMatching);
+        if (debug)
+            Log.d(TAG, "matchUpHorizons: The best matching is " + bestMatching);
 
         return new Horizon(photoMMs, elevMMsObj.getIndexes(), bestMatching.getPhotoCoords(),
                 bestMatching.getPhotoSeries());
+    }
+
+    private static boolean signifDiff(List<Point> photoMM, List<Point> elevationMM, List<Point> elevationCoords) {
+        if (elevationMM != null) {
+            // Only look at this pair if they're fairly far apart - we'll want mountains not dips
+            double signifWidth = getCoordsSignifWidth(elevationCoords);
+            double signifHeight = getCoordsSignifHeight(elevationCoords);
+
+            if (elevationMM.get(0) == null) {   // Starts with a minima
+                if ((elevationMM.get(2).getX() - elevationMM.get(1).getX()) < signifWidth
+                        || (elevationMM.get(2).getY() - elevationMM.get(1).getY()) < signifHeight) {    // Minima is valid
+                    if (debug)
+                        Log.d(TAG, "matchUpHorizons: the width difference between this pair of elevations max/min \n"
+                                + elevationMM + " and the chosen photo max/min \n" + photoMM + " is only \n"
+                                + (elevationMM.get(2).getX() - elevationMM.get(1).getX())
+                                + " which isn't *significant* -> " + signifWidth
+                                + " or height less than signif height " + signifHeight);
+                    return false;
+                }
+            } else if ((elevationMM.get(1).getX() - elevationMM.get(0).getX()) < signifWidth
+                    || (elevationMM.get(1).getY() - elevationMM.get(0).getY()) < signifHeight) { //maxima is valid
+                if (debug)
+                    Log.d(TAG, "matchUpHorizons: the width difference between this pair of elevations max/min \n"
+                            + elevationMM + " and the chosen photo max/min \n" + photoMM + " is only \n"
+                            + (elevationMM.get(1).getX() - elevationMM.get(0).getX())
+                            + " which isn't *significant* -> " + signifWidth
+                            + " or height less than signif height " + signifHeight);
+                return false;
+            }
+            return true;
+        } else
+            Log.e(TAG, "matchUpHorizons: Didn't find a elevation MM pair. Try a broader search");
+        return false;
+    }
+
+    private static double getCoordsSignifWidth(List<Point> coords) {
+        return coords.get(coords.size()-1).getX() / 10;
+    }
+
+    private static double getCoordsSignifHeight(List<Point> coords) {
+        double minY = Integer.MAX_VALUE;
+        double maxY = Integer.MIN_VALUE;
+
+        for (Point p : coords) {
+            if (p.getY() > maxY)
+                maxY = p.getY();
+            if (p.getY() < minY)
+                minY = p.getY();
+        }
+
+        return (minY + maxY) / 10;
     }
 
     private static List<Point> getTheNextElevationMM(List<Point> elevationMMs, int i)
@@ -168,16 +202,18 @@ class HorizonMatching {
         double diffSum = 0;
         LineGraphSeries<DataPoint> series = new LineGraphSeries<>();
         List<Point> transformedPhotoCoords = new ArrayList<>(); // Hold the series as points as is Parcelable
-        Log.d(TAG, "howWellMatched: Matching photo max mins " + transformMM + " to elevation mms " + baseMM);
-        Log.d(TAG, "howWellMatched: Photo coords are " + transformCoords);
-        Log.d(TAG, "howWellMatched: Elev coords are " + baseCoords);
+
+        if (debug) {
+            Log.d(TAG, "howWellMatched: Matching photo max mins " + transformMM + " to elevation mms " + baseMM);
+            Log.d(TAG, "howWellMatched: Photo coords are " + transformCoords);
+            Log.d(TAG, "howWellMatched: Elev coords are " + baseCoords);
+        }
         for (Point c : transformCoords)
             if (c != null) { // Only check where an edge was detected
 
                 // Transform this coordinate
                 int tX = (int) (c.getX() * scaleX + translateX);
                 double tY = c.getY() * scaleY + translateY;
-                Log.d(TAG, "howWellMatched:Translated " + c + " to " + tX + ", " + tY);
 
                 // Get diff in height if this transformed coords can be found in the other coords
                 Point matchingBasePoint;
@@ -185,7 +221,6 @@ class HorizonMatching {
                         && (matchingBasePoint = findPointWithX(baseCoords, tX)) != null) {
                     // Find the difference between the heights of both points with common x values
                     diffSum += Math.abs(matchingBasePoint.getY() - tY);
-                    Log.d(TAG, "howWellMatched: Diff between " + matchingBasePoint.getY() + " and " + tY + " is " + Math.abs(matchingBasePoint.getY() - tY));
 
                     numMatched++;
                 }
@@ -194,9 +229,9 @@ class HorizonMatching {
                 series.appendData(new DataPoint(tX, tY), true, transformCoords.size());
                 series.setColor(Color.BLACK);
                 transformedPhotoCoords.add(new Point(tX, tY));
-                Log.d(TAG, "howWellMatched: Add to series as " + tX + ", " + tY);
             }
-        Log.d(TAG, " ");
+        if (debug)
+            Log.d(TAG, " ");
         return new Matching(transformedPhotoCoords, series, diffSum / numMatched);
     }
 
@@ -224,12 +259,15 @@ class HorizonMatching {
 
         // For each pair of max-min / min-max find the greatest difference in height
         for (; i < maximasMinimas.size() - 1; i++) {
-            //Log.d(TAG, "findBestMaximaMinima: Checking pair " + maximasMinimas.get(i)
-              //                                              + " and " + maximasMinimas.get(i+1));
+            if (debug) {
+                Log.d(TAG, "findBestMaximaMinima: Checking pair " + maximasMinimas.get(i)
+                                                              + " and " + maximasMinimas.get(i+1));
+            }
             if (maximasMinimas.get(i) != null && maximasMinimas.get(i+1) != null
                     && (thisYDiff = Math.abs(maximasMinimas.get(i).getY() - maximasMinimas.get(i+1).getY()))
                     > maxYDiff) {
-                //Log.d(TAG, "findBestMaximaMinima: Yes this difference (" + thisYDiff + ") is bigger than our current max difference " + maxYDiff);
+                if (debug)
+                    Log.d(TAG, "findBestMaximaMinima: Yes this difference (" + thisYDiff + ") is bigger than our current max difference " + maxYDiff);
                 maxYDiff = thisYDiff;
                 bestIndex = i;
             }
@@ -283,6 +321,7 @@ class HorizonMatching {
         MaximasMinimas mms = new MaximasMinimas(new ArrayList<Point>(), new ArrayList<Integer>());
         boolean wereGoingUp = true;    //  Whether the hill is heading up or down
         boolean wereGoingDown = false;  // Both are needed because could be flat
+        boolean updated;                // Indicates whether a maxima or minima was found, so you can update up and down booleans
         double threshold = getThreshold(coords) * (loosenThreshold ? 4 : 1);
         int searchWidth = getSearchWidth(coords);
         if (debug)
@@ -363,7 +402,10 @@ class HorizonMatching {
 
             nextGradient = gradientAhead(coords, arrayIndex, searchWidth);
             // Updates the mms with any new maximas or minimas found
-            wereGoingUp = addAnyMaximaMinima(coords, iOfMaxOrMin, mms, wereGoingUp, wereGoingDown, nextGradient, threshold);
+            updated = addAnyMaximaMinima(coords, iOfMaxOrMin, mms, wereGoingUp, wereGoingDown, nextGradient, threshold);
+
+            wereGoingUp = false;
+            wereGoingDown = false;
         }
         return mms;
     }
@@ -406,6 +448,7 @@ class HorizonMatching {
         return index;
     }
 
+    // Returns true if a max or min was added. Needed to reset the up and down booleans to false
     private static boolean addAnyMaximaMinima(List<Point> coords, int maxOrMinIndex, MaximasMinimas mms,
                                               boolean wereGoingUp, boolean wereGoingDown, double nextGradient, double threshold)
     {
@@ -415,7 +458,6 @@ class HorizonMatching {
         if (wereGoingUp && areNowGoingDown) {            //          /       \
             if (debug)
                 Log.d("gradient", "Maxima found at " + coords.get(maxOrMinIndex).toString());
-            wereGoingUp = false; // Bug fix to avoid adding duplicate pointy points
 
             // Ensure that maximas are stored at even indexes
             if (mms.getMaximasMinimas().size() % 2 == 1)
@@ -424,11 +466,11 @@ class HorizonMatching {
             mms.getMaximasMinimas().add(coords.get(maxOrMinIndex));
             mms.getIndexes().add(maxOrMinIndex);
 
+            return true;
                                                             //  MINIMA
         } else if (wereGoingDown && areNowGoingUp) {         //          \_______/
             if (debug)
                 Log.d("gradient", "Minima found at " + coords.get(maxOrMinIndex).toString());
-            wereGoingUp = true; // Bug fix to avoid adding duplicate pointy points
 
             // Ensure that minimas are stored at odd indexes
             if (mms.getMaximasMinimas().size() % 2 == 0)
@@ -437,13 +479,15 @@ class HorizonMatching {
             mms.getMaximasMinimas().add(coords.get(maxOrMinIndex));
             mms.getIndexes().add(maxOrMinIndex);
 
+            return true;
                             // \_____   or    _____/
-        } else              //       \       /
+        } else {            //       \       /
             if (debug)
                 Log.d("gradient", "The gradient after is " + nextGradient
-                        +  " which doesn't make a max or min considering that before,"
+                        + " which doesn't make a max or min considering that before,"
                         + " we were going " + (wereGoingUp ? "up" : "straight or down"));
-        return wereGoingUp;
+            return false;
+        }
     }
 
     // Todo: Fix this, not going up doesn't necessarily mean not going down so 'weregoingUp' bool makes no sense

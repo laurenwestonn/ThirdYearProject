@@ -52,12 +52,7 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
         // Find the highest point in each path for each response
         List<Result> highPoints = getHighPoints(strResponses, yourElevation);
         Log.d("onPostExecute", "Got high points " + highPoints);
-
-        // Show results of the highest peaks in all directions ahead on the map and graph
-        // Todo: Plot on map within the MapActivity
-        //MapFunctions.plotPoints(googleMap, highPoints, yourLocation);
-        // Get the coordinates and the series for the graph (draw on in GraphActivity)
-        // Todo: Pass on gd.getSeries() in order to draw graph in GraphActivity
+        // Get the graph data
         GraphData gd = APIFunctions.findGraphData(highPoints);
         List<Point> elevationsCoords = gd.getCoords();
 
@@ -67,7 +62,6 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
 
         /////// EDGE DETECTION //////
         int photoID = Start.drawableID;    // Todo: Deal with using an uploaded photo of your location
-
         Bitmap bmp = BitmapFactory.decodeResource(activity.getResources(), photoID);
         Edge edge = ImageManipulation.detectEdge(
                 bmp,false, false, true, true);
@@ -84,20 +78,19 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
         List<Integer> photoCoordsIntegers = HorizonMatching.removeDimensionFromCoords(photoCoords2D);
         int pointWidth = (fineWidth-1)/2;
         List<Point> photoCoords = HorizonMatching.convertToPoints(photoCoordsIntegers, pointWidth);
-        photoCoords = invertY(photoCoords);
-        elevationsCoords = invertY(elevationsCoords);
+        photoCoords = invertY(photoCoords); // To match the graph's coordinate system: Up Right +ve
 
-        //Log.d(TAG, "onPostExecute: Going to match up horizons");
+        Log.d(TAG, "onPostExecute: Going to match up horizons");
 
         // Todo: Check why I am inverting elevations coords, should already be in the graph coord system as
         // todo: this is the only thing elev coords are used for.. Check against other photos - does the elevation look right?
         Horizon horizon = HorizonMatching.matchUpHorizons(photoCoords, elevationsCoords);
         // Todo: Possibly just send the horizon object as one, not as its elements separately
-        List<Point> photoSeriesCoords = horizon.getPhotoSeriesCoords();
-        List<Point> matchedPhotoCoords = horizon.getPhotoMMs();
-        List<Integer> matchedElevCoordsIndexes = horizon.getElevMMIndexes();
+        List<Point> photoSeriesCoords = horizon.getPhotoSeriesCoords();     // Up Right +ve
+        List<Integer> matchedElevCoordsIndexes = horizon.getElevMMIndexes();// To get LatLng
+        List<Point> matchedPhotoCoords = invertY(horizon.getPhotoMMs());    // Down Right +ve
+        photoCoords = invertY(photoCoords); // Down Right +ve
 
-        photoCoords = invertY(photoCoords);
 
 
         /////// MATCH UP HORIZONS //////
