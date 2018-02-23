@@ -93,7 +93,14 @@ class HorizonMatching {
             allMatchings.add(howWellMatched(photoMM, elevationMM, photoCoords, elevationCoords));
         }
 
-        Log.d(TAG, "matchUpHorizons: All matchings: " + allMatchings);
+        // Log the results of the matchings
+        if (allMatchings.size() == 0)
+            Log.e(TAG, "matchUpHorizons: No matchings were found");
+        else {
+            Log.d(TAG, "matchUpHorizons: All matchings: ");
+            for (Matching m : allMatchings)
+                Log.d(TAG, m.toString());
+        }
 
         // Find the best matching
         Matching bestMatching = allMatchings.get(0);

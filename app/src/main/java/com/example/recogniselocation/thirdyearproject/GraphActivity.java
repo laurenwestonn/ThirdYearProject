@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.View;
@@ -17,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static android.content.ContentValues.TAG;
+import static java.lang.Math.min;
 
 public class GraphActivity extends Activity {
 
@@ -39,8 +39,25 @@ public class GraphActivity extends Activity {
                 (photoSeriesCoords));
         Log.d(TAG, "GraphAct: photoSeries: Y Range: " + photoSeries.getLowestValueY() + ", " + photoSeries.getHighestValueY());
 
-        drawOnGraph(elevSeries, Color.BLACK);
-        drawOnGraph(photoSeries, Color.argb(255, 250, 150, 0));
+        drawMultipleSeriesOnGraph(photoSeries, Color.argb(255, 250, 100, 0),
+                elevSeries, Color.BLACK);
+    }
+
+    private void drawMultipleSeriesOnGraph(LineGraphSeries<DataPoint> photoSeries, int photoColour,
+                                           LineGraphSeries<DataPoint> elevSeries, int elevColour)
+    {
+        photoSeries.setColor(photoColour);
+        GraphActivity.graph.addSeries(photoSeries);
+
+        elevSeries.setColor(elevColour);
+        GraphActivity.graph.addSeries(elevSeries);
+
+        setBounds(GraphActivity.graph,
+                min(photoSeries.getLowestValueX(),elevSeries.getLowestValueX()),
+                min(photoSeries.getHighestValueX(),elevSeries.getHighestValueX()),
+                min(photoSeries.getLowestValueY(),elevSeries.getLowestValueY()),
+                min(photoSeries.getHighestValueY(),elevSeries.getHighestValueY()));
+        HorizonMatching.graphHeight =  min(photoSeries.getHighestValueY(),elevSeries.getHighestValueY());
     }
 
     private LineGraphSeries<DataPoint> coordsToSeries(List<Point> coords) {
@@ -50,31 +67,17 @@ public class GraphActivity extends Activity {
         return series;
     }
 
-    void drawOnGraph(LineGraphSeries<DataPoint> series, int colour)
-    {
-        series.setColor(colour);
-        GraphActivity.graph.addSeries(series);
-        setBounds(GraphActivity.graph,
-                series.getLowestValueX(), series.getHighestValueX(),
-                series.getLowestValueY(), series.getHighestValueY());
-        HorizonMatching.graphHeight =  series.getHighestValueY();
-    }
-
     static void setBounds(GraphView graph, double minX, double maxX, double minY, double maxY)
     {
         // Set bounds on the x axis
         graph.getViewport().setXAxisBoundsManual(true);
-        //if (minX < graph.getViewport().getMinX(true))
-            graph.getViewport().setMinX(minX);
-        //if (maxX > graph.getViewport().getMaxX(true))
+        graph.getViewport().setMinX(minX);
         graph.getViewport().setMaxX(maxX);
 
         // Set bounds on the y axis
         graph.getViewport().setYAxisBoundsManual(true);
-        //if (minY < graph.getViewport().getMinY(true))
-            graph.getViewport().setMinY(minY);
-        //if (maxY > graph.getViewport().getMaxY(true))
-            graph.getViewport().setMaxY(maxY);
+        graph.getViewport().setMinY(minY);
+        graph.getViewport().setMaxY(maxY);
     }
 
     // Deal with button clicks

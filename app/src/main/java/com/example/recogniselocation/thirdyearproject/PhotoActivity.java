@@ -56,7 +56,7 @@ public class PhotoActivity extends Activity {
     }
 
     private Bitmap markEdgeCoords(Bitmap bmp, List<Point> photoCoords) {
-        return ImageManipulation.colourBitmapCoords(bmp, photoCoords, Color.argb(255, 250, 150, 0), 20);
+        return ImageManipulation.colourBitmapCoords(bmp, photoCoords, Color.argb(255, 250, 100, 0), 20);
     }
 
     // Colour maxima in red, minima in blue
