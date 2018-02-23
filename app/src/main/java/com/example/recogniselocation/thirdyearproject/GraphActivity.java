@@ -40,7 +40,7 @@ public class GraphActivity extends Activity {
                 (photoSeriesCoords));
         Log.d(TAG, "GraphAct: photoSeries: Y Range: " + photoSeries.getLowestValueY() + ", " + photoSeries.getHighestValueY());
 
-        drawMultipleSeriesOnGraph(photoSeries, Color.argb(255, 250, 100, 0),
+        drawMultipleSeriesOnGraph(photoSeries, Color.argb(255, 250, 150, 50),
                 elevSeries, Color.BLACK);
     }
 

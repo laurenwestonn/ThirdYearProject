@@ -64,7 +64,7 @@ class HorizonMatching {
             // As with the photoMM, this could hold 2 or three values
             List<Point> elevationMM = getTheNextElevationMM(elevationMMs, i);
 
-            significantDifference = signifDiff(photoMM, elevationMM, elevationCoords);
+            significantDifference = signifDiff(elevationMM, elevationCoords);
 
             if (significantDifference) {
                 if (debug)
@@ -98,9 +98,9 @@ class HorizonMatching {
                 bestMatching.getPhotoSeries());
     }
 
-    private static boolean signifDiff(List<Point> photoMM, List<Point> elevationMM, List<Point> elevationCoords) {
+    // Check that the difference between this elevations max and min points are far - we want mountains not dips
+    private static boolean signifDiff(List<Point> elevationMM, List<Point> elevationCoords) {
         if (elevationMM != null) {
-            // Only look at this pair if they're fairly far apart - we'll want mountains not dips
             double signifWidth = getCoordsSignifWidth(elevationCoords);
             double signifHeight = getCoordsSignifHeight(elevationCoords);
 
@@ -108,21 +108,19 @@ class HorizonMatching {
                 if ((elevationMM.get(2).getX() - elevationMM.get(1).getX()) < signifWidth
                         || (elevationMM.get(2).getY() - elevationMM.get(1).getY()) < signifHeight) {    // Minima is valid
                     if (debug)
-                        Log.d(TAG, "matchUpHorizons: the width difference between this pair of elevations max/min \n"
-                                + elevationMM + " and the chosen photo max/min \n" + photoMM + " is only \n"
-                                + (elevationMM.get(2).getX() - elevationMM.get(1).getX())
-                                + " which isn't *significant* -> " + signifWidth
-                                + " or height less than signif height " + signifHeight);
+                        Log.d(TAG, "matchUpHorizons: the width between this pair of elevations max/min \n"
+                                + elevationMM + " is\n" + (elevationMM.get(2).getX() - elevationMM.get(1).getX())
+                                + " which needs to be bigger than " + signifWidth
+                                + ". Also the height difference must be bigger than " + signifHeight);
                     return false;
                 }
             } else if ((elevationMM.get(1).getX() - elevationMM.get(0).getX()) < signifWidth
-                    || (elevationMM.get(1).getY() - elevationMM.get(0).getY()) < signifHeight) { //maxima is valid
+                    || (elevationMM.get(0).getY() - elevationMM.get(1).getY()) < signifHeight) { // Maxima is valid
                 if (debug)
-                    Log.d(TAG, "matchUpHorizons: the width difference between this pair of elevations max/min \n"
-                            + elevationMM + " and the chosen photo max/min \n" + photoMM + " is only \n"
-                            + (elevationMM.get(1).getX() - elevationMM.get(0).getX())
-                            + " which isn't *significant* -> " + signifWidth
-                            + " or height less than signif height " + signifHeight);
+                    Log.d(TAG, "matchUpHorizons: the width between this pair of elevations max/min \n"
+                            + elevationMM + " is\n" + (elevationMM.get(1).getX() - elevationMM.get(0).getX())
+                            + " which needs to be bigger than " + signifWidth
+                            + ". Also the height difference must be bigger than " + signifHeight);
                 return false;
             }
             return true;
