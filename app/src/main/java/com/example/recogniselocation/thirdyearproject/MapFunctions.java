@@ -7,6 +7,8 @@ import android.util.Log;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 
@@ -28,10 +30,10 @@ public class MapFunctions extends Activity {
         double avLng = (p.getLng() + midHorizon.getLng()) / 2;
         goToLocation(map, avLat, avLng);
 
-        addMarkerAt(map, p, "You are here!");
+        addMarkerAt(map, p, "You are here!", BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
 
-        // Plot a line and add markers for each of the visible peaks
-        showVisiblePeaks(highPoints);
+        // Draw a line to show the visible peaks
+        drawVisiblePeaksPolyline(highPoints);
     }
 
     public static void goToLocation(GoogleMap map, double lat, double lng) {
@@ -45,28 +47,33 @@ public class MapFunctions extends Activity {
     // Add a list of LatLng markers to the map
     public static void addMarkersAt(GoogleMap map, List<LatLng> locations)
     {
-        boolean even = true;
+        boolean even = locations.get(0) != null;
         for (LatLng l : locations) {
-            addMarkerAt(map, l, (even ? "Maxima" : "Minima"));
-            even = !even;
+            if (l != null) {
+                BitmapDescriptor icon = even ? BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ROSE) :
+                        BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE);
+                addMarkerAt(map, l, (even ? "Maxima" : "Minima"), icon);
+                even = !even;
+            }
         }
     }
 
     // Add marker to map at the specified location that says the string
-    public static void addMarkerAt(GoogleMap map, LatLng p, String msg)
+    public static void addMarkerAt(GoogleMap map, LatLng p, String msg, BitmapDescriptor icon)
     {
         map.addMarker(new MarkerOptions()
                 .title(msg)
-                .position(new com.google.android.gms.maps.model.LatLng(p.getLat(), p.getLng())));
+                .position(new com.google.android.gms.maps.model.LatLng(p.getLat(), p.getLng()))
+                .icon(icon));
     }
 
     // Add marker to map at the specified location with no message
-    public static void addMarkerAt(GoogleMap map, LatLng p)
+    public static void addMarkerAt(GoogleMap map, LatLng p, BitmapDescriptor icon)
     {
-        addMarkerAt(map, p, "");
+        addMarkerAt(map, p, "", icon);
     }
 
-    public static void showVisiblePeaks(List<Result> highPoints)
+    public static void drawVisiblePeaksPolyline(List<Result> highPoints)
     {
         PolylineOptions polylineOptions = new PolylineOptions();
         polylineOptions.color(Color.YELLOW);
@@ -76,12 +83,6 @@ public class MapFunctions extends Activity {
             polylineOptions.add(new com.google.android.gms.maps.model.LatLng(
                     highPoint.getLocation().getLat(),
                     highPoint.getLocation().getLng()));
-
-            // Show a marker at each peak if there aren't many
-            //  - Many markers looks cluttered
-            if (noOfPaths <= 15)
-                addMarkerAt(MapActivity.googleMap, highPoint.getLocation());
-
         }
         MapActivity.googleMap.addPolyline(polylineOptions);
     }

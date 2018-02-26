@@ -312,6 +312,7 @@ class HorizonMatching {
     // Find all maximum and minimum point of a line when given the coordinates
     // Returned in the form where maximas are are even indexes, minima at odd indexes
     // Coords are in the graph coordinate system, where up right is positive
+    // MaximasMinimas indexes return will start with a -1 if coords start with null (minima)
     public static MaximasMinimas findMaximasMinimas(List<Point> coords, boolean loosenThreshold)
     {
         int arrayIndex = 0;
@@ -319,7 +320,6 @@ class HorizonMatching {
         MaximasMinimas mms = new MaximasMinimas(new ArrayList<Point>(), new ArrayList<Integer>());
         boolean wereGoingUp = true;    //  Whether the hill is heading up or down
         boolean wereGoingDown = false;  // Both are needed because could be flat
-        boolean updated;                // Indicates whether a maxima or minima was found, so you can update up and down booleans
         double threshold = getThreshold(coords) * (loosenThreshold ? 4 : 1);
         int searchWidth = getSearchWidth(coords);
         if (debug)
@@ -400,7 +400,7 @@ class HorizonMatching {
 
             nextGradient = gradientAhead(coords, arrayIndex, searchWidth);
             // Updates the mms with any new maximas or minimas found
-            updated = addAnyMaximaMinima(coords, iOfMaxOrMin, mms, wereGoingUp, wereGoingDown, nextGradient, threshold);
+            addAnyMaximaMinima(coords, iOfMaxOrMin, mms, wereGoingUp, wereGoingDown, nextGradient, threshold);
 
             wereGoingUp = false;
             wereGoingDown = false;
@@ -458,8 +458,10 @@ class HorizonMatching {
                 Log.d("gradient", "Maxima found at " + coords.get(maxOrMinIndex).toString());
 
             // Ensure that maximas are stored at even indexes
-            if (mms.getMaximasMinimas().size() % 2 == 1)
+            if (mms.getMaximasMinimas().size() % 2 == 1) {
                 mms.getMaximasMinimas().add(null);
+                mms.getIndexes().add(-1);   // To mark that the first one is a minima (null max/first index)
+            }
 
             mms.getMaximasMinimas().add(coords.get(maxOrMinIndex));
             mms.getIndexes().add(maxOrMinIndex);
@@ -471,8 +473,10 @@ class HorizonMatching {
                 Log.d("gradient", "Minima found at " + coords.get(maxOrMinIndex).toString());
 
             // Ensure that minimas are stored at odd indexes
-            if (mms.getMaximasMinimas().size() % 2 == 0)
+            if (mms.getMaximasMinimas().size() % 2 == 0) {
                 mms.getMaximasMinimas().add(null);
+                mms.getIndexes().add(-1);   // To mark that the first one is a minima (null max/first index)
+            }
 
             mms.getMaximasMinimas().add(coords.get(maxOrMinIndex));
             mms.getIndexes().add(maxOrMinIndex);
@@ -500,13 +504,17 @@ class HorizonMatching {
                 Log.d("gradient", "Adding Pointy maxima at " + coords.get(arrayIndex)
                         + ", index " + arrayIndex + ", where the gradient ahead is also significant at "
                         + nextGradient + ". We're checking that it's more than " + threshold);
-            if (mms.getMaximasMinimas().size() % 2 == 1) // Done this so that maximas are at even indexes
+            if (mms.getMaximasMinimas().size() % 2 == 1) { // Done this so that maximas are at even indexes
                 mms.getMaximasMinimas().add(null);
+                mms.getIndexes().add(-1);
+            }
         } else if (wereGoingDown & nextGradient > threshold) {
             if (debug)
                 Log.d("gradient", "Adding Pointy minima at " + coords.get(arrayIndex) + ", index " + arrayIndex);
-            if (mms.getMaximasMinimas().size() % 2 == 0) // Done this so that minima are odd
+            if (mms.getMaximasMinimas().size() % 2 == 0) { // Done this so that minima are odd
                 mms.getMaximasMinimas().add(null);
+                mms.getIndexes().add(-1);
+            }
         }
         if ((wereGoingUp & nextGradient <- threshold) || (wereGoingDown & nextGradient > threshold)) {
             mms.getMaximasMinimas().add(coords.get(arrayIndex));

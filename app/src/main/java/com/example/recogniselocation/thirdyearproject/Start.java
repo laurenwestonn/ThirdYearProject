@@ -75,6 +75,8 @@ public class Start extends AppCompatActivity {
                     locDir.getName(),"drawable", Start.this.getPackageName() ))
                     == 0)
                 Log.e(TAG, "buttonClicked: Couldn't find the ID for the drawable " + locDir.getName());
+        } else {
+            ;//hasSystemFeature(PackageManager.FEATURE_CAMERA);
         }
 
         // Use the location and direction to perform the location recognition

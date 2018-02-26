@@ -10,10 +10,7 @@ import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.jjoe64.graphview.series.DataPoint;
-import com.jjoe64.graphview.series.Series;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -180,15 +177,6 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
 
             if (path.size() != 0) {
                 highPoints.add(getHighestVisiblePoint(path, yourElevation));
-                //Log.e(TAG, "onPostExecute: a Mid path is " + path);
-                //Log.e(TAG, "onPostExecute: Hi point from that is " + highPoints.get(highPoints.size()-1));
-                /*
-                if (path.size() != 0 && strResponse.equals(strResponses.get(3))) {
-                    MapFunctions.addMarkerAt(googleMap, path.get(path.size() - 1).getLocation().getLat(),
-                            path.get(path.size() - 1).getLocation().getLng(), "End of a middle path at " + (i-1));
-                    MapFunctions.addMarkerAt(googleMap, path.get(0).getLocation().getLat(),
-                            path.get(0).getLocation().getLng(), "Start of a middle path: " + startI + " - " + (i-1));
-                }*/
                 path.clear();
             }
 
@@ -224,7 +212,7 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
             if (p != null)
                 inverted.add(new Point(p.getX(), p.getY() * -1));
             else
-                Log.e(TAG, "invertSign: Can't invert a null point! " + coords);
+                inverted.add(null);
 
         return inverted;
     }

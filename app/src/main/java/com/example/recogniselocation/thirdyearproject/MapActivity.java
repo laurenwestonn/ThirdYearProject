@@ -67,10 +67,12 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
         googleMap = givenGoogleMap;
         googleMap.setMapType(googleMap.MAP_TYPE_TERRAIN);
 
-        // Draw results onto the map
+        // Show results on the map:
+        // Draw the line of the high points
         LatLng yourLocation = getIntent().getParcelableExtra("yourLocation");
         List<Result> highPoints = getIntent().getParcelableArrayListExtra("highPoints");
         MapFunctions.plotPoints(googleMap, highPoints, yourLocation);
+        // Mark matched maximas and minimas in appropriate colours
         List<Integer> matchedElevCoordsIndexes = getIntent().getIntegerArrayListExtra("matchedElevCoordsIndexes");
         List<LatLng> matchedElevCoords = getLatLngFromResultIndexes(highPoints, matchedElevCoordsIndexes);
         MapFunctions.addMarkersAt(googleMap, matchedElevCoords);
@@ -81,8 +83,11 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
     private List<LatLng> getLatLngFromResultIndexes(List<Result> results, List<Integer> indexes) {
         List<LatLng> reqResults = new ArrayList<>();
 
-        for (int i : indexes)
+        for (int i : indexes) {
+            if (i == -1)    // For when it starts with a minima
+                reqResults.add(null);
             reqResults.add(results.get(i).getLocation());
+        }
 
         return reqResults;
     }

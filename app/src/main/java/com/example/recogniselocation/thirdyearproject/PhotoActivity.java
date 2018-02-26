@@ -34,9 +34,7 @@ public class PhotoActivity extends Activity {
         int drawableID = getIntent().getIntExtra("drawableID", 0);
 
         if (drawableID == 0)
-            Log.e(TAG, "onCreate: ID didn't come through. Thinks its 0");
-        else
-            Log.d(TAG, "onCreate: Yay ID came through as " + drawableID);
+            Log.e(TAG, "onCreate: ID didn't come through.");
 
 
         // Get a mutable bitmap of the image
@@ -64,8 +62,10 @@ public class PhotoActivity extends Activity {
     {
         int minColour = Color.BLUE;
         int maxColour = Color.RED;
-        boolean max = true;
+        boolean max = true;//photoMMs.get(0) != null;
 
+        Log.d(TAG, "markMaximasMinimasOnPhoto: Marking these max mins on photo: " + photoMMs);
+        Log.d(TAG, "FIrst point is a " + (max ? "max" : "Min"));
         for (Point p : photoMMs) {
             if (p != null) {
                 if (max) {
@@ -75,9 +75,6 @@ public class PhotoActivity extends Activity {
                     bmp = ImageManipulation.colourArea(bmp, (int) p.getX(), (int) p.getY(), minColour, 40, 40);
                     minColour += 254 / photoMMs.size() / 2; // Varying blues
                 }
-            } else {
-                Log.e(TAG, "markMaximasMinimasOnPhoto: Can't mark a null point! Got a null value in your photo maximas minimas");
-
             }
             max = !max;
         }
