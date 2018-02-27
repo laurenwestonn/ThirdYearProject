@@ -6,12 +6,21 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class Start extends AppCompatActivity {
 
@@ -27,7 +36,6 @@ public class Start extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start);
-
 
         // Set up the location manager and listener, detects what is ahead EVERY TIME LOCATION CHANGES?*
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
@@ -58,13 +66,9 @@ public class Start extends AppCompatActivity {
                 startActivity(intent);
             }
         };
-
-
     }   // On create
 
-
-
-    // Deal with button clicks
+    // Deal with all button clicks
     public void buttonClicked(View view) {
         // Find which, if any, demo is to be used
         LocationDirection locDir = null;
@@ -76,7 +80,7 @@ public class Start extends AppCompatActivity {
                     == 0)
                 Log.e(TAG, "buttonClicked: Couldn't find the ID for the drawable " + locDir.getName());
         } else {
-            ;//hasSystemFeature(PackageManager.FEATURE_CAMERA);
+            dispatchTakePictureIntent();
         }
 
         // Use the location and direction to perform the location recognition
@@ -106,6 +110,52 @@ public class Start extends AppCompatActivity {
         //////// RECOGNITION ///////
 
         // Method above is asynchronous, wont return here after.
+    }
+
+    // The below got from https://developer.android.com/training/camera/photobasics.html#TaskCaptureIntent
+    String mCurrentPhotoPath;
+
+    private File createImageFile() throws IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
+
+        // Save a file: path for use with ACTION_VIEW intents
+        mCurrentPhotoPath = image.getAbsolutePath();
+        return image;
+    }
+
+    static final int REQUEST_TAKE_PHOTO = 1;
+
+    // Start the intent to take a photo
+    private void dispatchTakePictureIntent() {
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        // Ensure that there's a camera activity to handle the intent
+        if (intent.resolveActivity(getPackageManager()) != null) {
+            // Create the File where the photo should go
+            File photoFile = null;
+            try {
+                photoFile = createImageFile();
+            } catch (IOException ex) {
+                // Error occurred while creating the File
+                Log.e(TAG, "dispatchTakePictureIntent: Couldn't make file");
+            }
+            // Continue only if the File was successfully created
+            if (photoFile != null) {
+                Uri photoURI = FileProvider.getUriForFile(this,
+                        "com.example.android.fileprovider",
+                        photoFile);
+                intent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                // Starting an activity that returns a result - a photo
+                startActivityForResult(intent, REQUEST_TAKE_PHOTO);
+            }
+        }
     }
 
 }

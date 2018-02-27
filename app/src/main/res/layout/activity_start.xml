@@ -14,7 +14,8 @@
         android:background="@color/colorAccent"
         android:contentDescription="@string/camera"
         android:layout_marginTop="25dp"
-        android:layout_centerHorizontal="true"/>
+        android:layout_centerHorizontal="true"
+        android:onClick="buttonClicked" />
 
     <Button
         android:id="@+id/demo1"

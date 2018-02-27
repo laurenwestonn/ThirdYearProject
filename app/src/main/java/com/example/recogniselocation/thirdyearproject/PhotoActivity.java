@@ -64,8 +64,6 @@ public class PhotoActivity extends Activity {
         int maxColour = Color.RED;
         boolean max = true;//photoMMs.get(0) != null;
 
-        Log.d(TAG, "markMaximasMinimasOnPhoto: Marking these max mins on photo: " + photoMMs);
-        Log.d(TAG, "FIrst point is a " + (max ? "max" : "Min"));
         for (Point p : photoMMs) {
             if (p != null) {
                 if (max) {
