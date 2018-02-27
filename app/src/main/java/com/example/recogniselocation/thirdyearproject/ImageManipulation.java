@@ -38,36 +38,45 @@ class ImageManipulation {
         CoarseMasking coarse = coarseMask(bmp);
 
         ///////////// Standard Deviation //////////////
-        StandardDeviation coarseSD = findStandardDeviation(coarse.getBitmap(), coarse.getYs(), sdDetail);
+        if (coarse.getYs().size() > 0) {
+            StandardDeviation coarseSD;
 
-        // Whether SD was drawn on or not, the coarse mask will get returned from the above
-        if (showCoarse)
-            resultBMP = coarseSD.getBitmap();
-        else {
-            ///////////////////// FINE MASK //////////////////
-            Edge fine = fineMask(bmp, coarseSD);
-            resultBMP = fine.getBitmap();
-            edgeCoords = fine.getCoords();
+            coarseSD = findStandardDeviation(coarse.getBitmap(), coarse.getYs(), sdDetail);
+            Log.d(TAG, "findStandardDeviation: SD got");
 
-            ////////// THINNING //////////
-            if (useThinning) {
-                //Log.d("Hi", "Going to thin out edgeCoords: " + edgeCoords.toString());
-                // Unsure if finebmp and edgecoords get updated here
-                edgeCoords = ImageManipulation.thinBitmap(
-                        resultBMP, edgeCoords, fineWidth, fineHeight, fineWidthRadius);
-                Log.d(TAG, "detectEdge: Result of thinning edgeCoords:  " + edgeCoords.toString());
+            // Whether SD was drawn on or not, the coarse mask will get returned from the above
+            if (showCoarse) // Todo: Set the edgeCoords to be the coarse mask coords (so, get them) if we're asking to 'showCoarse'
+                resultBMP = coarseSD.getBitmap();
+            else {
+                ///////////////////// FINE MASK //////////////////
+                Edge fine = fineMask(bmp, coarseSD);
+                resultBMP = fine.getBitmap();
+                edgeCoords = fine.getCoords();
+
+                ////////// THINNING //////////
+                if (useThinning) {
+                    //Log.d("Hi", "Going to thin out edgeCoords: " + edgeCoords.toString());
+                    // Unsure if finebmp and edgecoords get updated here
+                    edgeCoords = ImageManipulation.thinBitmap(
+                            resultBMP, edgeCoords, fineWidth, fineHeight, fineWidthRadius);
+                    Log.d(TAG, "detectEdge: Result of thinning edgeCoords:  " + edgeCoords.toString());
+                }
+
+                ///////// SHOW EDGES ONLY? /////////
+                if (showEdgeOnly) {
+                    // Get a new copy of the photo to draw the edge on top of
+                    resultBMP = bmp.copy(bmp.getConfig(), true);
+                    // Draw the edge on top of the photo from the edge coordinates we saved in edgeCoords
+                    colourFineBitmap(resultBMP, edgeCoords,
+                            fineWidthRadius, fineHeightRadius, fineWidthRadius/2);
+                }
             }
 
-            ///////// SHOW EDGES ONLY? /////////
-            if (showEdgeOnly) {
-                // Get a new copy of the photo to draw the edge on top of
-                resultBMP = bmp.copy(bmp.getConfig(), true);
-                // Draw the edge on top of the photo from the edge coordinates we saved in edgeCoords
-                colourFineBitmap(resultBMP, edgeCoords,
-                        fineWidthRadius, fineHeightRadius, fineWidthRadius/2);
-            }
+        } else {
+            Log.e(TAG, "detectEdge: Couldn't find edges with the coarse mask, so just return the original photo");
+            resultBMP = coarse.getBitmap();
         }
-
+        Log.d(TAG, "detectEdge: Found the photo edge coords " + edgeCoords);
         return new Edge(edgeCoords, resultBMP);
     }
 
@@ -137,7 +146,6 @@ class ImageManipulation {
             ImageManipulation.colourArea(bmp, bmp.getWidth()/2,sd.getMaxRange()-drawnSDRadius,
                     Color.RED,bmp.getWidth()-1, 30);
         }
-        Log.d(TAG, "findStandardDeviation: SD got");
         sd.setBitmap(bmp);
         return sd;
     }
@@ -169,7 +177,7 @@ class ImageManipulation {
                 if (relevantEdge)
                     ysOfEdges.add(y);
             }
-        Log.d(TAG, "CoarseMasking: Coarse Masking done");
+        Log.d(TAG, "CoarseMasking: Coarse Masking done: " + ysOfEdges);
         return new CoarseMasking(ysOfEdges, bmp);
     }
 

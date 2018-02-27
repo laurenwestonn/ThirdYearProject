@@ -74,8 +74,10 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
         MapFunctions.plotPoints(googleMap, highPoints, yourLocation);
         // Mark matched maximas and minimas in appropriate colours
         List<Integer> matchedElevCoordsIndexes = getIntent().getIntegerArrayListExtra("matchedElevCoordsIndexes");
-        List<LatLng> matchedElevCoords = getLatLngFromResultIndexes(highPoints, matchedElevCoordsIndexes);
-        MapFunctions.addMarkersAt(googleMap, matchedElevCoords);
+        if (matchedElevCoordsIndexes != null) {
+            List<LatLng> matchedElevCoords = getLatLngFromResultIndexes(highPoints, matchedElevCoordsIndexes);
+            MapFunctions.addMarkersAt(googleMap, matchedElevCoords);
+        }
 
     }
 

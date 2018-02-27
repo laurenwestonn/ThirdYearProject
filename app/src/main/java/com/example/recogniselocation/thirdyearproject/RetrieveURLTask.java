@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
+import android.provider.MediaStore;
 import android.util.Log;
 
 import com.google.gson.Gson;
@@ -58,61 +59,82 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
 
 
         /////// EDGE DETECTION //////
-        int photoID = Start.drawableID;    // Todo: Deal with using an uploaded photo of your location
-        Bitmap bmp = BitmapFactory.decodeResource(activity.getResources(), photoID);
+        Bitmap bmp = null;
+        if (Start.uri != null) {    // Actual Location - load photo from where was saved
+            try {
+                bmp = MediaStore.Images.Media.getBitmap(activity.getContentResolver(), Start.uri);
+                Log.d(TAG, "onPostExecute: Bitmap got is " + bmp.getWidth() + " x " + bmp.getHeight() + ". " + bmp.getConfig());
+            } catch(Exception e) {
+                Log.e(TAG, "onPostExecute: Couldn't find bitmap: " + e.getMessage());
+            }
+        } else { // Faked demo, get photo from /drawable/
+            int photoID = Start.drawableID;
+            bmp = BitmapFactory.decodeResource(activity.getResources(), photoID);
+        }
         Edge edge = ImageManipulation.detectEdge(
-                bmp,false, false, true, true);
+                bmp, false, false, true, true);
         List<List<Integer>> photoCoords2D = edge.getCoords();
-        Log.d(TAG, "onPostExecute: Edge Detected");
-        /////// EDGE DETECTION //////
 
-
-        /////// MATCH UP HORIZONS //////
-        // Quick fix to simplify coordinates
-        // It is originally a list of a list, to take into account many points in one column
-        // but as thinning should have been used (but we may not have it 'on' to test
-        // other algorithms) there should only be one point per column, so List<Int> will do
-        List<Integer> photoCoordsIntegers = HorizonMatching.removeDimensionFromCoords(photoCoords2D);
-        int pointWidth = (fineWidth-1)/2;
-        List<Point> photoCoords = HorizonMatching.convertToPoints(photoCoordsIntegers, pointWidth);
-        photoCoords = invertY(photoCoords); // To match the graph's coordinate system: Up Right +ve
-
-        Log.d(TAG, "onPostExecute: Going to match up horizons");
-
-        // Todo: Check why I am inverting elevations coords, should already be in the graph coord system as
-        // todo: this is the only thing elev coords are used for.. Check against other photos - does the elevation look right?
-        Horizon horizon = HorizonMatching.matchUpHorizons(photoCoords, elevationsCoords);
-        // Todo: Possibly just send the horizon object as one, not as its elements separately
-        List<Point> photoSeriesCoords = horizon.getPhotoSeriesCoords();     // Up Right +ve
-        List<Integer> matchedElevCoordsIndexes = horizon.getElevMMIndexes();// To get LatLng
-        List<Point> matchedPhotoCoords = invertY(horizon.getPhotoMMs());    // Down Right +ve
-        photoCoords = invertY(photoCoords); // Down Right +ve
-
-
-
-        /////// MATCH UP HORIZONS //////
-
-        ////// START NEXT ACTIVITY //////
+        // Will be going to the photo activity next
         Intent intent = new Intent(activity.getString(R.string.PHOTO_ACTIVITY));
 
+        if (photoCoords2D != null) {
+            Log.d(TAG, "onPostExecute: Edge Detected");
+            /////// EDGE DETECTION //////
+
+            /////// MATCH UP HORIZONS //////
+            // Quick fix to simplify coordinates
+            // It is originally a list of a list, to take into account many points in one column
+            // but as thinning should have been used (but we may not have it 'on' to test
+            // other algorithms) there should only be one point per column, so List<Int> will do
+            List<Integer> photoCoordsIntegers = HorizonMatching.removeDimensionFromCoords(photoCoords2D);
+            int pointWidth = (fineWidth-1)/2;
+            List<Point> photoCoords = HorizonMatching.convertToPoints(photoCoordsIntegers, pointWidth);
+            photoCoords = invertY(photoCoords); // To match the graph's coordinate system: Up Right +ve
+
+            Log.d(TAG, "onPostExecute: Going to match up horizons");
+
+            // Todo: Check why I am inverting elevations coords, should already be in the graph coord system as
+            // todo: this is the only thing elev coords are used for.. Check against other photos - does the elevation look right?
+            Horizon horizon = HorizonMatching.matchUpHorizons(photoCoords, elevationsCoords);
+            // Todo: Possibly just send the horizon object as one, not as its elements separately
+            List<Point> photoSeriesCoords = horizon.getPhotoSeriesCoords();     // Up Right +ve
+            List<Integer> matchedElevCoordsIndexes = horizon.getElevMMIndexes();// To get LatLng
+            List<Point> matchedPhotoCoords = invertY(horizon.getPhotoMMs());    // Down Right +ve
+            photoCoords = invertY(photoCoords); // Down Right +ve
+            /////// MATCH UP HORIZONS //////
+
+
+            // Pass these photo coords and the matched info to the next activity
+            intent.putParcelableArrayListExtra("photoCoords", (ArrayList<Point>) photoCoords);      // To draw the edge
+            intent.putParcelableArrayListExtra("matchedPhotoCoords", (ArrayList<Point>) matchedPhotoCoords);  // To mark on the matched points
+            // For the map activity
+            intent.putIntegerArrayListExtra("matchedElevCoordsIndexes", (ArrayList<Integer>) matchedElevCoordsIndexes);  // To mark on the matched points
+            // For the graph activity
+            intent.putParcelableArrayListExtra("photoSeriesCoords", (ArrayList<Point>) photoSeriesCoords);
+
+
+        } else
+            Log.e(TAG, "onPostExecute: Couldn't find edge coords of photo");
+
+
+        ////// START NEXT ACTIVITY //////
+
+        // Pass the basic data to the next activity (the elevations data)
         // For the photo activity
-        intent.putExtra("drawableID", Start.drawableID);  // Bitmap is too big, find it via ID
-        intent.putParcelableArrayListExtra("photoCoords", (ArrayList<Point>) photoCoords);      // To draw the edge
-        intent.putParcelableArrayListExtra("matchedPhotoCoords", (ArrayList<Point>) matchedPhotoCoords);  // To mark on the matched points
+        if (Start.uri == null)  // If we saved a photo, use this. Only use DrawableID for a demo
+            intent.putExtra("drawableID", Start.drawableID);  // Bitmap is too big, find it via ID
 
         // For the map activity
         intent.putParcelableArrayListExtra("highPoints", (ArrayList<Result>) highPoints);
         intent.putExtra("yourLocation", Start.yourLocation);
-        intent.putIntegerArrayListExtra("matchedElevCoordsIndexes", (ArrayList<Integer>) matchedElevCoordsIndexes);  // To mark on the matched points
 
         // For the graph activity (already have the photo coords)
         intent.putParcelableArrayListExtra("elevationsCoords", (ArrayList<Point>) elevationsCoords);
-        intent.putParcelableArrayListExtra("photoSeriesCoords", (ArrayList<Point>) photoSeriesCoords);
 
         Log.d(TAG, "buttonClicked: Put at the relevant info into the intent. Start the activity.");
         activity.startActivity(intent);
         activity.finish();
-
     }
 
     private List<Result> getHighPoints(List<String> strResponses, double yourElevation) {

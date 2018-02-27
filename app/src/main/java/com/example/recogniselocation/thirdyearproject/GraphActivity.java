@@ -32,16 +32,31 @@ public class GraphActivity extends Activity {
         // Get the coordinates for the graph
         List<Point> elevationsCoords = getIntent().getParcelableArrayListExtra("elevationsCoords");
         List<Point> photoSeriesCoords = getIntent().getParcelableArrayListExtra("photoSeriesCoords");
+        LineGraphSeries<DataPoint> elevSeries = null;
+        LineGraphSeries<DataPoint> photoSeries = null;
 
-        LineGraphSeries<DataPoint> elevSeries = coordsToSeries(
-                (elevationsCoords));
-        Log.d(TAG, "GraphAct: photoSeriesCoords: " + photoSeriesCoords.toString());
-        LineGraphSeries<DataPoint> photoSeries = coordsToSeries(
-                (photoSeriesCoords));
-        Log.d(TAG, "GraphAct: photoSeries: Y Range: " + photoSeries.getLowestValueY() + ", " + photoSeries.getHighestValueY());
+        if (elevationsCoords != null) { // Found the coordinates for the elevation's horizon
+            elevSeries = coordsToSeries(elevationsCoords);
 
-        drawMultipleSeriesOnGraph(photoSeries, Color.argb(255, 250, 150, 50),
-                elevSeries, Color.BLACK);
+            if (photoSeriesCoords == null) { // Only have the coordinates for the elevation's horizon
+                elevSeries.setColor(Color.BLACK);
+                GraphActivity.graph.addSeries(elevSeries);
+            }
+        }
+        if (photoSeriesCoords != null) {// Found the coordinates for the photo's horizon
+            Log.d(TAG, "GraphAct: photoSeriesCoords: " + photoSeriesCoords.toString());
+            photoSeries = coordsToSeries(photoSeriesCoords);
+
+            if (elevSeries == null) { // Only have the coordinates of the photo's horizon
+                photoSeries.setColor(Color.argb(255, 250, 150, 50));
+                GraphActivity.graph.addSeries(photoSeries);
+            }
+        }
+
+        // If we have both sets of series, draw both at once
+        if (elevationsCoords != null && photoSeriesCoords != null)
+            drawMultipleSeriesOnGraph(photoSeries, Color.argb(255, 250, 150, 50),
+                    elevSeries, Color.BLACK);
     }
 
     private void drawMultipleSeriesOnGraph(LineGraphSeries<DataPoint> photoSeries, int photoColour,

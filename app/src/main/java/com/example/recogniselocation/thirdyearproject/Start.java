@@ -27,6 +27,7 @@ public class Start extends AppCompatActivity {
     private static final String TAG = "Start";
     private LocationManager locationManager;
     private LocationListener locationListener;
+    static Uri uri = null;
 
     // Todo: Try pass these to the Async method if possible
     static LatLng yourLocation;
@@ -36,6 +37,9 @@ public class Start extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start);
+
+        uri = null;
+        drawableID = 0;
 
         // Set up the location manager and listener, detects what is ahead EVERY TIME LOCATION CHANGES?*
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
@@ -70,17 +74,19 @@ public class Start extends AppCompatActivity {
 
     // Deal with all button clicks
     public void buttonClicked(View view) {
-        // Find which, if any, demo is to be used
+        // Find your location - either via a faked demo or via true GPS
         LocationDirection locDir = null;
-        if (view.getId() != R.id.camera) {
+        if (view.getId() == R.id.camera) {
+            uri = dispatchTakePictureIntent();
+            // Todo: Stop code from carrying on until we get a URI
+            // Use the URI (or maybe the File photoFile to find the photo you saved) for the edge detection
+        } else {
             locDir = Demos.getDemo(view.getId());
             yourLocation = locDir.getLocation();
             if ((drawableID = Start.this.getResources().getIdentifier(
                     locDir.getName(),"drawable", Start.this.getPackageName() ))
                     == 0)
                 Log.e(TAG, "buttonClicked: Couldn't find the ID for the drawable " + locDir.getName());
-        } else {
-            dispatchTakePictureIntent();
         }
 
         // Use the location and direction to perform the location recognition
@@ -134,7 +140,7 @@ public class Start extends AppCompatActivity {
     static final int REQUEST_TAKE_PHOTO = 1;
 
     // Start the intent to take a photo
-    private void dispatchTakePictureIntent() {
+    private Uri dispatchTakePictureIntent() {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         // Ensure that there's a camera activity to handle the intent
         if (intent.resolveActivity(getPackageManager()) != null) {
@@ -154,8 +160,10 @@ public class Start extends AppCompatActivity {
                 intent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
                 // Starting an activity that returns a result - a photo
                 startActivityForResult(intent, REQUEST_TAKE_PHOTO);
+                return photoURI;
             }
         }
+        return null;
     }
 
 }

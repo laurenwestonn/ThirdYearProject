@@ -554,14 +554,21 @@ class HorizonMatching {
 
     static List<Integer> removeDimensionFromCoords(List<List<Integer>> coords2D)
     {
-        List<Integer> coords1D = new ArrayList<>();
+        if (coords2D != null) {
+            List<Integer> coords1D = new ArrayList<>();
 
-        for (List<Integer> col : coords2D)
-            if (col.size() > 0)
-                coords1D.add(col.get(0));
-            else
-                coords1D.add(-1);
-        return coords1D;
+            for (List<Integer> col : coords2D)
+                if (col.size() > 0)
+                    coords1D.add(col.get(0));
+                else
+                    coords1D.add(-1);
+            return coords1D;
+
+        } else {
+            Log.e(TAG, "removeDimensionFromCoords: Can't make \"null\" 1D");
+            return null;
+        }
+
     }
 
     static List<Point> convertToPoints(List<Integer> intList, int pointWidth)

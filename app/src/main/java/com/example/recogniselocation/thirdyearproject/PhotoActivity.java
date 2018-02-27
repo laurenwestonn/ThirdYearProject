@@ -7,6 +7,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.View;
@@ -33,24 +34,42 @@ public class PhotoActivity extends Activity {
         // Bitmap is too big to send so find image from resources using ID sent
         int drawableID = getIntent().getIntExtra("drawableID", 0);
 
-        if (drawableID == 0)
-            Log.e(TAG, "onCreate: ID didn't come through.");
-
+        if (Start.uri == null && drawableID == 0)
+            Log.e(TAG, "onCreate: Photo ID didn't come through and we're not using a real photo");
 
         // Get a mutable bitmap of the image
         BitmapFactory.Options opt = new BitmapFactory.Options();
         opt.inMutable = true;
-        Bitmap bmp = BitmapFactory.decodeResource(getResources(), drawableID, opt);
+        Bitmap bmp = null;
+        if (Start.uri != null) {
+            // Get the photo you took from your location
+            try {
+                bmp = MediaStore.Images.Media.getBitmap(this.getContentResolver(), Start.uri);
+                Log.d(TAG, "onPostExecute: Bitmap got is " + bmp.getWidth() + " x " + bmp.getHeight() + ". " + bmp.getConfig());
+            } catch (Exception e) {
+                Log.e(TAG, "onCreate: Couldn't get bitmap: " + e.getMessage());
+            }
+        } else {
+            bmp = BitmapFactory.decodeResource(getResources(), drawableID, opt);
+        }
 
-        // Colour onto the bitmap the edge we've detected
-        List<Point> photoCoords = getIntent().getParcelableArrayListExtra("photoCoords");
-        bmp = markEdgeCoords(bmp, photoCoords);
-        // Mark the maximas and minimas (common with the map)
-        List<Point> matchedCoords = getIntent().getParcelableArrayListExtra("matchedPhotoCoords");
-        bmp = markMaximasMinimasOnPhoto(bmp, matchedCoords);
+        if (bmp != null) {
+            // Colour onto the bitmap the edge we've detected
+            List<Point> photoCoords = getIntent().getParcelableArrayListExtra("photoCoords");
+            if (photoCoords != null)
+                bmp = markEdgeCoords(bmp, photoCoords);
+            // Mark the maximas and minimas (common with the map)
+            List<Point> matchedCoords = getIntent().getParcelableArrayListExtra("matchedPhotoCoords");
+            if (matchedCoords != null)
+                bmp = markMaximasMinimasOnPhoto(bmp, matchedCoords);
 
-        // Put bitmap onto the image button
-        this.findViewById(R.id.photo).setBackground(new BitmapDrawable(this.getResources(), bmp));
+            // Put bitmap onto the image button
+            this.findViewById(R.id.photo).setBackground(new BitmapDrawable(this.getResources(), bmp));
+
+        } else {
+            Log.e(TAG, "onCreate: Couldn't find bitmap");
+        }
+
     }
 
     private Bitmap markEdgeCoords(Bitmap bmp, List<Point> photoCoords) {
