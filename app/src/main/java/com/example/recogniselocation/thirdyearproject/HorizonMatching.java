@@ -21,9 +21,15 @@ class HorizonMatching {
         // Find all minimas and maximas of both horizons
         MaximasMinimas photoMMsObj = findMaximasMinimas(photoCoords, true);
         List<Point> photoMMs = photoMMsObj.getMaximasMinimas();
+        if (debug) {
+            Log.d(TAG, "matchUpHorizons: Just found photo max mins: " + photoMMs);
+        }
         MaximasMinimas elevMMsObj = findMaximasMinimas(elevationCoords, false);// Todo: This better. Using a looser(...is it?) threshold here because my edge detection is too thick to notice subtle dips
         List<Point> elevationMMs = elevMMsObj.getMaximasMinimas();
         List<Integer> elevationMMsIndexes = elevMMsObj.getIndexes();
+        if (debug) {
+            Log.d(TAG, "matchUpHorizons: Just found elevation max mins: " + elevationMMs);
+        }
 
         if (photoMMs == null || elevationMMs == null                        // None found
                 ||photoMMs.size() < 2 || elevationMMs.size() < 2            // Just a maxima found
@@ -31,11 +37,6 @@ class HorizonMatching {
                 || elevationMMs.get(0) == null && elevationMMs.size() == 2) // Just a minima found
             Log.e(TAG, "matchUpHorizons: Didn't find enough maximas and minimas; "
                     + "Elevation ones: " + elevationMMs + "\tPhoto ones: " + photoMMs);
-
-        if (debug) {
-            Log.d(TAG, "matchUpHorizons: photo max mins" + photoMMs);
-            Log.d(TAG, "matchUpHorizons: eleva max mins" + elevationMMs);
-        }
 
         // Find best minima maxima pair for the photo - i.e. the biggest difference in height
         // If the first in photo is a maxima, the first two in photoMM will hold max then min
@@ -74,9 +75,10 @@ class HorizonMatching {
         }
 
         // Log the results of the matchings
-        if (allMatchings.size() == 0)
-            Log.e(TAG, "matchUpHorizons: No matchings were found");
-        else {
+        if (allMatchings.size() == 0) {
+            Log.d(TAG, "matchUpHorizons: No significant matchings were found. Just use the last one");
+            allMatchings.add(howWellMatched(photoMM, getTheNextElevationMM(elevationMMs, i-2), photoCoords, elevationCoords));
+        } else {
             if (debug) {
                 Log.d(TAG, "matchUpHorizons: All matchings: ");
                 for (Matching m : allMatchings)

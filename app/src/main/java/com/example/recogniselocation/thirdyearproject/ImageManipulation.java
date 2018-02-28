@@ -7,6 +7,8 @@ import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import static android.content.ContentValues.TAG;
@@ -24,8 +26,8 @@ class ImageManipulation {
 
     static Edge detectEdge(Bitmap bmp,
                            boolean showCoarse, boolean sdDetail,
-                           boolean useThinning, boolean showEdgeOnly) {
-
+                           boolean useThinning, boolean showEdgeOnly)
+    {
         if (bmp == null)
             Log.e(TAG, "Null bitmap was passed to detectEdge");
 
@@ -56,9 +58,11 @@ class ImageManipulation {
 
                 ////////// THINNING //////////
                 if (useThinning) {
-                    Log.d(TAG, "detectEdge: Going to thin out edgeCoords: " + edgeCoords.toString());
+                    Log.d(TAG, "detectEdge: Going to skeletonise edgeCoords: " + edgeCoords.toString());
                     edgeCoords = ImageManipulation.thinBitmap(edgeCoords, fineWidth);
-                    Log.d(TAG, "detectEdge: Result of thinning edgeCoords:  " + edgeCoords.toString());
+                    Log.d(TAG, "detectEdge: Result of skeletonising coords:  " + edgeCoords.toString());
+                    edgeCoords = ImageManipulation.thinColumns(edgeCoords);
+                    Log.d(TAG, "detectEdge: Result of one coord per column:  " + edgeCoords.toString());
                 }
 
                 ///////// SHOW EDGES ONLY? /////////
@@ -78,8 +82,44 @@ class ImageManipulation {
         return new Edge(edgeCoords, resultBMP);
     }
 
+    private static List<Point> thinColumns(List<Point> edgeCoords)
+    {
+        List<Point> onePerColumn = new ArrayList<>();
+        for (Point p : edgeCoords) {
+            // Find all points within the same column
+            int colIndex = (int) p.getX();
+            List<Point> pointsInCol = findPointsInCol(edgeCoords, colIndex);
+
+            // Pick best point in column (middle, more towards top due to noise below horizon)
+            Point bestPoint = bestPointInCol(pointsInCol);
+            if (!onePerColumn.contains(bestPoint))  // Add it if you haven't already
+                onePerColumn.add(bestPoint);
+        }
+        return onePerColumn;
+    }
+
+    public static Point bestPointInCol(List<Point> col) {
+        switch (col.size()) {
+            case 0: return null;
+            case 1: return col.get(0);
+            default: return col.get((int)Math.ceil(col.size() / 2.0) - 1);
+        }
+    }
+
+    // Returns every point that is also a part of column 'colIndex'
+    private static List<Point> findPointsInCol(List<Point> coords, int colIndex) {
+        List<Point> pointsInCol = new ArrayList<>();
+
+        for (Point p : coords)
+            if (p.getX() == colIndex)
+                pointsInCol.add(p);
+
+        return pointsInCol;
+    }
+
     @NonNull
-    private static Edge fineMask(Bitmap origBMP, StandardDeviation coarseSD) {
+    private static Edge fineMask(Bitmap origBMP, StandardDeviation coarseSD)
+    {
         //  1   0   1   0   1
         //  0   0   0   0   0
         //  -1  0   -1  0   -1
@@ -98,8 +138,8 @@ class ImageManipulation {
         List<Point> edgeCoords = new ArrayList<>();
 
         // Use a fine mask on the area found to be the horizon by the coarse mask
-        for(int y = coarseSD.getMinRange() + fineHeightRadius; y < coarseSD.getMaxRange() - fineHeightRadius; y+= fineHeightRadius)
-            for (int x = fineWidthRadius; x < resultBMP.getWidth() - fineWidthRadius; x+= fineWidthRadius) {
+        for (int x = fineWidthRadius; x < resultBMP.getWidth() - fineWidthRadius; x+= fineWidthRadius)
+            for(int y = coarseSD.getMinRange() + fineHeightRadius; y < coarseSD.getMaxRange() - fineHeightRadius; y+= fineHeightRadius) {
 
                 /////// NEIGHBOURING THRESHOLD ///////
 
@@ -157,8 +197,8 @@ class ImageManipulation {
         // The coordinates detected as edges
         List<Point> edgeCoords = new ArrayList<>();
 
-        for (int y = coarseRadius+1; y < bmp.getHeight(); y += coarseDiam)
-            for (int x = coarseRadius+1; x < bmp.getWidth(); x += coarseDiam) {
+        for (int x = coarseRadius+1; x < bmp.getWidth(); x += coarseDiam)
+            for (int y = coarseRadius+1; y < bmp.getHeight(); y += coarseDiam) {
 
                 // The threshold to determine if a point is an edge
                 int pointThreshold = bmp.getHeight() / 23;

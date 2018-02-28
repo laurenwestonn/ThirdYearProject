@@ -24,7 +24,11 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
 
     @SuppressLint("StaticFieldLeak")
     private Activity activity;
-    //private int photoID = R.drawable.rocky_mountains; Not using this for the next version
+
+    boolean showCoarse = false;
+    boolean sdDetail = false;
+    boolean useThinning = true;
+    boolean showEdgeOnly = true;
 
     RetrieveURLTask(Activity a)
     {
@@ -72,7 +76,7 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
             bmp = BitmapFactory.decodeResource(activity.getResources(), photoID);
         }
         Edge edge = ImageManipulation.detectEdge(
-                bmp, false, false, true, true);
+                bmp, showCoarse, sdDetail, useThinning, showEdgeOnly);
         List<Point> photoCoords = edge.getCoords();
 
         // Will be going to the photo activity next
