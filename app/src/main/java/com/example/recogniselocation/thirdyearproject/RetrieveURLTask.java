@@ -73,29 +73,21 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
         }
         Edge edge = ImageManipulation.detectEdge(
                 bmp, false, false, true, true);
-        List<List<Integer>> photoCoords2D = edge.getCoords();
+        List<Point> photoCoords = edge.getCoords();
 
         // Will be going to the photo activity next
         Intent intent = new Intent(activity.getString(R.string.PHOTO_ACTIVITY));
+        /////// EDGE DETECTION //////
 
-        if (photoCoords2D != null) {
+        if (photoCoords != null) {
             Log.d(TAG, "onPostExecute: Edge Detected");
-            /////// EDGE DETECTION //////
 
             /////// MATCH UP HORIZONS //////
-            // Quick fix to simplify coordinates
-            // It is originally a list of a list, to take into account many points in one column
-            // but as thinning should have been used (but we may not have it 'on' to test
-            // other algorithms) there should only be one point per column, so List<Int> will do
-            List<Integer> photoCoordsIntegers = HorizonMatching.removeDimensionFromCoords(photoCoords2D);
-            int pointWidth = (fineWidth-1)/2;
-            List<Point> photoCoords = HorizonMatching.convertToPoints(photoCoordsIntegers, pointWidth);
             photoCoords = invertY(photoCoords); // To match the graph's coordinate system: Up Right +ve
 
             Log.d(TAG, "onPostExecute: Going to match up horizons");
 
-            // Todo: Check why I am inverting elevations coords, should already be in the graph coord system as
-            // todo: this is the only thing elev coords are used for.. Check against other photos - does the elevation look right?
+            // Todo: Check flippedness of graph results against other photos - does the elevation look right?
             Horizon horizon = HorizonMatching.matchUpHorizons(photoCoords, elevationsCoords);
             // Todo: Possibly just send the horizon object as one, not as its elements separately
             List<Point> photoSeriesCoords = horizon.getPhotoSeriesCoords();     // Up Right +ve

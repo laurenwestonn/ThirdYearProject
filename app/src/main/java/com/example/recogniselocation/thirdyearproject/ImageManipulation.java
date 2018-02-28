@@ -16,7 +16,7 @@ class ImageManipulation {
     private static boolean gShowCoarse;
     private static boolean gShowEdgeOnly;
 
-    private static List<List<Integer>> edgeCoords;
+    private static List<Point> edgeCoords;
     static int fineWidth;
     private static int fineHeight;
     private static int fineWidthRadius;
@@ -38,10 +38,11 @@ class ImageManipulation {
         CoarseMasking coarse = coarseMask(bmp);
 
         ///////////// Standard Deviation //////////////
-        if (coarse.getYs().size() > 0) {
+        if (coarse.getCoords().size() > 0) {
             StandardDeviation coarseSD;
 
-            coarseSD = findStandardDeviation(coarse.getBitmap(), coarse.getYs(), sdDetail);
+            coarseSD = findStandardDeviation(coarse.getBitmap(), coarse.getCoords(), sdDetail);
+            edgeCoords = coarse.getCoords();
             Log.d(TAG, "findStandardDeviation: SD got");
 
             // Whether SD was drawn on or not, the coarse mask will get returned from the above
@@ -55,10 +56,8 @@ class ImageManipulation {
 
                 ////////// THINNING //////////
                 if (useThinning) {
-                    //Log.d("Hi", "Going to thin out edgeCoords: " + edgeCoords.toString());
-                    // Unsure if finebmp and edgecoords get updated here
-                    edgeCoords = ImageManipulation.thinBitmap(
-                            resultBMP, edgeCoords, fineWidth, fineHeight, fineWidthRadius);
+                    Log.d(TAG, "detectEdge: Going to thin out edgeCoords: " + edgeCoords.toString());
+                    edgeCoords = ImageManipulation.thinBitmap(edgeCoords, fineWidth);
                     Log.d(TAG, "detectEdge: Result of thinning edgeCoords:  " + edgeCoords.toString());
                 }
 
@@ -67,8 +66,7 @@ class ImageManipulation {
                     // Get a new copy of the photo to draw the edge on top of
                     resultBMP = bmp.copy(bmp.getConfig(), true);
                     // Draw the edge on top of the photo from the edge coordinates we saved in edgeCoords
-                    colourFineBitmap(resultBMP, edgeCoords,
-                            fineWidthRadius, fineHeightRadius, fineWidthRadius/2);
+                    colourFineBitmap(resultBMP, edgeCoords, fineWidthRadius, fineHeightRadius);
                 }
             }
 
@@ -97,15 +95,11 @@ class ImageManipulation {
         int pointWidthRadius = pointWidth / 2;
 
         boolean relevantEdge;
-        List<List<Integer>> edgeCoords = new ArrayList<>();
+        List<Point> edgeCoords = new ArrayList<>();
 
         // Use a fine mask on the area found to be the horizon by the coarse mask
-        for(int y = coarseSD.getMinRange() + fineHeightRadius; y <= coarseSD.getMaxRange(); y+= fineHeightRadius)
-            for (int x = fineWidthRadius; x < resultBMP.getWidth(); x+= fineWidthRadius) {
-
-                // Have a list for each column
-                if (y == coarseSD.getMinRange() + fineHeightRadius)
-                    edgeCoords.add(new ArrayList<Integer>());
+        for(int y = coarseSD.getMinRange() + fineHeightRadius; y < coarseSD.getMaxRange() - fineHeightRadius; y+= fineHeightRadius)
+            for (int x = fineWidthRadius; x < resultBMP.getWidth() - fineWidthRadius; x+= fineWidthRadius) {
 
                 /////// NEIGHBOURING THRESHOLD ///////
 
@@ -117,21 +111,21 @@ class ImageManipulation {
                 relevantEdge = ImageManipulation.colourFineMaskPoint(origBMP, resultBMP, x, y, fineWidth, fineHeight, pointThreshold, neighbThreshold);
                 if (relevantEdge)
                     // This should hold the location of every edge found with the fine mask
-                    edgeCoords.get((x - pointWidthRadius) / pointWidth).add(y);
+                    edgeCoords.add(new Point(x , y));
             }
         Log.d(TAG, "fineMask: Fine Masking done");
 
         return new Edge(edgeCoords, resultBMP);
     }
 
-    private static StandardDeviation findStandardDeviation(Bitmap bmp, List<Integer> ys, boolean sdDetail) {
+    private static StandardDeviation findStandardDeviation(Bitmap bmp, List<Point> coords, boolean sdDetail) {
         // Here we work out the standard deviation of the edges found using the coarse mask
         // We need this so we can narrow down the area to search using the fine mask
-        StandardDeviation sd = new StandardDeviation(ys, bmp.getHeight() / 17);
+        StandardDeviation sd = new StandardDeviation(coords, bmp.getHeight() / 17);
 
         // Enable sdDetail if you want to print info and draw mean/sd lines on the image
         if (sdDetail) {
-            Log.d("sd", "ysOfEdges: " + ys.toString());
+            Log.d("sd", "Coarse edge coords: " + coords.toString());
             Log.d("sd", "Standard Deviation is " + sd.getSd() + ". Mean is " + sd.getMean());
             Log.d("sd", "Range should be from " + sd.getMinRange()  + " to " + sd.getMaxRange());
 
@@ -161,7 +155,7 @@ class ImageManipulation {
         int coarseDiam = coarseRadius * 2 + 1;
 
         // The coordinates detected as edges
-        List<Integer> ysOfEdges = new ArrayList<>();
+        List<Point> edgeCoords = new ArrayList<>();
 
         for (int y = coarseRadius+1; y < bmp.getHeight(); y += coarseDiam)
             for (int x = coarseRadius+1; x < bmp.getWidth(); x += coarseDiam) {
@@ -175,10 +169,10 @@ class ImageManipulation {
                 boolean relevantEdge = ImageManipulation.colourCoarseMaskPoint(bmp, x, y, coarseRadius, pointThreshold, neighbThreshold);
                 // If it is, remember it so we can narrow the area we use our fine mask in
                 if (relevantEdge)
-                    ysOfEdges.add(y);
+                    edgeCoords.add(new Point(x,y));
             }
-        Log.d(TAG, "CoarseMasking: Coarse Masking done: " + ysOfEdges);
-        return new CoarseMasking(ysOfEdges, bmp);
+        Log.d(TAG, "CoarseMasking: Coarse Masking done: " + edgeCoords);
+        return new CoarseMasking(edgeCoords, bmp);
     }
 
 
@@ -275,13 +269,10 @@ class ImageManipulation {
     // edgeCoords is a 2D list:
     // x increases by 1 - but don't forget the bitmap increases by width
     // y is the actual y coordinate from the bitmap
-    static void colourFineBitmap(Bitmap bmp, List<List<Integer>> edgeCoords,
-                                 int pWidth, int pHeight, int radiusOfPointWidth) {
-
-        for (int x = 0; x < edgeCoords.size(); x++)
-            for (int y = 0; y < edgeCoords.get(x).size(); y++)
-                colourArea(bmp, x * pWidth + radiusOfPointWidth, edgeCoords.get(x).get(y),
-                                                            Color.YELLOW, pWidth, pHeight);
+    static void colourFineBitmap(Bitmap bmp, List<Point> edgeCoords, int pWidth, int pHeight)
+    {
+        for (Point p : edgeCoords)
+            colourArea(bmp, (int) p.getX(), (int) p.getY(), Color.YELLOW, pWidth, pHeight);
     }
 
     /////// COLOUR ///////
@@ -474,8 +465,8 @@ class ImageManipulation {
             colourArea(bmp, x, y, Color.BLUE, width, height);
             // New edge that we've already gone past so will not revisit
             // will have to add this to edgeCoords manually
-            if (edgeCoords != null && (x-widthFromCentre) / width < edgeCoords.size())   // If it has been set (should be at this point)
-                edgeCoords.get((x-widthFromCentre) / width).add(y);
+            if (edgeCoords != null)   // If it has been set (should be at this point)
+                edgeCoords.add(new Point(x, y));
             // Next time this point is checked it will be blue so we wouldn't enter
             // this area of code so the same coords can't be added twice
             return true;
@@ -529,29 +520,65 @@ class ImageManipulation {
         return pointToUse == null ? prevPoint : pointToUse;
     }
 
-    static List<List<Integer>> thinBitmap(Bitmap bmp, List<List<Integer>> edgeCoords,
-                                          int width, int height, int widthFromCentre)
+    private static List<Point> thinBitmap(List<Point> edgeCoords, int pointDiametre)
     {
-        // Start at the centre of the first point
-        int colIndex = widthFromCentre;
-        Point prevPoint = null;
+        List<Point> thinnedCoords = new ArrayList<>();
 
         // Go through each of the edge coords
-        for (int i = 0; i < edgeCoords.size(); i++, colIndex += width) {
-            Point remainingPoint = thinColumn(bmp, edgeCoords.get(i), colIndex, prevPoint, width, height);
+        for (int i = 0; i < edgeCoords.size(); i++) {
+            boolean removeThisPoint = thinPoint(edgeCoords, edgeCoords.get(i), pointDiametre);
 
             if(gShowEdgeOnly)
-                // If a point was found, store only this in edgeCoords
-                if (remainingPoint != null) {
-                    edgeCoords.get(i).clear();
-                    edgeCoords.get(i).add((int) remainingPoint.getY());
-                }
-                else
-                    edgeCoords.get(i).clear();  // No edges in this column
-
-            prevPoint = remainingPoint;
+                if (!removeThisPoint)
+                    thinnedCoords.add(edgeCoords.get(i));
         }
-        return edgeCoords;
+        if (gShowEdgeOnly)
+            return thinnedCoords;
+        else
+            return edgeCoords;
+    }
+
+    // Using techniques from skeletonisation
+    public static boolean thinPoint(List<Point> coords, Point point, int pointDiametre)
+    {
+        boolean removeThisPoint = false;
+        double x,y;
+        x = point.getX();
+        y = point.getY();
+
+        /*
+        if (coords.indexOf(new Point(x, y - pointDiametre)) != -1)
+            Log.d(TAG, "thinPoint: There's a point above " + point + "; " + x + ", " + (y - pointDiametre));
+        else
+            Log.d(TAG, "thinPoint: There isn't a point above " + point + "; " + x + ", " + (y - pointDiametre));
+
+        if (coords.indexOf(new Point(x, y - pointDiametre)) != -1)
+            Log.d(TAG, "thinPoint: There's a point below " + point + "; " + x + ", " + (y + pointDiametre));
+        else
+            Log.d(TAG, "thinPoint: There isn't a point below " + point + "; " + x + ", " + (y + pointDiametre));
+
+        if (coords.indexOf(new Point(x + pointDiametre, y)) != -1 && coords.indexOf(new Point(x - pointDiametre, y)) == -1
+                || coords.indexOf(new Point(x - pointDiametre, y)) != -1 && coords.indexOf(new Point(x + pointDiametre, y)) == -1)
+            Log.d(TAG, "thinPoint: There's a point either on the right or left of " + point
+                    + "; " + (x + pointDiametre) + ", " + y + " or " + (x - pointDiametre) + ", " + y);
+        else
+            Log.d(TAG, "thinPoint: There isn't a point only on the right or left of " + point
+                    + "; " + (x + pointDiametre) + ", " + y + " or " + (x - pointDiametre) + ", " + y);
+*/
+
+        // If point above this one is an edge
+        if (coords.indexOf(new Point(x, y - pointDiametre)) != -1
+                // and if point below is an edge
+                && coords.indexOf(new Point(x, y + pointDiametre)) != -1
+                // and point on EITHER the right or left is an edge
+                && (coords.indexOf(new Point(x + pointDiametre, y)) != -1 && coords.indexOf(new Point(x - pointDiametre, y)) == -1
+                    || coords.indexOf(new Point(x - pointDiametre, y)) != -1 && coords.indexOf(new Point(x + pointDiametre, y)) == -1) ) {
+            // Don't include this point
+            removeThisPoint = true;
+            //Log.d(TAG, "thinPoint: As all three neighbouring points exist, we can thin point " + point);
+        }
+
+        return removeThisPoint;
     }
 
 

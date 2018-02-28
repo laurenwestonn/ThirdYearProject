@@ -13,16 +13,16 @@ import static android.content.ContentValues.TAG;
 
 public class Edge implements Parcelable {
 
-    private List<List<Integer>> coords;
+    private List<Point> coords;
     private Bitmap bmp = null;
 
-    Edge(List<List<Integer>> coords, Bitmap bmp)
+    Edge(List<Point> coords, Bitmap bmp)
     {
         this.coords = coords;
         this.bmp = bmp;
     }
 
-    List<List<Integer>> getCoords()
+    List<Point> getCoords()
     {
         return coords;
     }

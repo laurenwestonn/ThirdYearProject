@@ -6,18 +6,20 @@ import java.util.List;
 
 public class CoarseMasking {
 
-    private List<Integer> ys;
+    // Todo: Reduce classes, don't I have others that are List<point> and bmp?
+
+    private List<Point> coords;
     private Bitmap bmp;
 
-    CoarseMasking(List<Integer> ys, Bitmap bmp)
+    CoarseMasking(List<Point> coords, Bitmap bmp)
     {
-        this.ys = ys;
+        this.coords = coords;
         this.bmp = bmp;
     }
 
-    List<Integer> getYs()
+    List<Point> getCoords()
     {
-        return ys;
+        return coords;
     }
 
     Bitmap getBitmap()

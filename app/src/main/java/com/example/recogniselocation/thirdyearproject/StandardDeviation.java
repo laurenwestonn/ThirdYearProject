@@ -12,10 +12,10 @@ public class StandardDeviation {
     private int maxRange;
     private Bitmap bmp;
 
-    StandardDeviation(List<Integer> range, int heightFromCentre) {
-        if (range.size() > 0) {
-            mean = calcMean(range);
-            sd = calcSD(range, mean);
+    StandardDeviation(List<Point> coords, int heightFromCentre) {
+        if (coords.size() > 0) {
+            mean = calcYMean(coords);
+            sd = calcSD(coords, mean);
             minRange = (int) (mean - 3 * sd) - heightFromCentre;  // Get more above the horizon
             maxRange = (int) (mean + sd) + heightFromCentre;    // as there's more likely to be more noise below
 
@@ -24,39 +24,39 @@ public class StandardDeviation {
         }
     }
 
-    public static double calcSD(List<Integer> numArray)
+    public static double calcSD(List<Point> coords)
     {
         int sum = 0;
         double sd = 0;
 
-        for (int num : numArray)
-            sum += num;
+        for (Point p : coords)
+            sum += p.getY();
 
-        double mean = sum / numArray.size();
+        double mean = sum / coords.size();
 
-        for (int num : numArray)
-            sd += Math.pow(num - mean, 2);
+        for (Point p : coords)
+            sd += Math.pow(p.getY() - mean, 2);
 
-        return Math.sqrt(sd / numArray.size());
+        return Math.sqrt(sd / coords.size());
     }
 
-    private static double calcSD(List<Integer> numArray, double mean)
+    private static double calcSD(List<Point> coords, double yMean)
     {
         double sd = 0;
 
-        for (int num : numArray)
-            sd += Math.pow(num - mean, 2);
+        for (Point p : coords)
+            sd += Math.pow(p.getY() - yMean, 2);
 
-        return Math.sqrt(sd / numArray.size());
+        return Math.sqrt(sd / coords.size());
     }
 
-    private static double calcMean(List<Integer> numArray) {
+    private static double calcYMean(List<Point> coords) {
         int sum = 0;
 
-        for (int num : numArray)
-            sum += num;
+        for (Point p : coords)
+            sum += p.getY();
 
-        return sum / numArray.size();
+        return sum / coords.size();
     }
 
     void setBitmap(Bitmap bmp)

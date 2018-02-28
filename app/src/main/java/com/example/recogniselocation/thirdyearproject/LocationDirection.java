@@ -7,7 +7,7 @@ public class LocationDirection {
     private LatLng loc;
     private double dir; // in degrees
 
-    LocationDirection(String name, LatLng loc, double dir)
+    public LocationDirection(String name, LatLng loc, double dir)
     {
         this.name = name;
         this.loc = loc;
