@@ -27,8 +27,6 @@ public class PhotoActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.photo_activity);
 
-        // Perform the program
-
         // Get values passed through to this activity via the intent
         // Todo: Get the others passed through as well as the ID
         // Bitmap is too big to send so find image from resources using ID sent
@@ -73,7 +71,9 @@ public class PhotoActivity extends Activity {
     }
 
     private Bitmap markEdgeCoords(Bitmap bmp, List<Point> photoCoords) {
-        return ImageManipulation.colourBitmapCoords(bmp, photoCoords, Color.argb(255, 250, 150, 50), 15);
+        int width = (bmp.getWidth() / 70) + 1;
+        return ImageManipulation.colourBitmapCoords(
+                bmp, photoCoords, Color.argb(255, 250, 150, 50), width);
     }
 
     // Mark of the maximas and minimas in varying colours

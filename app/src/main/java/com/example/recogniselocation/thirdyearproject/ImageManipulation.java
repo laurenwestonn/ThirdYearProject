@@ -59,9 +59,9 @@ class ImageManipulation {
                 ////////// THINNING //////////
                 if (useThinning) {
                     Log.d(TAG, "detectEdge: Going to skeletonise edgeCoords: " + edgeCoords.toString());
-                    edgeCoords = ImageManipulation.thinBitmap(edgeCoords, fineWidth);
+                    edgeCoords = thinBitmap(edgeCoords, fineWidth);
                     Log.d(TAG, "detectEdge: Result of skeletonising coords:  " + edgeCoords.toString());
-                    edgeCoords = ImageManipulation.thinColumns(edgeCoords);
+                     edgeCoords = thinColumns(edgeCoords);
                     Log.d(TAG, "detectEdge: Result of one coord per column:  " + edgeCoords.toString());
                 }
 
@@ -120,38 +120,39 @@ class ImageManipulation {
     @NonNull
     private static Edge fineMask(Bitmap origBMP, StandardDeviation coarseSD)
     {
-        //  1   0   1   0   1
+        //  1   0   2   0   1
         //  0   0   0   0   0
-        //  -1  0   -1  0   -1
+        //  -1  0  -2   0   -1
 
         // Get a copy of the original photo to use the fine mask on
         Bitmap resultBMP = origBMP.copy(origBMP.getConfig(), true);
 
         fineWidthRadius = resultBMP.getWidth() / 250; // 1 would make a mask of width 3, 2 would give width 5
         fineWidth = fineWidthRadius * 2 + 1;    // Width of the fine mask
-        fineHeightRadius = resultBMP.getHeight() / 120;
+        fineHeightRadius = resultBMP.getHeight() / 110;
         fineHeight = fineHeightRadius * 2 + 1;
-        int pointWidth = fineWidthRadius;       // The width of point to colour in
-        int pointWidthRadius = pointWidth / 2;
 
         boolean relevantEdge;
         List<Point> edgeCoords = new ArrayList<>();
 
         // Use a fine mask on the area found to be the horizon by the coarse mask
-        for (int x = fineWidthRadius; x < resultBMP.getWidth() - fineWidthRadius; x+= fineWidthRadius)
-            for(int y = coarseSD.getMinRange() + fineHeightRadius; y < coarseSD.getMaxRange() - fineHeightRadius; y+= fineHeightRadius) {
+        for (int x = fineWidthRadius;
+             x < resultBMP.getWidth() - fineWidthRadius; x+= fineWidthRadius)
+            for(int y = coarseSD.getMinRange() + fineHeightRadius;
+                y < coarseSD.getMaxRange() - fineHeightRadius; y+= fineHeightRadius) {
 
                 /////// NEIGHBOURING THRESHOLD ///////
 
                 // Thresholds
-                int pointThreshold = origBMP.getHeight() / 35; // The threshold to determine an edge for a point
+                int pointThreshold = origBMP.getHeight() / 70; // The threshold to determine an edge for a point
                 int neighbThreshold = (int) (pointThreshold * 0.9); // A point that is neighbouring an edge's threshold
 
                 // Is this a edge?
-                relevantEdge = ImageManipulation.colourFineMaskPoint(origBMP, resultBMP, x, y, fineWidth, fineHeight, pointThreshold, neighbThreshold);
+                relevantEdge = colourFineMaskPoint(origBMP, resultBMP, x, y,
+                        fineWidth, fineHeight, pointThreshold, neighbThreshold);
                 if (relevantEdge)
                     // This should hold the location of every edge found with the fine mask
-                    edgeCoords.add(new Point(x , y));
+                    edgeCoords.add(new Point(x, y));
             }
         Log.d(TAG, "fineMask: Fine Masking done");
 
@@ -301,7 +302,7 @@ class ImageManipulation {
                         edgeness += Color.blue(bmp.getPixel(x, y)) * ((y == j + heightRadius) ? -1 : 1);
                     edgeness += Color.blue(bmp.getPixel(x, y)) * ((y == j + heightRadius) ? -1 : 1);
                 }
-        edgeness /= 4; // Max could be 4 * 255
+        edgeness /= 8; // Max could be 8 * 255 due to the 6 neighbours and weighting
         return edgeness > 0 ? edgeness : 0; // Edges with dark on top are -ve, ignore these
     }
 

@@ -26,7 +26,6 @@ class HorizonMatching {
         }
         MaximasMinimas elevMMsObj = findMaximasMinimas(elevationCoords, false);// Todo: This better. Using a looser(...is it?) threshold here because my edge detection is too thick to notice subtle dips
         List<Point> elevationMMs = elevMMsObj.getMaximasMinimas();
-        List<Integer> elevationMMsIndexes = elevMMsObj.getIndexes();
         if (debug) {
             Log.d(TAG, "matchUpHorizons: Just found elevation max mins: " + elevationMMs);
         }
@@ -322,7 +321,7 @@ class HorizonMatching {
         MaximasMinimas mms = new MaximasMinimas(new ArrayList<Point>(), new ArrayList<Integer>());
         boolean wereGoingUp = true;    //  Whether the hill is heading up or down
         boolean wereGoingDown = false;  // Both are needed because could be flat
-        double threshold = getThreshold(coords) * (loosenThreshold ? 4 : 1);
+        double threshold = getThreshold(coords) * (loosenThreshold ? 6 : 1);
         int searchWidth = getSearchWidth(coords);
         if (debug)
             Log.d(TAG, "findMaximasMinimas: Using a noise threshold of " + threshold + " and searching a width of " + searchWidth);
