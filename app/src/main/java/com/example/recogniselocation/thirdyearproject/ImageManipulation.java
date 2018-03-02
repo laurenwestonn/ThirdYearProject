@@ -61,7 +61,7 @@ class ImageManipulation {
                     Log.d(TAG, "detectEdge: Going to skeletonise edgeCoords: " + edgeCoords.toString());
                     edgeCoords = thinBitmap(edgeCoords, fineWidth);
                     Log.d(TAG, "detectEdge: Result of skeletonising coords:  " + edgeCoords.toString());
-                     edgeCoords = thinColumns(edgeCoords);
+                    //edgeCoords = thinColumns(edgeCoords);
                     Log.d(TAG, "detectEdge: Result of one coord per column:  " + edgeCoords.toString());
                 }
 
@@ -144,7 +144,7 @@ class ImageManipulation {
                 /////// NEIGHBOURING THRESHOLD ///////
 
                 // Thresholds
-                int pointThreshold = origBMP.getHeight() / 70; // The threshold to determine an edge for a point
+                int pointThreshold = origBMP.getHeight() / 35; // The threshold to determine an edge for a point
                 int neighbThreshold = (int) (pointThreshold * 0.9); // A point that is neighbouring an edge's threshold
 
                 // Is this a edge?
@@ -198,8 +198,9 @@ class ImageManipulation {
         // The coordinates detected as edges
         List<Point> edgeCoords = new ArrayList<>();
 
-        for (int x = coarseRadius+1; x < bmp.getWidth(); x += coarseDiam)
-            for (int y = coarseRadius+1; y < bmp.getHeight(); y += coarseDiam) {
+        // Search up to down, then left to right
+        for (int x = coarseRadius+1; x < bmp.getWidth() - coarseRadius; x += coarseDiam)
+            for (int y = coarseRadius+1; y < bmp.getHeight() - coarseRadius; y += coarseDiam) {
 
                 // The threshold to determine if a point is an edge
                 int pointThreshold = bmp.getHeight() / 23;
@@ -207,7 +208,7 @@ class ImageManipulation {
                 int neighbThreshold = (int) (pointThreshold * 0.8);
 
                 // Check if this point is determined an edge with the coarse mask
-                boolean relevantEdge = ImageManipulation.colourCoarseMaskPoint(bmp, x, y, coarseRadius, pointThreshold, neighbThreshold);
+                boolean relevantEdge = colourCoarseMaskPoint(bmp, x, y, coarseRadius, pointThreshold, neighbThreshold);
                 // If it is, remember it so we can narrow the area we use our fine mask in
                 if (relevantEdge)
                     edgeCoords.add(new Point(x,y));
@@ -220,30 +221,34 @@ class ImageManipulation {
 
 
     /////////////////////// COARSE /////
-    static boolean colourCoarseMaskPoint(Bitmap bmp, int i, int j, int distFromCentre, int loThresh, int hiThresh) {
-
+    static boolean colourCoarseMaskPoint(Bitmap bmp, int i, int j, int distFromCentre,
+                                         int loThresh, int hiThresh)
+    {
         // Get the likelihood that this is an edge,
         // unless it has already been marked blue
         int edgeness = bmp.getPixel(i,j) != Color.BLUE ?
                 getCoarseEdgeness(bmp, i, j, distFromCentre) :
                 Color.BLUE;
-
         //Log.d("Hi", "\tAnother COARSE pixel. Edgeness of (" + i + ", " + j + ") is " + edgeness);
 
         int pointWidth = distFromCentre * 2 + 1;
         int pointHeight = pointWidth; // For the coarse detector, we're using a square
 
-
         // If we coloured point at (i,j) a useful colour, return this fact
         return determineColour(bmp, edgeness, loThresh, hiThresh, i, j, pointWidth, pointHeight);
-
     }
 
-    private static int getCoarseEdgeness(Bitmap bmp, int i, int j, int d) {
+    // 0    1   2   1   0
+    // 1    2   3   2   1
+    //
+    // -1  -2   -3  -2  -1
+    // 0   -1   -2  -1   0
+    private static int getCoarseEdgeness(Bitmap bmp, int i, int j, int d)
+    {
         // TODO: CHECK WHAT IS CONSTANTLY THROWING AN ERROR, CAN WE AVOID THIS?
         int top, bottom;
         try {
-            top = Color.blue(bmp.getPixel(i - d / 3, j - d))
+            top =     Color.blue(bmp.getPixel(i - d / 3, j - d))
                     + Color.blue(bmp.getPixel(i + 0, j - d)) * 2
                     + Color.blue(bmp.getPixel(i + d / 3, j - d))
 
@@ -251,13 +256,13 @@ class ImageManipulation {
                     + Color.blue(bmp.getPixel(i - d / 3, j - d / 2)) * 2
                     + Color.blue(bmp.getPixel(i + 0, j - d / 2)) * 3
                     + Color.blue(bmp.getPixel(i + d / 3, j - d / 2)) * 2
-                    + Color.blue(bmp.getPixel(i + d - 1, j - d / 2));
+                    + Color.blue(bmp.getPixel(i + d, j - d / 2));
 
             bottom = -Color.blue(bmp.getPixel(i - d, j + d / 2))
                     - Color.blue(bmp.getPixel(i - d / 3, j + d / 2)) * 2
                     - Color.blue(bmp.getPixel(i + 0, j + d / 2)) * 3
                     - Color.blue(bmp.getPixel(i + d / 3, j + d / 2)) * 2
-                    - Color.blue(bmp.getPixel(i + d - 1, j + d / 2))
+                    - Color.blue(bmp.getPixel(i + d, j + d / 2))
 
                     - Color.blue(bmp.getPixel(i - d / 3, j + d - 1))
                     - Color.blue(bmp.getPixel(i + 0, j + d - 1)) * 2
@@ -302,7 +307,7 @@ class ImageManipulation {
                         edgeness += Color.blue(bmp.getPixel(x, y)) * ((y == j + heightRadius) ? -1 : 1);
                     edgeness += Color.blue(bmp.getPixel(x, y)) * ((y == j + heightRadius) ? -1 : 1);
                 }
-        edgeness /= 8; // Max could be 8 * 255 due to the 6 neighbours and weighting
+        edgeness /= 4; // Max could be 4 * 255 due to the 6 neighbours and weighting
         return edgeness > 0 ? edgeness : 0; // Edges with dark on top are -ve, ignore these
     }
 
@@ -328,7 +333,7 @@ class ImageManipulation {
             // Not a strong edge, ignore it
             colourArea(bmp, i, j, Color.BLACK, width, height);
         } else if (edgeness < pThr ||
-                (edgeness >= 40 && !checkAndSetNbour(bmp, i, j, width, height, nThr, pThr))) {
+                (edgeness >= pThr && !checkAndSetNbour(bmp, i, j, width, height, nThr, pThr))) {
             //Log.d("Colour", "Medium blue");
             // Point is within the neighbouring threshold
             // or is a definite edge with no neighbours, therefore doesn't count
@@ -398,13 +403,13 @@ class ImageManipulation {
     private static boolean checkAndSetNbour(Bitmap bmp, int i, int j, int pointWidth, int pointHeight, int minThreshold, int maxThreshold) {
         boolean anyEdges = false;
         // For the neighbours we've already seen before,
-        // i.e. top three and immediate left neighbour
+        // i.e. left three and immediately above
         // If any seen neighbours were edges, set anyEdges
         if (checkSeenNbours(bmp, i, j, pointWidth, pointHeight))
             anyEdges = true;
 
         // For new neighbours
-        // i.e. immediate right and the bottom three neighbours
+        // i.e. immediately below and right three neighbours
         // If any unseen neighbours were edges, set anyEdges
         if (checkUnseenNbours(bmp, i, j, pointWidth, pointHeight, minThreshold, maxThreshold))
             anyEdges = true;
@@ -412,15 +417,17 @@ class ImageManipulation {
         return anyEdges;
     }
 
+    // Check the neighbours we haven't yet seen - immediately below and right three neighbours
+    // Returns true if any of these neighbours are edges
     private static boolean checkUnseenNbours(Bitmap bmp, int i, int j, int width, int height, int minThreshold, int maxThreshold) {
         boolean anyEdges = false;
 
-        for (int y = j; y <= j + height; y += height) {
-            for (int x = i - width; x <= i + width; x += width) {
-                // Check last four unchecked neighbours
-                // and if the coordinates are within the bitmap
-                if ((y == (j + height) || x == (i + width))
-                        && (x >= 0 && x + ((width-1)/2) < bmp.getWidth() && y >= 0 && y + ((height-1)/2) < bmp.getHeight())) {
+        for (int x = i; x <= i + width; x += width)
+            for (int y = j - height; y <= j + height; y += height) {
+                // Check if last four unchecked neighbours are within bounds of the bitmap
+                if (!(x == i & y < j + height)  // Don't check the centre one or above that - these have already been seen
+                    && x >= 0 && x + ((width-1)/2) < bmp.getWidth()
+                    && y >= 0 && y + ((height-1)/2) < bmp.getHeight()) {
 
                     // If this neighbour meets the minimum threshold, the centre has
                     // a neighbouring edge
@@ -432,7 +439,6 @@ class ImageManipulation {
                         anyEdges = true;
                 }
             }
-        }
         return anyEdges;
     }
 
@@ -449,7 +455,7 @@ class ImageManipulation {
                 //Log.d("Hi", "Neighbour (" + x + ", " + y + ") isn't edgy enough.. " + getCoarseEdgeness(bmp, x, y, (width-1)/2));
                 return false;
             }
-        } else {    //TODO: Choose which edgeness technique to use, more neatly
+        } else {    // Fine neighbours    TODO: Choose which edgeness technique to use, more neatly
             if (getFineEdgeness(bmp, x, y, (width-1)/2, (height-1)/2) > minThreshold) {
                 //Log.d("Hi", "Neighbour (" + x + ", " + y + ") had a worthy edge of " + getFineEdgeness(bmp, x, y, (width-1)/2));
                 if (getFineEdgeness(bmp, x, y, (width-1)/2, (height-1)/2) < maxThreshold) {
@@ -465,15 +471,17 @@ class ImageManipulation {
         }
     }
 
+    // Checking neighbours we've seen - left three and immediately above
+    // Returns true if any neighbours are edges
     private static boolean checkSeenNbours(Bitmap bmp, int i, int j, int width, int height) {
         boolean anyEdges = false;
 
-        for (int y = j - height; y <= j; y += height) {
-            for (int x = i - width; x <= i + width; x += width) {
-                // Check first four already checked neighbours
-                // and if the coordinates are within the bitmap
-                if ((y == (j - height) || x == (i - width))
-                        && (x >= 0 && x + ((width-1)/2) < bmp.getWidth() && y >= 0 && y + ((height-1)/2) < bmp.getHeight())) {
+        for (int x = i - width; x <= i; x += width)
+            for (int y = j - height; y <= j + height; y += height) {
+                // Check if last four unchecked neighbours are within bounds of the bitmap
+                if (!(x == i & y > j - height) // Don't check the centre or the one below that
+                        && x >= 0 && x + ((width-1)/2) < bmp.getWidth()
+                        && y >= 0 && y + ((height-1)/2) < bmp.getHeight()) {
 
                     // If this neighbour meets the minimum threshold, the centre has
                     // a neighbouring edge
@@ -485,7 +493,6 @@ class ImageManipulation {
                         anyEdges = true;
                 }
             }
-        }
         return anyEdges;
     }
 
