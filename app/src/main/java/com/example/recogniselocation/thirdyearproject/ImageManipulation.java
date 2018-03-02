@@ -173,7 +173,7 @@ class ImageManipulation {
                 /////// NEIGHBOURING THRESHOLD ///////
 
                 // Thresholds
-                int pointThreshold = origBMP.getHeight() / 35; // The threshold to determine an edge for a point
+                int pointThreshold = origBMP.getHeight() / 30; // The threshold to determine an edge for a point
                 int neighbThreshold = (int) (pointThreshold * 0.9); // A point that is neighbouring an edge's threshold
 
                 // Is this a edge?

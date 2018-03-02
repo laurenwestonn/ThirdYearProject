@@ -131,7 +131,7 @@ class HorizonMatching {
     }
 
     private static double getCoordsSignifWidth(List<Point> coords) {
-        return coords.get(coords.size()-1).getX() / 10;
+        return coords.get(coords.size()-1).getX() / 12;
     }
 
     private static double getCoordsSignifHeight(List<Point> coords) {
@@ -145,7 +145,7 @@ class HorizonMatching {
                 minY = p.getY();
         }
 
-        return (minY + maxY) / 10;
+        return (minY + maxY) / 12;
     }
 
     private static List<Point> getTheNextElevationMM(List<Point> elevationMMs, int i)

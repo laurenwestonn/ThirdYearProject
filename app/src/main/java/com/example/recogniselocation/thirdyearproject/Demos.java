@@ -18,7 +18,7 @@ public class Demos {
                 demo = new LocationDirection("wast_water_two", new LatLng(54.4436654, -3.2830789), 80);
                 break;
             case R.id.demo3: // Blencathra
-                demo = new LocationDirection("blencathra", new LatLng(54.6486243, -3.0915329), 215);
+                demo = new LocationDirection("blencathra", new LatLng(54.6486243, -3.0915329), 225);
                 break;
             case R.id.demo4: // Rocky Mountains
                 demo = new LocationDirection("rocky_mountains", new LatLng(51.6776886, -116.4644593), 230);

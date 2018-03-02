@@ -88,7 +88,8 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
         for (int i : indexes) {
             if (i == -1)    // For when it starts with a minima
                 reqResults.add(null);
-            reqResults.add(results.get(i).getLocation());
+            else
+                reqResults.add(results.get(i).getLocation());
         }
 
         return reqResults;
