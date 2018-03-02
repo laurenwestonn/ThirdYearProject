@@ -58,11 +58,11 @@ class ImageManipulation {
 
                 ////////// THINNING //////////
                 if (useThinning) {
-                    Log.d(TAG, "detectEdge: Going to skeletonise edgeCoords: " + edgeCoords.toString());
-                    edgeCoords = thinBitmap(edgeCoords, fineWidth);
-                    Log.d(TAG, "detectEdge: Result of skeletonising coords:  " + edgeCoords.toString());
-                    //edgeCoords = thinColumns(edgeCoords);
-                    Log.d(TAG, "detectEdge: Result of one coord per column:  " + edgeCoords.toString());
+                    //Log.d(TAG, "detectEdge: Going to skeletonise edgeCoords: " + edgeCoords.toString());
+                    //edgeCoords = thinBitmap(edgeCoords, fineWidth);
+                    Log.d(TAG, "detectEdge: edgecoords: " + edgeCoords.toString());
+                    edgeCoords = thinColumns(edgeCoords);
+                    Log.d(TAG, "Result of 1 per column: " + edgeCoords.toString());
                 }
 
                 ///////// SHOW EDGES ONLY? /////////
@@ -85,25 +85,54 @@ class ImageManipulation {
     private static List<Point> thinColumns(List<Point> edgeCoords)
     {
         List<Point> onePerColumn = new ArrayList<>();
+        Point prevBestPoint = null;
         for (Point p : edgeCoords) {
             // Find all points within the same column
             int colIndex = (int) p.getX();
             List<Point> pointsInCol = findPointsInCol(edgeCoords, colIndex);
 
             // Pick best point in column (middle, more towards top due to noise below horizon)
-            Point bestPoint = bestPointInCol(pointsInCol);
-            if (!onePerColumn.contains(bestPoint))  // Add it if you haven't already
+            Point bestPoint = bestPointInCol(pointsInCol, prevBestPoint);
+            if (bestPoint != null && !onePerColumn.contains(bestPoint)) { // Add it if you haven't already
                 onePerColumn.add(bestPoint);
+                prevBestPoint = bestPoint;  // Update the last best point if we found a new one now
+            }
         }
         return onePerColumn;
     }
 
-    public static Point bestPointInCol(List<Point> col) {
-        switch (col.size()) {
-            case 0: return null;
-            case 1: return col.get(0);
-            default: return col.get((int)Math.ceil(col.size() / 2.0) - 1);
+    private static Point bestPointInCol(List<Point> col, Point prevP)
+    {
+        if (col == null || col.size() <= 0)
+            return null;
+
+        int midIndex = (int) Math.ceil(col.size() / 2.0) - 1;   // Favouring the higher ones
+
+        // We have nothing to judge this point with, assume the middle one is okay
+        if (prevP == null)
+            return col.get(midIndex);
+
+        // Find a relevant middle point
+        while (!similarPoints(col.get(midIndex), prevP)) {
+            col.remove(midIndex);   // This point must be noise, remove it
+            midIndex = (int) Math.ceil(col.size() / 2.0) - 1;   // Find new middle of the column
+
+            if (col.size() == 0)
+                return null;
         }
+        return col.get(midIndex);
+    }
+
+    // Lets you know if two point are nearby
+    // Used to avoid picking noise as points - assuming the first point is correct
+    private static boolean similarPoints(Point p1, Point p2)
+    {
+        if (p1.getY() == p2.getY())
+            return true;
+
+        double ratio = 0.5;
+        double difference = Math.abs((p2.getX() - p1.getX()) / (p2.getY() - p1.getY()));
+        return difference >= ratio;
     }
 
     // Returns every point that is also a part of column 'colIndex'

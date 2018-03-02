@@ -71,7 +71,7 @@ public class PhotoActivity extends Activity {
     }
 
     private Bitmap markEdgeCoords(Bitmap bmp, List<Point> photoCoords) {
-        int width = bmp.getWidth() / 250;
+        int width = bmp.getWidth() / 125;
         return ImageManipulation.colourBitmapCoords(
                 bmp, photoCoords, Color.argb(255, 250, 150, 50), width);
     }
