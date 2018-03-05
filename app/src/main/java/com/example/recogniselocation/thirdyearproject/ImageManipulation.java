@@ -35,20 +35,19 @@ class ImageManipulation {
         gShowCoarse = showCoarse;
         gShowEdgeOnly = showEdgeOnly;
         Bitmap resultBMP;
+        List<Point> coarseEdgeCoords = null;
 
         ////////////// COARSE MASK /////////////////
         CoarseMasking coarse = coarseMask(bmp);
 
         ///////////// Standard Deviation //////////////
         if (coarse.getCoords().size() > 0) {
-            StandardDeviation coarseSD;
-
-            coarseSD = findStandardDeviation(coarse.getBitmap(), coarse.getCoords(), sdDetail);
-            edgeCoords = coarse.getCoords();
+            StandardDeviation coarseSD = findStandardDeviation(coarse.getBitmap(), coarse.getCoords(), sdDetail);
+            coarseEdgeCoords = coarse.getCoords();
             Log.d(TAG, "findStandardDeviation: SD got");
 
             // Whether SD was drawn on or not, the coarse mask will get returned from the above
-            if (showCoarse) // Todo: Set the edgeCoords to be the coarse mask coords (so, get them) if we're asking to 'showCoarse'
+            if (showCoarse)
                 resultBMP = coarseSD.getBitmap();
             else {
                 ///////////////////// FINE MASK //////////////////
@@ -79,7 +78,7 @@ class ImageManipulation {
             resultBMP = coarse.getBitmap();
         }
         Log.d(TAG, "detectEdge: Found the photo edge coords " + edgeCoords);
-        return new Edge(edgeCoords, resultBMP);
+        return new Edge(edgeCoords, coarseEdgeCoords, resultBMP);
     }
 
     private static List<Point> thinColumns(List<Point> edgeCoords)
@@ -185,7 +184,7 @@ class ImageManipulation {
             }
         Log.d(TAG, "fineMask: Fine Masking done");
 
-        return new Edge(edgeCoords, resultBMP);
+        return new Edge(edgeCoords, null, resultBMP);
     }
 
     private static StandardDeviation findStandardDeviation(Bitmap bmp, List<Point> coords, boolean sdDetail) {
@@ -229,10 +228,10 @@ class ImageManipulation {
 
         // Search up to down, then left to right
         for (int x = coarseRadius+1; x < bmp.getWidth() - coarseRadius; x += coarseDiam)
-            for (int y = coarseRadius+1; y < bmp.getHeight() - coarseRadius; y += coarseDiam) {
+            for (int y = coarseRadius+1; y < bmp.getHeight() - coarseRadius; y += coarseRadius) {
 
                 // The threshold to determine if a point is an edge
-                int pointThreshold = bmp.getHeight() / 23;
+                int pointThreshold = bmp.getHeight() / 20;
                 // The looser threshold for a point that is neighbouring an edge
                 int neighbThreshold = (int) (pointThreshold * 0.8);
 
@@ -260,11 +259,10 @@ class ImageManipulation {
                 Color.BLUE;
         //Log.d("Hi", "\tAnother COARSE pixel. Edgeness of (" + i + ", " + j + ") is " + edgeness);
 
-        int pointWidth = distFromCentre * 2 + 1;
-        int pointHeight = pointWidth; // For the coarse detector, we're using a square
+        int diameter = distFromCentre * 2 + 1;
 
         // If we coloured point at (i,j) a useful colour, return this fact
-        return determineColour(bmp, edgeness, loThresh, hiThresh, i, j, pointWidth, pointHeight);
+        return determineColour(bmp, edgeness, loThresh, hiThresh, i, j, diameter, diameter);
     }
 
     // 0    1   2   1   0
@@ -274,7 +272,6 @@ class ImageManipulation {
     // 0   -1   -2  -1   0
     private static int getCoarseEdgeness(Bitmap bmp, int i, int j, int d)
     {
-        // TODO: CHECK WHAT IS CONSTANTLY THROWING AN ERROR, CAN WE AVOID THIS?
         int top, bottom;
         try {
             top =     Color.blue(bmp.getPixel(i - d / 3, j - d))

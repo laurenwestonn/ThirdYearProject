@@ -126,6 +126,8 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
             intent.putExtra("drawableID", drawableID);  // Bitmap is too big, find it via ID
             ArrayList<Point> photoCoords = getIntent().getParcelableArrayListExtra("photoCoords");
             intent.putParcelableArrayListExtra("photoCoords", photoCoords);      // To draw the edge
+            List<Point> coarsePhotoCoords = getIntent().getParcelableArrayListExtra("coarsePhotoCoords");
+            intent.putParcelableArrayListExtra("coarsePhotoCoords", (ArrayList<Point>) coarsePhotoCoords);      // To draw the coarse edge
             ArrayList<Point> matchedPhotoCoords = getIntent().getParcelableArrayListExtra("matchedPhotoCoords");
             intent.putParcelableArrayListExtra("matchedPhotoCoords", matchedPhotoCoords);  // To mark on the matched points
 

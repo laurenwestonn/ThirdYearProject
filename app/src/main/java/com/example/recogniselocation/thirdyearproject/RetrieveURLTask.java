@@ -25,7 +25,7 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
     @SuppressLint("StaticFieldLeak")
     private Activity activity;
 
-    boolean showCoarse = false;
+    public static boolean showCoarse = true;
     boolean sdDetail = false;
     boolean useThinning = true;
     boolean showEdgeOnly = true;
@@ -78,12 +78,13 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
         Edge edge = ImageManipulation.detectEdge(
                 bmp, showCoarse, sdDetail, useThinning, showEdgeOnly);
         List<Point> photoCoords = edge.getCoords();
+        List<Point> coarsePhotoCoords = edge.getCoarseCoords();
 
         // Will be going to the photo activity next
         Intent intent = new Intent(activity.getString(R.string.PHOTO_ACTIVITY));
         /////// EDGE DETECTION //////
 
-        if (photoCoords != null) {
+        if (photoCoords != null && !showCoarse) {
             Log.d(TAG, "onPostExecute: Edge Detected");
 
             /////// MATCH UP HORIZONS //////
@@ -103,6 +104,7 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
 
             // Pass these photo coords and the matched info to the next activity
             intent.putParcelableArrayListExtra("photoCoords", (ArrayList<Point>) photoCoords);      // To draw the edge
+            intent.putParcelableArrayListExtra("coarsePhotoCoords", (ArrayList<Point>) coarsePhotoCoords);      // To draw the coarse edge Todo: implement functionality
             intent.putParcelableArrayListExtra("matchedPhotoCoords", (ArrayList<Point>) matchedPhotoCoords);  // To mark on the matched points
             // For the map activity
             intent.putIntegerArrayListExtra("matchedElevCoordsIndexes", (ArrayList<Integer>) matchedElevCoordsIndexes);  // To mark on the matched points
@@ -110,8 +112,11 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
             intent.putParcelableArrayListExtra("photoSeriesCoords", (ArrayList<Point>) photoSeriesCoords);
 
 
-        } else
-            Log.e(TAG, "onPostExecute: Couldn't find edge coords of photo");
+        } else if (photoCoords == null && !showCoarse)
+                Log.e(TAG, "onPostExecute: Couldn't find edge coords of photo");
+        else    // Just looking at the coarse mask, only send this through
+            intent.putParcelableArrayListExtra("coarsePhotoCoords", (ArrayList<Point>) coarsePhotoCoords);      // To draw the coarse edge
+
 
 
         ////// START NEXT ACTIVITY //////

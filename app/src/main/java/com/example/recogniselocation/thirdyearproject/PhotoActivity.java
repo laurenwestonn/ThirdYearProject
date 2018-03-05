@@ -28,7 +28,6 @@ public class PhotoActivity extends Activity {
         setContentView(R.layout.photo_activity);
 
         // Get values passed through to this activity via the intent
-        // Todo: Get the others passed through as well as the ID
         // Bitmap is too big to send so find image from resources using ID sent
         int drawableID = getIntent().getIntExtra("drawableID", 0);
 
@@ -43,6 +42,8 @@ public class PhotoActivity extends Activity {
             // Get the photo you took from your location
             try {
                 bmp = MediaStore.Images.Media.getBitmap(this.getContentResolver(), Start.uri);
+                // Make the image smaller so the app can deal with it
+                bmp = Bitmap.createScaledBitmap(bmp, bmp.getWidth() / 2, bmp.getHeight() / 2, false);
                 Log.d(TAG, "onPostExecute: Bitmap got is " + bmp.getWidth() + " x " + bmp.getHeight() + ". " + bmp.getConfig());
             } catch (Exception e) {
                 Log.e(TAG, "onCreate: Couldn't get bitmap: " + e.getMessage());
@@ -53,13 +54,19 @@ public class PhotoActivity extends Activity {
 
         if (bmp != null) {
             // Colour onto the bitmap the edge we've detected
-            List<Point> photoCoords = getIntent().getParcelableArrayListExtra("photoCoords");
-            if (photoCoords != null)
-                bmp = markEdgeCoords(bmp, photoCoords);
-            // Mark the maximas and minimas (common with the map)
-            List<Point> matchedCoords = getIntent().getParcelableArrayListExtra("matchedPhotoCoords");
-            if (matchedCoords != null)
-                bmp = markMaximasMinimasOnPhoto(bmp, matchedCoords);
+            if (RetrieveURLTask.showCoarse) {
+                List<Point> coarsePhotoCoords = getIntent().getParcelableArrayListExtra("coarsePhotoCoords");
+                if (coarsePhotoCoords != null)
+                    bmp = markCoarseEdgeCoords(bmp, coarsePhotoCoords);
+            } else {
+                List<Point> photoCoords = getIntent().getParcelableArrayListExtra("photoCoords");
+                if (photoCoords != null)
+                    bmp = markEdgeCoords(bmp, photoCoords);
+                // Mark the maximas and minimas (common with the map)
+                List<Point> matchedCoords = getIntent().getParcelableArrayListExtra("matchedPhotoCoords");
+                if (matchedCoords != null)
+                    bmp = markMaximasMinimasOnPhoto(bmp, matchedCoords);
+            }
 
             // Put bitmap onto the image button
             this.findViewById(R.id.photo).setBackground(new BitmapDrawable(this.getResources(), bmp));
@@ -68,6 +75,12 @@ public class PhotoActivity extends Activity {
             Log.e(TAG, "onCreate: Couldn't find bitmap");
         }
 
+    }
+
+    private Bitmap markCoarseEdgeCoords(Bitmap bmp, List<Point> photoCoords) {
+        int width = (bmp.getHeight() / 17) * 2 + 1; // Width got from coarseMask method
+        return ImageManipulation.colourBitmapCoords(
+                bmp, photoCoords, Color.argb(255, 250, 150, 50), width);
     }
 
     private Bitmap markEdgeCoords(Bitmap bmp, List<Point> photoCoords) {
@@ -81,7 +94,7 @@ public class PhotoActivity extends Activity {
     {
         int minColour = Color.BLUE;
         int maxColour = Color.RED;
-        boolean max = true;//photoMMs.get(0) != null;
+        boolean max = true;
 
         for (Point p : photoMMs) {
             if (p != null) {
@@ -129,6 +142,8 @@ public class PhotoActivity extends Activity {
             intent.putExtra("drawableID", drawableID);  // Bitmap is too big, find it via ID
             ArrayList<Point> photoCoords = getIntent().getParcelableArrayListExtra("photoCoords");
             intent.putParcelableArrayListExtra("photoCoords", photoCoords);      // To draw the edge
+            List<Point> coarsePhotoCoords = getIntent().getParcelableArrayListExtra("coarsePhotoCoords");
+            intent.putParcelableArrayListExtra("coarsePhotoCoords", (ArrayList<Point>) coarsePhotoCoords);      // To draw the coarse edge
             ArrayList<Point> matchedPhotoCoords = getIntent().getParcelableArrayListExtra("matchedPhotoCoords");
             intent.putParcelableArrayListExtra("matchedPhotoCoords", matchedPhotoCoords);  // To mark on the matched points
 
