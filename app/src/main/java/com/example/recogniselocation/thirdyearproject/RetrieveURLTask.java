@@ -62,8 +62,9 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
         /////// PHOTO EDGE DETECTION //////
         Bitmap bmp = null;
         if (Start.uri != null) {    // Actual Location - load photo from where was saved
-            try {
+            try {   // Resize, phones can take large photos
                 bmp = MediaStore.Images.Media.getBitmap(activity.getContentResolver(), Start.uri);
+                bmp = Bitmap.createScaledBitmap(bmp, bmp.getWidth() / 2, bmp.getHeight() / 2, false);
                 Log.d(TAG, "onPostExecute: Bitmap got is " + bmp.getWidth() + " x " + bmp.getHeight() + ". " + bmp.getConfig());
             } catch(Exception e) {
                 Log.e(TAG, "onPostExecute: Couldn't find bitmap: " + e.getMessage());

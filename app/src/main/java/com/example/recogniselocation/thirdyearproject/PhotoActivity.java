@@ -38,7 +38,7 @@ public class PhotoActivity extends Activity {
         int drawableID = getIntent().getIntExtra("drawableID", 0);
 
         if (Start.uri == null && drawableID == 0)
-            Log.e(TAG, "onCreate: Photo ID didn't come through and we're not using a real photo");
+            Log.e(TAG, "onCreate: Photo ID didn't come through and we have no URI for a photo");
 
         // Get a mutable bitmap of the image
         BitmapFactory.Options opt = new BitmapFactory.Options();
@@ -50,7 +50,6 @@ public class PhotoActivity extends Activity {
                 origBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), Start.uri);
                 // Make the image smaller so the app can deal with it
                 origBitmap = Bitmap.createScaledBitmap(origBitmap, origBitmap.getWidth() / 2, origBitmap.getHeight() / 2, false);
-                Log.d(TAG, "onPostExecute: Bitmap got is " + origBitmap.getWidth() + " x " + origBitmap.getHeight() + ". " + origBitmap.getConfig());
             } catch (Exception e) {
                 Log.e(TAG, "onCreate: Couldn't get bitmap: " + e.getMessage());
             }

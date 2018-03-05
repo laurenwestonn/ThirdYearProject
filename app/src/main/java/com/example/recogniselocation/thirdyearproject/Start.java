@@ -78,8 +78,11 @@ public class Start extends AppCompatActivity {
         LocationDirection locDir = null;
         if (view.getId() == R.id.camera) {
             uri = dispatchTakePictureIntent();
-            // Todo: Stop code from carrying on until we get a URI
-            // Use the URI (or maybe the File photoFile to find the photo you saved) for the edge detection
+            try {   // Wait until the image is saved
+                while(MediaStore.Images.Media.getBitmap(this.getContentResolver(), uri) == null);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         } else {
             locDir = Demos.getDemo(view.getId());
             yourLocation = locDir.getLocation();
