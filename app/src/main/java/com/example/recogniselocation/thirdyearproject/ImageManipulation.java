@@ -225,76 +225,70 @@ class ImageManipulation {
 
         // The coordinates detected as edges
         List<Point> edgeCoords = new ArrayList<>();
+        Bitmap resultBMP = bmp.copy(bmp.getConfig(), true);
 
         // Search up to down, then left to right
         for (int x = coarseRadius+1; x < bmp.getWidth() - coarseRadius; x += coarseDiam)
             for (int y = coarseRadius+1; y < bmp.getHeight() - coarseRadius; y += coarseRadius) {
-
                 // The threshold to determine if a point is an edge
-                int pointThreshold = bmp.getHeight() / 20;
+                int pointThreshold = bmp.getHeight() / 23;
                 // The looser threshold for a point that is neighbouring an edge
                 int neighbThreshold = (int) (pointThreshold * 0.8);
 
                 // Check if this point is determined an edge with the coarse mask
-                boolean relevantEdge = colourCoarseMaskPoint(bmp, x, y, coarseRadius, pointThreshold, neighbThreshold);
+                boolean relevantEdge = colourCoarseMaskPoint(bmp, resultBMP, x, y, coarseRadius, pointThreshold, neighbThreshold);
                 // If it is, remember it so we can narrow the area we use our fine mask in
                 if (relevantEdge)
                     edgeCoords.add(new Point(x,y));
             }
         Log.d(TAG, "CoarseMasking: Coarse Masking done: " + edgeCoords);
-        return new CoarseMasking(edgeCoords, bmp);
+        return new CoarseMasking(edgeCoords, resultBMP);
     }
 
 
 
 
     /////////////////////// COARSE /////
-    static boolean colourCoarseMaskPoint(Bitmap bmp, int i, int j, int distFromCentre,
-                                         int loThresh, int hiThresh)
+    static boolean colourCoarseMaskPoint(Bitmap origBMP, Bitmap resultBMP, int i, int j,
+                                         int distFromCentre, int loThresh, int hiThresh)
     {
         // Get the likelihood that this is an edge,
         // unless it has already been marked blue
-        int edgeness = bmp.getPixel(i,j) != Color.BLUE ?
-                getCoarseEdgeness(bmp, i, j, distFromCentre) :
+        int edgeness = resultBMP.getPixel(i,j) != Color.BLUE ?
+                getCoarseEdgeness(origBMP, i, j, distFromCentre) :
                 Color.BLUE;
-        //Log.d("Hi", "\tAnother COARSE pixel. Edgeness of (" + i + ", " + j + ") is " + edgeness);
+        //Log.d("Hi", "\tAnother coarse pixel. Edgeness of (" + i + ", " + j + ") is " + edgeness);
 
         int diameter = distFromCentre * 2 + 1;
 
         // If we coloured point at (i,j) a useful colour, return this fact
-        return determineColour(bmp, edgeness, loThresh, hiThresh, i, j, diameter, diameter);
+        return determineColour(resultBMP, edgeness, loThresh, hiThresh, i, j, diameter, diameter);
     }
 
-    // 0    1   2   1   0
-    // 1    2   3   2   1
+    //       1     1
+    //  1       3       1
     //
-    // -1  -2   -3  -2  -1
-    // 0   -1   -2  -1   0
+    //  1       -3      1
+    //      -1     -1
     private static int getCoarseEdgeness(Bitmap bmp, int i, int j, int d)
     {
         int top, bottom;
         try {
-            top =     Color.blue(bmp.getPixel(i - d / 3, j - d))
-                    + Color.blue(bmp.getPixel(i + 0, j - d)) * 2
-                    + Color.blue(bmp.getPixel(i + d / 3, j - d))
+            top =     Color.blue(bmp.getPixel(i - (d /2), j - d))
+                    + Color.blue(bmp.getPixel(i + (d /2), j - d))
 
                     + Color.blue(bmp.getPixel(i - d, j - d / 2))
-                    + Color.blue(bmp.getPixel(i - d / 3, j - d / 2)) * 2
-                    + Color.blue(bmp.getPixel(i + 0, j - d / 2)) * 3
-                    + Color.blue(bmp.getPixel(i + d / 3, j - d / 2)) * 2
+                    + Color.blue(bmp.getPixel(i       , j - d / 2)) * 3
                     + Color.blue(bmp.getPixel(i + d, j - d / 2));
 
-            bottom = -Color.blue(bmp.getPixel(i - d, j + d / 2))
-                    - Color.blue(bmp.getPixel(i - d / 3, j + d / 2)) * 2
-                    - Color.blue(bmp.getPixel(i + 0, j + d / 2)) * 3
-                    - Color.blue(bmp.getPixel(i + d / 3, j + d / 2)) * 2
-                    - Color.blue(bmp.getPixel(i + d, j + d / 2))
+            bottom = -Color.blue(bmp.getPixel(i - d , j + d / 2))
+                    - Color.blue(bmp.getPixel(i        , j + d / 2)) * 3
+                    - Color.blue(bmp.getPixel(i + d , j + d / 2))
 
-                    - Color.blue(bmp.getPixel(i - d / 3, j + d - 1))
-                    - Color.blue(bmp.getPixel(i + 0, j + d - 1)) * 2
-                    - Color.blue(bmp.getPixel(i + d / 3, j + d - 1));
+                    - Color.blue(bmp.getPixel(i - (d /2), j + d))
+                    - Color.blue(bmp.getPixel(i + (d /2), j + d));
 
-            int edgeness = (top + bottom) / 13; // Max could be 13 * 255
+            int edgeness = (top + bottom) / 7; // Max could be 13 * 255
 
             return edgeness > 0 ? edgeness : 0; // Edges with dark on top are -ve, ignore these
 
@@ -370,13 +364,11 @@ class ImageManipulation {
             colourArea(bmp, i, j, Color.WHITE, width, height);
             return true;
         }
-
         return false;
     }
 
     // Colour a wxh block of pixels around (i,j) in the requested colour
     static Bitmap colourArea(Bitmap bmp, int i, int j, int colour, int width, int height) {
-
         // setPixels needs an int array of colours
         int[] colours = new int[width * height];
         Arrays.fill(colours, colour);
@@ -523,7 +515,6 @@ class ImageManipulation {
     }
 
     private static boolean checkSeenNbour(Bitmap bmp, int x, int y, int width, int height) {
-        int widthFromCentre = (width-1) / 2;
 
         // Get the colour of this point we've already set
         int neighCol = bmp.getPixel(x, y);
@@ -620,26 +611,6 @@ class ImageManipulation {
         x = point.getX();
         y = point.getY();
 
-        /*
-        if (coords.indexOf(new Point(x, y - pointDiametre)) != -1)
-            Log.d(TAG, "thinPoint: There's a point above " + point + "; " + x + ", " + (y - pointDiametre));
-        else
-            Log.d(TAG, "thinPoint: There isn't a point above " + point + "; " + x + ", " + (y - pointDiametre));
-
-        if (coords.indexOf(new Point(x, y - pointDiametre)) != -1)
-            Log.d(TAG, "thinPoint: There's a point below " + point + "; " + x + ", " + (y + pointDiametre));
-        else
-            Log.d(TAG, "thinPoint: There isn't a point below " + point + "; " + x + ", " + (y + pointDiametre));
-
-        if (coords.indexOf(new Point(x + pointDiametre, y)) != -1 && coords.indexOf(new Point(x - pointDiametre, y)) == -1
-                || coords.indexOf(new Point(x - pointDiametre, y)) != -1 && coords.indexOf(new Point(x + pointDiametre, y)) == -1)
-            Log.d(TAG, "thinPoint: There's a point either on the right or left of " + point
-                    + "; " + (x + pointDiametre) + ", " + y + " or " + (x - pointDiametre) + ", " + y);
-        else
-            Log.d(TAG, "thinPoint: There isn't a point only on the right or left of " + point
-                    + "; " + (x + pointDiametre) + ", " + y + " or " + (x - pointDiametre) + ", " + y);
-*/
-
         // If point above this one is an edge
         if (coords.indexOf(new Point(x, y - pointDiametre)) != -1
                 // and if point below is an edge
@@ -649,7 +620,7 @@ class ImageManipulation {
                     || coords.indexOf(new Point(x - pointDiametre, y)) != -1 && coords.indexOf(new Point(x + pointDiametre, y)) == -1) ) {
             // Don't include this point
             removeThisPoint = true;
-            //Log.d(TAG, "thinPoint: As all three neighbouring points exist, we can thin point " + point);
+            Log.d(TAG, "thinPoint: As all three neighbouring points exist, we can thin point " + point);
         }
 
         return removeThisPoint;

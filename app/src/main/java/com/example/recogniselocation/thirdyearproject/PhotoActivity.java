@@ -53,7 +53,6 @@ public class PhotoActivity extends Activity {
         }
 
         if (bmp != null) {
-            // Colour onto the bitmap the edge we've detected
             if (RetrieveURLTask.showCoarse) {
                 List<Point> coarsePhotoCoords = getIntent().getParcelableArrayListExtra("coarsePhotoCoords");
                 if (coarsePhotoCoords != null)
@@ -66,7 +65,9 @@ public class PhotoActivity extends Activity {
                 List<Point> matchedCoords = getIntent().getParcelableArrayListExtra("matchedPhotoCoords");
                 if (matchedCoords != null)
                     bmp = markMaximasMinimasOnPhoto(bmp, matchedCoords);
+
             }
+            // Colour onto the bitmap the edge we've detected
 
             // Put bitmap onto the image button
             this.findViewById(R.id.photo).setBackground(new BitmapDrawable(this.getResources(), bmp));
