@@ -22,10 +22,18 @@ import static android.content.ContentValues.TAG;
 // Now I'll adapt it to be my full screen photo (as it kinda already was) to be used in the final UI
 public class PhotoActivity extends Activity {
 
+    static boolean pShowCoarse;
+    static Bitmap origBitmap;
+    static List<Point> coarsePhotoCoords;
+    static List<Point> photoCoords;
+    static List<Point> matchedCoords;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.photo_activity);
+
+        pShowCoarse = RetrieveURLTask.showCoarse;
 
         // Get values passed through to this activity via the intent
         // Bitmap is too big to send so find image from resources using ID sent
@@ -37,54 +45,63 @@ public class PhotoActivity extends Activity {
         // Get a mutable bitmap of the image
         BitmapFactory.Options opt = new BitmapFactory.Options();
         opt.inMutable = true;
-        Bitmap bmp = null;
+        origBitmap = null;
         if (Start.uri != null) {
             // Get the photo you took from your location
             try {
-                bmp = MediaStore.Images.Media.getBitmap(this.getContentResolver(), Start.uri);
+                origBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), Start.uri);
                 // Make the image smaller so the app can deal with it
-                bmp = Bitmap.createScaledBitmap(bmp, bmp.getWidth() / 2, bmp.getHeight() / 2, false);
-                Log.d(TAG, "onPostExecute: Bitmap got is " + bmp.getWidth() + " x " + bmp.getHeight() + ". " + bmp.getConfig());
+                origBitmap = Bitmap.createScaledBitmap(origBitmap, origBitmap.getWidth() / 2, origBitmap.getHeight() / 2, false);
+                Log.d(TAG, "onPostExecute: Bitmap got is " + origBitmap.getWidth() + " x " + origBitmap.getHeight() + ". " + origBitmap.getConfig());
             } catch (Exception e) {
                 Log.e(TAG, "onCreate: Couldn't get bitmap: " + e.getMessage());
             }
         } else {
-            bmp = BitmapFactory.decodeResource(getResources(), drawableID, opt);
+            origBitmap = BitmapFactory.decodeResource(getResources(), drawableID, opt);
         }
 
-        if (bmp != null) {
-            if (RetrieveURLTask.showCoarse) {
-                List<Point> coarsePhotoCoords = getIntent().getParcelableArrayListExtra("coarsePhotoCoords");
-                if (coarsePhotoCoords != null)
-                    bmp = markCoarseEdgeCoords(bmp, coarsePhotoCoords);
-            } else {
-                List<Point> photoCoords = getIntent().getParcelableArrayListExtra("photoCoords");
-                if (photoCoords != null)
-                    bmp = markEdgeCoords(bmp, photoCoords);
-                // Mark the maximas and minimas (common with the map)
-                List<Point> matchedCoords = getIntent().getParcelableArrayListExtra("matchedPhotoCoords");
-                if (matchedCoords != null)
-                    bmp = markMaximasMinimasOnPhoto(bmp, matchedCoords);
+        // Get the results
+        coarsePhotoCoords = getIntent().getParcelableArrayListExtra("coarsePhotoCoords");
+        photoCoords = getIntent().getParcelableArrayListExtra("photoCoords");
+        matchedCoords = getIntent().getParcelableArrayListExtra("matchedPhotoCoords");
 
-            }
-            // Colour onto the bitmap the edge we've detected
 
-            // Put bitmap onto the image button
-            this.findViewById(R.id.photo).setBackground(new BitmapDrawable(this.getResources(), bmp));
 
-        } else {
-            Log.e(TAG, "onCreate: Couldn't find bitmap");
-        }
+        Bitmap resultBMP = drawResultsOnBitmap(origBitmap, pShowCoarse);
+        // Put bitmap onto the image button
+        this.findViewById(R.id.photo).setBackground(new BitmapDrawable(this.getResources(), resultBMP));
 
     }
 
-    private Bitmap markCoarseEdgeCoords(Bitmap bmp, List<Point> photoCoords) {
+    private static Bitmap drawResultsOnBitmap(Bitmap bmp, boolean showCoarse) {
+        if (bmp != null) {
+            Bitmap resultBMP = bmp.copy(bmp.getConfig(), true);
+            if (showCoarse) {
+                if (coarsePhotoCoords != null)
+                    return markCoarseEdgeCoords(resultBMP, coarsePhotoCoords);
+                else
+                    return null;
+            } else {
+                if (photoCoords != null)
+                    resultBMP = markEdgeCoords(resultBMP, photoCoords);
+                // Mark the maximas and minimas (common with the map)
+                if (matchedCoords != null)
+                    resultBMP = markMaximasMinimasOnPhoto(resultBMP, matchedCoords);
+                return resultBMP;
+            }
+        } else {
+            Log.e(TAG, "onCreate: Couldn't find bitmap");
+            return null;
+        }
+    }
+
+    private static Bitmap markCoarseEdgeCoords(Bitmap bmp, List<Point> photoCoords) {
         int width = (bmp.getHeight() / 17) * 2 + 1; // Width got from coarseMask method
         return ImageManipulation.colourBitmapCoords(
                 bmp, photoCoords, Color.argb(255, 250, 150, 50), width);
     }
 
-    private Bitmap markEdgeCoords(Bitmap bmp, List<Point> photoCoords) {
+    private static Bitmap markEdgeCoords(Bitmap bmp, List<Point> photoCoords) {
         int width = bmp.getWidth() / 125;
         return ImageManipulation.colourBitmapCoords(
                 bmp, photoCoords, Color.argb(255, 250, 150, 50), width);
@@ -112,8 +129,17 @@ public class PhotoActivity extends Activity {
         return bmp;
     }
 
+    public void changeMask(View v)
+    {
+        pShowCoarse = !pShowCoarse;
+        // Put bitmap onto the image button
+        v.setBackground(new BitmapDrawable(this.getResources(),
+                drawResultsOnBitmap(origBitmap, pShowCoarse)));
+    }
+
     // Deal with button clicks
-    public void buttonClicked(View view) {
+    public void buttonClicked(View view)
+    {
         Log.d(TAG, "buttonClicked: A button was clicked");
         Intent intent = null;
 

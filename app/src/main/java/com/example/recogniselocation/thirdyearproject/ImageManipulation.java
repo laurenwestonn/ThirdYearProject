@@ -172,10 +172,10 @@ class ImageManipulation {
                 /////// NEIGHBOURING THRESHOLD ///////
 
                 // Thresholds
-                int pointThreshold = origBMP.getHeight() / 30; // The threshold to determine an edge for a point
+                int pointThreshold = resultBMP.getHeight() / 30; // The threshold to determine an edge for a point
                 int neighbThreshold = (int) (pointThreshold * 0.9); // A point that is neighbouring an edge's threshold
 
-                // Is this a edge?
+                // Is this an edge?
                 relevantEdge = colourFineMaskPoint(origBMP, resultBMP, x, y,
                         fineWidth, fineHeight, pointThreshold, neighbThreshold);
                 if (relevantEdge)
@@ -304,17 +304,17 @@ class ImageManipulation {
     }
 
     /////////////////////// FINE /////
-    static boolean colourFineMaskPoint(Bitmap origBmp, Bitmap bmp, int i, int j, int maskWidth, int maskHeight, int loThresh, int hiThresh) {
+    static boolean colourFineMaskPoint(Bitmap origBMP, Bitmap resultBMP, int i, int j, int maskWidth, int maskHeight, int loThresh, int hiThresh) {
         int maskRadiusWidth = (maskWidth - 1) / 2;
         int maskRadiusHeight = (maskHeight - 1) / 2;
 
         // Get the likelihood that this is an edge,
         // unless it has already been marked blue
-        int edgeness = bmp.getPixel(i,j) == Color.BLUE ? Color.BLUE :
-                getFineEdgeness(origBmp, i, j, maskRadiusWidth, maskRadiusHeight);
+        int edgeness = resultBMP.getPixel(i,j) == Color.BLUE ? Color.BLUE :
+                getFineEdgeness(origBMP, i, j, maskRadiusWidth, maskRadiusHeight);
 
         //Log.d("Hi", "\tAnother FINE pixel. Edgeness of (" + i + ", " + j + ") is " + edgeness);
-        return determineColour(bmp, edgeness, hiThresh, loThresh, i, j, maskRadiusWidth, maskRadiusHeight);
+        return determineColour(resultBMP, edgeness, hiThresh, loThresh, i, j, maskRadiusWidth, maskRadiusHeight);
     }
 
     private static int getFineEdgeness(Bitmap bmp, int i, int j, int widthRadius, int heightRadius) {

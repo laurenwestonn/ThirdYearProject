@@ -25,7 +25,7 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
     @SuppressLint("StaticFieldLeak")
     private Activity activity;
 
-    public static boolean showCoarse = true;
+    public static boolean showCoarse = false;
     boolean sdDetail = false;
     boolean useThinning = true;
     boolean showEdgeOnly = true;
