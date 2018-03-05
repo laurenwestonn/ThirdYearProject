@@ -7,78 +7,71 @@ import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 import static android.content.ContentValues.TAG;
 
 class ImageManipulation {
 
-    private static boolean gShowCoarse;
     private static boolean gShowEdgeOnly;
 
-    private static List<Point> edgeCoords;
+    private static List<Point> fineEdgeCoords;
     static int fineWidth;
     private static int fineHeight;
     private static int fineWidthRadius;
     private static int fineHeightRadius;
 
     static Edge detectEdge(Bitmap bmp,
-                           boolean showCoarse, boolean sdDetail,
+                           boolean sdDetail,
                            boolean useThinning, boolean showEdgeOnly)
     {
         if (bmp == null)
             Log.e(TAG, "Null bitmap was passed to detectEdge");
 
         // Save these variables globally for now Todo: This better
-        gShowCoarse = showCoarse;
         gShowEdgeOnly = showEdgeOnly;
-        Bitmap resultBMP;
+        Bitmap resultFineBMP;
         List<Point> coarseEdgeCoords = null;
 
         ////////////// COARSE MASK /////////////////
         CoarseMasking coarse = coarseMask(bmp);
 
         ///////////// Standard Deviation //////////////
-        if (coarse.getCoords().size() > 0) {
+        if (coarse.getCoords() == null || coarse.getCoords().size() > 0) {
             StandardDeviation coarseSD = findStandardDeviation(coarse.getBitmap(), coarse.getCoords(), sdDetail);
             coarseEdgeCoords = coarse.getCoords();
             Log.d(TAG, "findStandardDeviation: SD got");
 
             // Whether SD was drawn on or not, the coarse mask will get returned from the above
-            if (showCoarse)
-                resultBMP = coarseSD.getBitmap();
-            else {
-                ///////////////////// FINE MASK //////////////////
-                Edge fine = fineMask(bmp, coarseSD);
-                resultBMP = fine.getBitmap();
-                edgeCoords = fine.getCoords();
 
-                ////////// THINNING //////////
-                if (useThinning) {
-                    //Log.d(TAG, "detectEdge: Going to skeletonise edgeCoords: " + edgeCoords.toString());
-                    //edgeCoords = thinBitmap(edgeCoords, fineWidth);
-                    Log.d(TAG, "detectEdge: edgecoords: " + edgeCoords.toString());
-                    edgeCoords = thinColumns(edgeCoords);
-                    Log.d(TAG, "Result of 1 per column: " + edgeCoords.toString());
-                }
+            ///////////////////// FINE MASK //////////////////
+            Edge fine = fineMask(bmp, coarseSD);
+            resultFineBMP = fine.getBitmap();
+            fineEdgeCoords = fine.getCoords();
 
-                ///////// SHOW EDGES ONLY? /////////
-                if (showEdgeOnly) {
-                    // Get a new copy of the photo to draw the edge on top of
-                    resultBMP = bmp.copy(bmp.getConfig(), true);
-                    // Draw the edge on top of the photo from the edge coordinates we saved in edgeCoords
-                    colourFineBitmap(resultBMP, edgeCoords, fineWidthRadius, fineHeightRadius);
-                }
+            ////////// THINNING //////////
+            if (useThinning) {
+                //Log.d(TAG, "detectEdge: Going to skeletonise fineEdgeCoords: " + fineEdgeCoords.toString());
+                //fineEdgeCoords = thinBitmap(fineEdgeCoords, fineWidth);
+                Log.d(TAG, "detectEdge: fineEdgeCoords: " + fineEdgeCoords.toString());
+                fineEdgeCoords = thinColumns(fineEdgeCoords);
+                Log.d(TAG, "Result of 1 per column: " + fineEdgeCoords.toString());
             }
+
+            ///////// SHOW EDGES ONLY? /////////
+            if (showEdgeOnly) {
+                // Get a new copy of the photo to draw the edge on top of
+                resultFineBMP = bmp.copy(bmp.getConfig(), true);
+                // Draw the edge on top of the photo from the edge coordinates we saved in fineEdgeCoords
+                colourFineBitmap(resultFineBMP, fineEdgeCoords, fineWidthRadius, fineHeightRadius);
+                }
 
         } else {
             Log.e(TAG, "detectEdge: Couldn't find edges with the coarse mask, so just return the original photo");
-            resultBMP = coarse.getBitmap();
+            resultFineBMP = coarse.getBitmap();
         }
-        Log.d(TAG, "detectEdge: Found the photo edge coords " + edgeCoords);
-        return new Edge(edgeCoords, coarseEdgeCoords, resultBMP);
+        Log.d(TAG, "detectEdge: Found the photo edge coords " + fineEdgeCoords);
+        return new Edge(fineEdgeCoords, coarseEdgeCoords, resultFineBMP);
     }
 
     private static List<Point> thinColumns(List<Point> edgeCoords)
@@ -460,32 +453,21 @@ class ImageManipulation {
         return anyEdges;
     }
 
-    private static boolean checkUnseenNbour(Bitmap bmp, int x, int y, int width, int height, int minThreshold, int maxThreshold) {
-        if (gShowCoarse) {
-            if (getCoarseEdgeness(bmp, x, y, (width-1)/2) > minThreshold) {
-                //Log.d("Hi", "Neighbour (" + x + ", " + y + ") had a worthy edge of " + getCoarseEdgeness(bmp, x, y, (width-1)/2));
-                if (getCoarseEdgeness(bmp, x, y, (width-1)/2) < maxThreshold) {
-                    //Log.d("Hi", "Set pixel blue");
-                    colourArea(bmp, x, y, Color.BLUE, width, height);
-                }
-                return true;
-            } else {
-                //Log.d("Hi", "Neighbour (" + x + ", " + y + ") isn't edgy enough.. " + getCoarseEdgeness(bmp, x, y, (width-1)/2));
-                return false;
-            }
-        } else {    // Fine neighbours    TODO: Choose which edgeness technique to use, more neatly
-            if (getFineEdgeness(bmp, x, y, (width-1)/2, (height-1)/2) > minThreshold) {
-                //Log.d("Hi", "Neighbour (" + x + ", " + y + ") had a worthy edge of " + getFineEdgeness(bmp, x, y, (width-1)/2));
-                if (getFineEdgeness(bmp, x, y, (width-1)/2, (height-1)/2) < maxThreshold) {
-                    //Log.d("Hi", "Set pixel blue");
-                    colourArea(bmp, x, y, Color.BLUE, width, height);
-                    // This blue will be added to edgeCoords when we go on to check it later
-                }
-                return true;
-            } else {
-                //Log.d("Hi", "Neighbour (" + x + ", " + y + ") isn't edgy enough.. " + getFineEdgeness(bmp, x, y, (width-1)/2));
-                return false;
-            }
+    private static boolean checkUnseenNbour(Bitmap bmp, int x, int y, int width, int height,
+                                            int minThreshold, int maxThreshold)
+    {
+        double edgeness;
+        if (width == bmp.getHeight() / 17 * 2 + 1) // Coarse masking
+            edgeness = getCoarseEdgeness(bmp, x, y, (width-1)/2);
+        else // Fine masking
+            edgeness = getFineEdgeness(bmp, x, y, (width-1)/2, (height-1)/2);
+
+        if (edgeness > minThreshold) {
+            if (edgeness < maxThreshold)
+                colourArea(bmp, x, y, Color.BLUE, width, height);
+            return true;
+        } else {
+            return false;
         }
     }
 
@@ -514,8 +496,8 @@ class ImageManipulation {
         return anyEdges;
     }
 
-    private static boolean checkSeenNbour(Bitmap bmp, int x, int y, int width, int height) {
-
+    private static boolean checkSeenNbour(Bitmap bmp, int x, int y, int width, int height)
+    {
         // Get the colour of this point we've already set
         int neighCol = bmp.getPixel(x, y);
 
@@ -530,8 +512,8 @@ class ImageManipulation {
             colourArea(bmp, x, y, Color.BLUE, width, height);
             // New edge that we've already gone past so will not revisit
             // will have to add this to edgeCoords manually
-            if (edgeCoords != null)   // If it has been set (should be at this point)
-                edgeCoords.add(new Point(x, y));
+            if (fineEdgeCoords != null)   // If it has been set (should be at this point)
+                fineEdgeCoords.add(new Point(x, y));
             // Next time this point is checked it will be blue so we wouldn't enter
             // this area of code so the same coords can't be added twice
             return true;

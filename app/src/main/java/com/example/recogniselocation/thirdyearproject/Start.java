@@ -47,7 +47,7 @@ public class Start extends AppCompatActivity {
             @Override
             public void onLocationChanged(Location location) {
                 //Todo: Get your direction, I've just hardcoded 60 degrees :/
-                // *Todo: Check, this isn't going to get called every 5 ms is it? If so, only carry on if has changed from last time (global variabel required)
+                // *Todo: Check, this isn't going to get called every 5 ms is it? If so, only carry on if has changed from last time (global variable required)
                 yourLocation = new LatLng(location);
                 LocationDirection locDir = new LocationDirection(null, new LatLng(location),60);
                 APIFunctions.getElevations(locDir, Start.this);

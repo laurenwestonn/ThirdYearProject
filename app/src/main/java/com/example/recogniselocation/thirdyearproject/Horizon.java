@@ -15,7 +15,9 @@ class Horizon implements Series<DataPoint> {
 
     private List<Point> photoMaximasMinimas;
     private List<Integer> elevMaximasMinimasIndexes;
-    List<Point> photoSeriesCoords;
+    private List<Point> photoSeriesCoords;  // Points which directly represent series plots
+                                            // Used to build up a series within the activity
+                                            // As can't send series - they're not parcelable
     private LineGraphSeries<DataPoint> photoSeries;
 
     Horizon(List<Point> photoMMs, List<Integer> elevMMIndexes,
@@ -37,7 +39,7 @@ class Horizon implements Series<DataPoint> {
         return elevMaximasMinimasIndexes;
     }
 
-    public LineGraphSeries<DataPoint> getSeries()
+    public LineGraphSeries<DataPoint> getPhotoSeries()
     {
         return photoSeries;
     }

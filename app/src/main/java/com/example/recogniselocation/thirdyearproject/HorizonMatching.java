@@ -24,7 +24,7 @@ class HorizonMatching {
         if (debug) {
             Log.d(TAG, "matchUpHorizons: Just found photo max mins: " + photoMMs);
         }
-        MaximasMinimas elevMMsObj = findMaximasMinimas(elevationCoords, false);// Todo: This better. Using a looser(...is it?) threshold here because my edge detection is too thick to notice subtle dips
+        MaximasMinimas elevMMsObj = findMaximasMinimas(elevationCoords, false);
         List<Point> elevationMMs = elevMMsObj.getMaximasMinimas();
         if (debug) {
             Log.d(TAG, "matchUpHorizons: Just found elevation max mins: " + elevationMMs);
@@ -33,70 +33,73 @@ class HorizonMatching {
         if (photoMMs == null || elevationMMs == null                        // None found
                 ||photoMMs.size() < 2 || elevationMMs.size() < 2            // Just a maxima found
                 || photoMMs.get(0) == null && photoMMs.size() <= 2          // Just a minima found
-                || elevationMMs.get(0) == null && elevationMMs.size() == 2) // Just a minima found
+                || elevationMMs.get(0) == null && elevationMMs.size() == 2) {// Just a minima found
+
             Log.e(TAG, "matchUpHorizons: Didn't find enough maximas and minimas; "
                     + "Elevation ones: " + elevationMMs + "\tPhoto ones: " + photoMMs);
-
-        // Find best minima maxima pair for the photo - i.e. the biggest difference in height
-        // If the first in photo is a maxima, the first two in photoMM will hold max then min
-        // If first in photo is minima, first index will be null, next two will be min then max
-        List<Point> photoMM = findBestMaximaMinima(photoMMs);
-
-        if (debug) {
-            Log.d("matching", "Best maxima minima of " + photoMMs + "is ");
-            Log.d("matching", "\t\t\t\t\t" + photoMM);
-        }
-
-        // Store how accurate each min max pairing is
-        List<Matching> allMatchings = new ArrayList<>();
-        boolean significantDifference;
-
-        // Go through each maxima minima pair from the elevations
-
-        if (debug)
-            Log.d(TAG, "matchUpHorizons: Going to check each elevation min max pair from " + elevationMMs);
-
-        // Start at the odd index if this starts with a minimum
-        int i = getFirstElevationIndex( photoMM.size() == 2,
-                elevationMMs.get(0) != null);
-        for (; i < elevationMMs.size() - 1; i += 2) {
-            // Store this elevation maxima minima pair into elevationMM
-            // As with the photoMM, this could hold 2 or three values
-            List<Point> elevationMM = getTheNextElevationMM(elevationMMs, i);
-
-            significantDifference = signifDiff(elevationMM, elevationCoords);
-
-            if (significantDifference) {
-                if (debug)
-                    Log.d("matching", "Checking elevation max min " + elevationMM);
-                allMatchings.add(howWellMatched(photoMM, elevationMM, photoCoords, elevationCoords));
-            }
-        }
-
-        // Log the results of the matchings
-        if (allMatchings.size() == 0) {
-            Log.d(TAG, "matchUpHorizons: No significant matchings were found. Just use the last one");
-            allMatchings.add(howWellMatched(photoMM, getTheNextElevationMM(elevationMMs, i-2), photoCoords, elevationCoords));
+            return new Horizon(photoMMs, elevMMsObj.getIndexes(), null,
+                    null);
         } else {
+            // Find best minima maxima pair for the photo - i.e. the biggest difference in height
+            // If the first in photo is a maxima, the first two in photoMM will hold max then min
+            // If first in photo is minima, first index will be null, next two will be min then max
+            List<Point> photoMM = findBestMaximaMinima(photoMMs);
+
             if (debug) {
-                Log.d(TAG, "matchUpHorizons: All matchings: ");
-                for (Matching m : allMatchings)
-                    Log.d(TAG, m.toString());
+                Log.d("matching", "Best maxima minima of " + photoMMs + "is ");
+                Log.d("matching", "\t\t\t\t\t" + photoMM);
             }
+
+            // Store how accurate each min max pairing is
+            List<Matching> allMatchings = new ArrayList<>();
+
+            // Go through each maxima minima pair from the elevations
+
+            if (debug)
+                Log.d(TAG, "matchUpHorizons: Going to check each elevation min max pair from " + elevationMMs);
+
+            // Start at the odd index if this starts with a minimum
+            int i = getFirstElevationIndex( photoMM.size() == 2,
+                    elevationMMs.get(0) != null);
+            for (; i < elevationMMs.size() - 1; i += 2) {
+                // Store this elevation maxima minima pair into elevationMM
+                // As with the photoMM, this could hold 2 or three values
+                List<Point> elevationMM = getTheNextElevationMM(elevationMMs, i);
+
+                // Checking if these maxima minima pair are a good match to use, i.e. aren't 2 pixels apart
+                if (signifDiff(elevationMM, elevationCoords)) {
+                    if (debug)
+                        Log.d("matching", "Checking elevation max min " + elevationMM);
+                    allMatchings.add(howWellMatched(photoMM, elevationMM, photoCoords, elevationCoords));
+                }
+            }
+
+            // Log the results of the matchings
+            if (allMatchings.size() == 0) {
+                Log.d(TAG, "matchUpHorizons: No significant matchings were found. Just use the last one");
+                allMatchings.add(howWellMatched(photoMM, getTheNextElevationMM(elevationMMs, i-2), photoCoords, elevationCoords));
+            } else {
+                if (debug) {
+                    Log.d(TAG, "matchUpHorizons: All matchings: ");
+                    for (Matching m : allMatchings)
+                        Log.d(TAG, m.toString());
+                }
+            }
+
+            // Find the best matching
+            Matching bestMatching = allMatchings.get(0);
+
+            for (i = 1; i < allMatchings.size(); i++)
+                if (allMatchings.get(i).getDifference() < bestMatching.getDifference())
+                    bestMatching = allMatchings.get(i);
+
+            if (debug)
+                Log.d(TAG, "matchUpHorizons: The best matching is " + bestMatching);
+
+
+            return new Horizon(photoMMs, elevMMsObj.getIndexes(), bestMatching.getPhotoCoords(),
+                    bestMatching.getPhotoSeries());
         }
-
-        // Find the best matching
-        Matching bestMatching = allMatchings.get(0);
-
-        for (i = 1; i < allMatchings.size(); i++)
-            if (allMatchings.get(i).getDifference() < bestMatching.getDifference())
-                bestMatching = allMatchings.get(i);
-
-        if (debug)
-            Log.d(TAG, "matchUpHorizons: The best matching is " + bestMatching);
-
-        return new Horizon(photoMMs, elevMMsObj.getIndexes(), bestMatching.getPhotoCoords(),
-                bestMatching.getPhotoSeries());
     }
 
     // Check that the difference between this elevations max and min points are far - we want mountains not dips
@@ -220,7 +223,6 @@ class HorizonMatching {
                         && (matchingBasePoint = findPointWithX(baseCoords, tX)) != null) {
                     // Find the difference between the heights of both points with common x values
                     diffSum += Math.abs(matchingBasePoint.getY() - tY);
-
                     numMatched++;
                 }
 

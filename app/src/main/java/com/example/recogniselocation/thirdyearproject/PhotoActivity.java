@@ -22,7 +22,7 @@ import static android.content.ContentValues.TAG;
 // Now I'll adapt it to be my full screen photo (as it kinda already was) to be used in the final UI
 public class PhotoActivity extends Activity {
 
-    static boolean pShowCoarse;
+    static boolean requireCoarse = false;
     static Bitmap origBitmap;
     static List<Point> coarsePhotoCoords;
     static List<Point> photoCoords;
@@ -32,8 +32,6 @@ public class PhotoActivity extends Activity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.photo_activity);
-
-        pShowCoarse = RetrieveURLTask.showCoarse;
 
         // Get values passed through to this activity via the intent
         // Bitmap is too big to send so find image from resources using ID sent
@@ -66,11 +64,9 @@ public class PhotoActivity extends Activity {
         matchedCoords = getIntent().getParcelableArrayListExtra("matchedPhotoCoords");
 
 
-
-        Bitmap resultBMP = drawResultsOnBitmap(origBitmap, pShowCoarse);
-        // Put bitmap onto the image button
+        // Draw on results and put onto the image button
+        Bitmap resultBMP = drawResultsOnBitmap(origBitmap, requireCoarse);
         this.findViewById(R.id.photo).setBackground(new BitmapDrawable(this.getResources(), resultBMP));
-
     }
 
     private static Bitmap drawResultsOnBitmap(Bitmap bmp, boolean showCoarse) {
@@ -131,10 +127,10 @@ public class PhotoActivity extends Activity {
 
     public void changeMask(View v)
     {
-        pShowCoarse = !pShowCoarse;
+        requireCoarse = !requireCoarse;
         // Put bitmap onto the image button
         v.setBackground(new BitmapDrawable(this.getResources(),
-                drawResultsOnBitmap(origBitmap, pShowCoarse)));
+                drawResultsOnBitmap(origBitmap, requireCoarse)));
     }
 
     // Deal with button clicks

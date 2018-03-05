@@ -25,7 +25,6 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
     @SuppressLint("StaticFieldLeak")
     private Activity activity;
 
-    public static boolean showCoarse = false;
     boolean sdDetail = false;
     boolean useThinning = true;
     boolean showEdgeOnly = true;
@@ -57,12 +56,10 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
         // Get the graph data
         GraphData gd = APIFunctions.findGraphData(highPoints);
         List<Point> elevationsCoords = gd.getCoords();
-
-
         ///////// CONSTRUCT HORIZON FROM ELEVATIONS /////////
 
 
-        /////// EDGE DETECTION //////
+        /////// PHOTO EDGE DETECTION //////
         Bitmap bmp = null;
         if (Start.uri != null) {    // Actual Location - load photo from where was saved
             try {
@@ -76,33 +73,34 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
             bmp = BitmapFactory.decodeResource(activity.getResources(), photoID);
         }
         Edge edge = ImageManipulation.detectEdge(
-                bmp, showCoarse, sdDetail, useThinning, showEdgeOnly);
+                bmp, sdDetail, useThinning, showEdgeOnly);
         List<Point> photoCoords = edge.getCoords();
         List<Point> coarsePhotoCoords = edge.getCoarseCoords();
+        /////// PHOTO EDGE DETECTION //////
 
         // Will be going to the photo activity next
         Intent intent = new Intent(activity.getString(R.string.PHOTO_ACTIVITY));
-        /////// EDGE DETECTION //////
 
-        if (photoCoords != null && !showCoarse) {
-            Log.d(TAG, "onPostExecute: Edge Detected");
+        if (photoCoords != null) {
+            Log.d(TAG, "onPostExecute: Photo's edge Detected");
 
             /////// MATCH UP HORIZONS //////
-            photoCoords = invertY(photoCoords); // To match the graph's coordinate system: Up Right +ve
-
             Log.d(TAG, "onPostExecute: Going to match up horizons");
+            photoCoords = invertY(photoCoords); // To match the graph's coordinate system: Up Right +ve
 
             // Todo: Check flippedness of graph results against other photos - does the elevation look right?
             Horizon horizon = HorizonMatching.matchUpHorizons(photoCoords, elevationsCoords);
-            // Todo: Possibly just send the horizon object as one, not as its elements separately
-            List<Point> photoSeriesCoords = horizon.getPhotoSeriesCoords();     // Up Right +ve
-            List<Integer> matchedElevCoordsIndexes = horizon.getElevMMIndexes();// To get LatLng
-            List<Point> matchedPhotoCoords = invertY(horizon.getPhotoMMs());    // Down Right +ve
-            photoCoords = invertY(photoCoords); // Down Right +ve
             /////// MATCH UP HORIZONS //////
 
 
             // Pass these photo coords and the matched info to the next activity
+            // Todo: Possibly just send the horizon object as one, not as its elements separately
+            // Can't send series via intent (isn't parcelable) Send Points & convert within activity
+            List<Point> photoSeriesCoords = horizon.getPhotoSeriesCoords();     // Up Right +ve
+            List<Integer> matchedElevCoordsIndexes = horizon.getElevMMIndexes();// To get LatLng
+            List<Point> matchedPhotoCoords = invertY(horizon.getPhotoMMs());    // Down Right +ve
+            photoCoords = invertY(photoCoords); // Down Right +ve
+
             intent.putParcelableArrayListExtra("photoCoords", (ArrayList<Point>) photoCoords);      // To draw the edge
             intent.putParcelableArrayListExtra("coarsePhotoCoords", (ArrayList<Point>) coarsePhotoCoords);      // To draw the coarse edge Todo: implement functionality
             intent.putParcelableArrayListExtra("matchedPhotoCoords", (ArrayList<Point>) matchedPhotoCoords);  // To mark on the matched points
@@ -112,10 +110,8 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
             intent.putParcelableArrayListExtra("photoSeriesCoords", (ArrayList<Point>) photoSeriesCoords);
 
 
-        } else if (photoCoords == null && !showCoarse)
-                Log.e(TAG, "onPostExecute: Couldn't find edge coords of photo");
-        else    // Just looking at the coarse mask, only send this through
-            intent.putParcelableArrayListExtra("coarsePhotoCoords", (ArrayList<Point>) coarsePhotoCoords);      // To draw the coarse edge
+        } else
+            Log.e(TAG, "onPostExecute: Couldn't find edge coords of photo");
 
 
 
