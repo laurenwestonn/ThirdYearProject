@@ -22,7 +22,6 @@ import static android.content.ContentValues.TAG;
 
 public class MapActivity extends Activity implements OnMapReadyCallback {
 
-    // Todo: Do I need to extend fragment activity?
     static GoogleMap googleMap;
 
     @Override
@@ -31,7 +30,6 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
 
         if (googleServicesAvailable())
             initMap();
-
     }
 
     // Checks if you can connect to google services and gives Toast of result
@@ -65,7 +63,7 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
     @Override
     public void onMapReady(GoogleMap givenGoogleMap) {
         googleMap = givenGoogleMap;
-        googleMap.setMapType(googleMap.MAP_TYPE_TERRAIN);
+        googleMap.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
 
         // Show results on the map:
         // Draw the line of the high points
@@ -98,7 +96,7 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
     // Deal with button clicks
     public void buttonClicked(View view) {
         Log.d(TAG, "buttonClicked: A button was clicked");
-        Intent intent = null;
+        Intent intent;
 
         switch (view.getId()) {
             case R.id.back: {
@@ -118,6 +116,7 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
             }
             default:
                 Log.d(TAG, "buttonClicked: didn't recognise id " + view.getId() + " of view " + view.toString());
+                intent = new Intent(this.getString(R.string.START_ACTIVITY));
         }
 
         if (view.getId() == R.id.before || view.getId() == R.id.next) {
@@ -145,13 +144,7 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
             List<Point> photoSeriesCoords = getIntent().getParcelableArrayListExtra("photoSeriesCoords");
             intent.putParcelableArrayListExtra("photoSeriesCoords", (ArrayList<Point>) photoSeriesCoords);
         }
-
-        if (intent != null) {
-            startActivity(intent);
-            finish();
-        } else {
-            Log.e(TAG, "buttonClicked: Couldn't find an intent for id " + view.getId());
-        }
-
+        startActivity(intent);
+        finish();
     }
 }

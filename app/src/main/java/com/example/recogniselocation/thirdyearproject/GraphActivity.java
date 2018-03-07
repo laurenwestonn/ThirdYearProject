@@ -98,7 +98,7 @@ public class GraphActivity extends Activity {
     // Deal with button clicks
     public void buttonClicked(View view) {
         Log.d(TAG, "buttonClicked: A button was clicked");
-        Intent intent = null;
+        Intent intent;
 
         switch (view.getId()) {
             case R.id.back: {
@@ -118,6 +118,7 @@ public class GraphActivity extends Activity {
             }
             default:
                 Log.d(TAG, "buttonClicked: didn't recognise id " + view.getId() + " of view " + view.toString());
+                intent = new Intent(this.getString(R.string.START_ACTIVITY));
         }
 
         if (view.getId() == R.id.before || view.getId() == R.id.next) {
@@ -145,14 +146,7 @@ public class GraphActivity extends Activity {
             List<Point> photoSeriesCoords = getIntent().getParcelableArrayListExtra("photoSeriesCoords");
             intent.putParcelableArrayListExtra("photoSeriesCoords", (ArrayList<Point>) photoSeriesCoords);
         }
-
-        if (intent != null) {
-            startActivity(intent);
-            finish();
-        } else {
-            Log.e(TAG, "buttonClicked: Couldn't find an intent for id " + view.getId());
-        }
-
-
+        startActivity(intent);
+        finish();
     }
 }

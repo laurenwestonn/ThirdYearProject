@@ -11,7 +11,6 @@ import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.View;
-import android.widget.ImageButton;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -92,14 +91,20 @@ public class PhotoActivity extends Activity {
 
     private static Bitmap markCoarseEdgeCoords(Bitmap bmp, List<Point> photoCoords) {
         int width = (bmp.getHeight() / 17) * 2 + 1; // Width got from coarseMask method
-        return ImageManipulation.colourBitmapCoords(
+        return colourBitmapCoords(
                 bmp, photoCoords, Color.argb(255, 250, 150, 50), width);
     }
 
     private static Bitmap markEdgeCoords(Bitmap bmp, List<Point> photoCoords) {
         int width = bmp.getWidth() / 125;
-        return ImageManipulation.colourBitmapCoords(
+        return colourBitmapCoords(
                 bmp, photoCoords, Color.argb(255, 250, 150, 50), width);
+    }
+
+    static Bitmap colourBitmapCoords(Bitmap bmp, List<Point> coords, int colour, int size) {
+        for (Point p : coords)
+            bmp = ImageManipulation.colourArea(bmp, (int) p.getX() , (int) p.getY(), colour, size, size);
+        return bmp;
     }
 
     // Mark of the maximas and minimas in varying colours
@@ -136,7 +141,7 @@ public class PhotoActivity extends Activity {
     public void buttonClicked(View view)
     {
         Log.d(TAG, "buttonClicked: A button was clicked");
-        Intent intent = null;
+        Intent intent;
 
         switch (view.getId()) {
             case R.id.back: {
@@ -155,6 +160,7 @@ public class PhotoActivity extends Activity {
                 break;
             }
             default:
+                intent = new Intent(this.getString(R.string.START_ACTIVITY));
                 Log.d(TAG, "buttonClicked: didn't recognise id " + view.getId() + " of view " + view.toString());
         }
 
@@ -182,16 +188,10 @@ public class PhotoActivity extends Activity {
             intent.putParcelableArrayListExtra("elevationsCoords", (ArrayList<Point>) elevationsCoords);
             List<Point> photoSeriesCoords = getIntent().getParcelableArrayListExtra("photoSeriesCoords");
             intent.putParcelableArrayListExtra("photoSeriesCoords", (ArrayList<Point>) photoSeriesCoords);
-
-            Log.d(TAG, "PhotoAct: Sending the matchedIndexes " + matchedElevCoordsIndexes);
         }
 
-        if (intent != null) {
-            startActivity(intent);
-            finish();
-        } else {
-            Log.e(TAG, "buttonClicked: Couldn't find an intent for id " + view.getId());
-        }
+        startActivity(intent);
+        finish();
     }
 
 }

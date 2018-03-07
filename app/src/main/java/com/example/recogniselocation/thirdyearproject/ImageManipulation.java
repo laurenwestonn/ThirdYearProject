@@ -17,7 +17,6 @@ class ImageManipulation {
 
     private static List<Point> fineEdgeCoords;
     static int fineWidth;
-    private static int fineHeight;
     private static int fineWidthRadius;
     private static int fineHeightRadius;
 
@@ -52,7 +51,7 @@ class ImageManipulation {
             ////////// THINNING //////////
             if (useThinning) {
                 //Log.d(TAG, "detectEdge: Going to skeletonise fineEdgeCoords: " + fineEdgeCoords.toString());
-                //fineEdgeCoords = thinBitmap(fineEdgeCoords, fineWidth);
+                //fineEdgeCoords = skeletonisePoints(fineEdgeCoords, fineWidth);
                 Log.d(TAG, "detectEdge: fineEdgeCoords: " + fineEdgeCoords.toString());
                 fineEdgeCoords = thinColumns(fineEdgeCoords);
                 Log.d(TAG, "Result of 1 per column: " + fineEdgeCoords.toString());
@@ -61,7 +60,8 @@ class ImageManipulation {
             ///////// SHOW EDGES ONLY? /////////
             if (showEdgeOnly) {
                 // Get a new copy of the photo to draw the edge on top of
-                resultFineBMP = bmp.copy(bmp.getConfig(), true);
+                if (bmp != null)
+                    resultFineBMP = bmp.copy(bmp.getConfig(), true);
                 // Draw the edge on top of the photo from the edge coordinates we saved in fineEdgeCoords
                 colourFineBitmap(resultFineBMP, fineEdgeCoords, fineWidthRadius, fineHeightRadius);
                 }
@@ -74,27 +74,7 @@ class ImageManipulation {
         return new Edge(fineEdgeCoords, coarseEdgeCoords, resultFineBMP);
     }
 
-    private static List<Point> thinColumns(List<Point> coords)
-    {
-        List<Point> onePerColumn = new ArrayList<>();
-        Point prevBestPoint = null;
-        for (int i = 0; i < coords.size(); i++) {
-            // Find all points within the same column
-            int colIndex = (int) coords.get(i).getX();
-            List<Point> pointsInCol = findPointsInCol(coords, colIndex);
-            i += pointsInCol.size() - 1;
-
-            // Pick best point in column (middle, more towards top due to noise below horizon)
-            Point bestPoint = bestPointInCol(pointsInCol, prevBestPoint);
-            if (bestPoint != null && !onePerColumn.contains(bestPoint)) { // Add it if you haven't already
-                onePerColumn.add(bestPoint);
-                prevBestPoint = bestPoint;  // Update the last best point if we found a new one now
-            }
-        }
-        return onePerColumn;
-    }
-
-    private static Point bestPointInCol(List<Point> col, Point prevP)
+    static Point bestPointInCol(List<Point> col, Point prevP)
     {
         if (col == null || col.size() <= 0)
             return null;
@@ -152,7 +132,7 @@ class ImageManipulation {
         fineWidthRadius = resultBMP.getWidth() / 250; // 1 would make a mask of width 3, 2 would give width 5
         fineWidth = fineWidthRadius * 2 + 1;    // Width of the fine mask
         fineHeightRadius = resultBMP.getHeight() / 110;
-        fineHeight = fineHeightRadius * 2 + 1;
+        int fineHeight = fineHeightRadius * 2 + 1;
 
         boolean relevantEdge;
         List<Point> edgeCoords = new ArrayList<>();
@@ -241,10 +221,9 @@ class ImageManipulation {
 
 
 
-
     /////////////////////// COARSE /////
-    static boolean colourCoarseMaskPoint(Bitmap origBMP, Bitmap resultBMP, int i, int j,
-                                         int distFromCentre, int loThresh, int hiThresh)
+    private static boolean colourCoarseMaskPoint(Bitmap origBMP, Bitmap resultBMP, int i, int j,
+                                                 int distFromCentre, int loThresh, int hiThresh)
     {
         // Get the likelihood that this is an edge,
         // unless it has already been marked blue
@@ -298,7 +277,7 @@ class ImageManipulation {
     }
 
     /////////////////////// FINE /////
-    static boolean colourFineMaskPoint(Bitmap origBMP, Bitmap resultBMP, int i, int j, int maskWidth, int maskHeight, int loThresh, int hiThresh) {
+    private static boolean colourFineMaskPoint(Bitmap origBMP, Bitmap resultBMP, int i, int j, int maskWidth, int maskHeight, int loThresh, int hiThresh) {
         int maskRadiusWidth = (maskWidth - 1) / 2;
         int maskRadiusHeight = (maskHeight - 1) / 2;
 
@@ -329,7 +308,7 @@ class ImageManipulation {
     // edgeCoords is a 2D list:
     // x increases by 1 - but don't forget the bitmap increases by width
     // y is the actual y coordinate from the bitmap
-    static void colourFineBitmap(Bitmap bmp, List<Point> edgeCoords, int pWidth, int pHeight)
+    private static void colourFineBitmap(Bitmap bmp, List<Point> edgeCoords, int pWidth, int pHeight)
     {
         for (Point p : edgeCoords)
             colourArea(bmp, (int) p.getX(), (int) p.getY(), Color.YELLOW, pWidth, pHeight);
@@ -525,56 +504,13 @@ class ImageManipulation {
     }
 
     /////// THINNING ///////
-    // Reduce the number of edges in this column to one. Pick the first one that isn't noise.
-    // Returns the most recent valid point you've seen
-    private static Point thinColumn(Bitmap bmp, List<Integer> col, int colX, Point prevPoint, int width, int height) {
-        int bestColIndex = Integer.MIN_VALUE;
-        Point pointToUse = null;
-
-        for (int i = 0; i < col.size(); i++)
-            // Avoid noise by checking that the previous point isn't too different from this one
-            if (prevPoint == null)      // The first point
-                if (col.size() > 0)
-                    bestColIndex = 0;   // There's no points to compare against, just assume this is from the horizon
-                else
-                    return null;
-            else if (Math.abs((colX - prevPoint.getX())
-                    / (col.get(i) - prevPoint.getY())) >= 0.4) {
-                bestColIndex = i;   // Pick the highest in this column which isn't noise
-                //Log.d(TAG, "thinColumn: We've found a point in this column to keep which is nearby the last. " + new Point(colX, col.get(bestColIndex)).toString());
-                break;
-            }
-
-        // Have col hold only the points we want to remove
-        // This body is entered if you found a point to keep
-        if (bestColIndex != Integer.MIN_VALUE) {
-            pointToUse = new Point(colX, col.get(bestColIndex));
-            col.remove(bestColIndex);
-            //Log.d("Hi", "In column " + colX + " there are edges at " + col + ". Keep edge (" + colX + ", " + yToUse + ")");
-        }
-
-        if (!gShowEdgeOnly) {
-            // Colour in the only point we declare as an edge in this column
-            if (pointToUse != null)
-                colourArea(bmp, (int)pointToUse.getX(), (int)pointToUse.getY(), Color.WHITE, width, height);
-
-            // Get rid of the points we'd found in col that we now don't want
-            for (Integer y : col)
-                // ~Change to red to see which edges were removed from thinning~
-                colourArea(bmp, colX, y, Color.BLACK, width, height);
-        }
-
-        // Return the most recent valid point you've seen
-        return pointToUse == null ? prevPoint : pointToUse;
-    }
-
-    private static List<Point> thinBitmap(List<Point> edgeCoords, int pointDiametre)
+    private static List<Point> skeletonisePoints(List<Point> edgeCoords, int pointDiametre)
     {
         List<Point> thinnedCoords = new ArrayList<>();
 
         // Go through each of the edge coords
         for (int i = 0; i < edgeCoords.size(); i++) {
-            boolean removeThisPoint = thinPoint(edgeCoords, edgeCoords.get(i), pointDiametre);
+            boolean removeThisPoint = skeletonisePoint(edgeCoords, edgeCoords.get(i), pointDiametre);
 
             if(gShowEdgeOnly)
                 if (!removeThisPoint)
@@ -586,8 +522,8 @@ class ImageManipulation {
             return edgeCoords;
     }
 
-    // Using techniques from skeletonisation
-    public static boolean thinPoint(List<Point> coords, Point point, int pointDiametre)
+    // Used for the skeletonisation
+    static boolean skeletonisePoint(List<Point> coords, Point point, int pointDiameter)
     {
         boolean removeThisPoint = false;
         double x,y;
@@ -595,58 +531,37 @@ class ImageManipulation {
         y = point.getY();
 
         // If point above this one is an edge
-        if (coords.indexOf(new Point(x, y - pointDiametre)) != -1
+        if (coords.indexOf(new Point(x, y - pointDiameter)) != -1
                 // and if point below is an edge
-                && coords.indexOf(new Point(x, y + pointDiametre)) != -1
+                && coords.indexOf(new Point(x, y + pointDiameter)) != -1
                 // and point on EITHER the right or left is an edge
-                && (coords.indexOf(new Point(x + pointDiametre, y)) != -1 && coords.indexOf(new Point(x - pointDiametre, y)) == -1
-                    || coords.indexOf(new Point(x - pointDiametre, y)) != -1 && coords.indexOf(new Point(x + pointDiametre, y)) == -1) ) {
+                && (coords.indexOf(new Point(x + pointDiameter, y)) != -1 && coords.indexOf(new Point(x - pointDiameter, y)) == -1
+                    || coords.indexOf(new Point(x - pointDiameter, y)) != -1 && coords.indexOf(new Point(x + pointDiameter, y)) == -1) ) {
             // Don't include this point
             removeThisPoint = true;
-            Log.d(TAG, "thinPoint: As all three neighbouring points exist, we can thin point " + point);
+            Log.d(TAG, "skeletonisePoint: As all three neighbouring points exist, we can thin point " + point);
         }
 
         return removeThisPoint;
     }
 
+    private static List<Point> thinColumns(List<Point> coords)
+    {
+        List<Point> onePerColumn = new ArrayList<>();
+        Point prevBestPoint = null;
+        for (int i = 0; i < coords.size(); i++) {
+            // Find all points within the same column
+            int colIndex = (int) coords.get(i).getX();
+            List<Point> pointsInCol = findPointsInCol(coords, colIndex);
+            i += pointsInCol.size() - 1;
 
-    public static Bitmap getThreshold(Bitmap bmp) {
-
-        // The number of pixels to the left/right/above/below of the centre pixel
-        int pointRadius = bmp.getHeight() / 17;
-        // The number of pixels for the width/height, the diameter
-        int pointDiamm = pointRadius * 2 + 1;
-
-        // Make a mutable copy of the bitmap to threshold
-        Bitmap thresholdBMP = bmp.copy(bmp.getConfig(), true);
-
-        for (int y = pointRadius + 1; y < thresholdBMP.getHeight(); y += pointDiamm)
-            for (int x = pointRadius + 1; x < thresholdBMP.getWidth(); x += pointDiamm) {
-                int threshold = 100;
-                int brightness = Color.blue(thresholdBMP.getPixel(x, y));
-
-                // Colour point in white if edge, black if not
-                int colour = (brightness > threshold) ? Color.WHITE : Color.BLACK;
-
-                colourArea(thresholdBMP, x, y, colour, pointDiamm, pointDiamm);
+            // Pick best point in column (middle, more towards top due to noise below horizon)
+            Point bestPoint = bestPointInCol(pointsInCol, prevBestPoint);
+            if (bestPoint != null && !onePerColumn.contains(bestPoint)) { // Add it if you haven't already
+                onePerColumn.add(bestPoint);
+                prevBestPoint = bestPoint;  // Update the last best point if we found a new one now
             }
-
-        return thresholdBMP;
-    }
-
-    public static Bitmap colourBitmapCoords(Bitmap bmp, List<Point> coords, int colour, int size) {
-        for (Point p : coords)
-            bmp = colourArea(bmp, (int) p.getX() , (int) p.getY(), colour, size, size);
-        return bmp;
-    }
-
-    public static Bitmap markMatchedCoords(Bitmap bmp, List<Point> coords) {
-        int colour = Color.BLACK;
-
-        for (Point p : coords) {
-            bmp = colourArea(bmp, (int) p.getX(), (int) p.getY(), colour, 10, 10);
-            colour += 1000;
         }
-        return bmp;
+        return onePerColumn;
     }
 }

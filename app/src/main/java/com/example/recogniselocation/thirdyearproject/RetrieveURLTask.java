@@ -18,16 +18,15 @@ import java.util.List;
 import static android.content.ContentValues.TAG;
 import static com.example.recogniselocation.thirdyearproject.APIFunctions.getHighestVisiblePoint;
 import static com.example.recogniselocation.thirdyearproject.APIFunctions.samplesPerPath;
-import static com.example.recogniselocation.thirdyearproject.ImageManipulation.fineWidth;
 
 public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>  {
 
     @SuppressLint("StaticFieldLeak")
     private Activity activity;
 
-    boolean sdDetail = false;
-    boolean useThinning = true;
-    boolean showEdgeOnly = true;
+    private boolean sdDetail = false;
+    private boolean useThinning = true;
+    private boolean showEdgeOnly = true;
 
     RetrieveURLTask(Activity a)
     {
@@ -35,7 +34,8 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
     }
 
     // Sending off the URLs and passing on the responses to onPostExecute
-    protected List<String> doInBackground(List<String>... urls)
+    @SafeVarargs
+    protected final List<String> doInBackground(List<String>... urls)
     {
         Log.d("RetrieveURLTask", "Going to take some time getting the results from the API");
         return APIFunctions.requestURL(urls[0]);
@@ -103,7 +103,7 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
             photoCoords = invertY(photoCoords); // Down Right +ve
 
             intent.putParcelableArrayListExtra("photoCoords", (ArrayList<Point>) photoCoords);      // To draw the edge
-            intent.putParcelableArrayListExtra("coarsePhotoCoords", (ArrayList<Point>) coarsePhotoCoords);      // To draw the coarse edge Todo: implement functionality
+            intent.putParcelableArrayListExtra("coarsePhotoCoords", (ArrayList<Point>) coarsePhotoCoords);      // To draw the coarse edge
             intent.putParcelableArrayListExtra("matchedPhotoCoords", (ArrayList<Point>) matchedPhotoCoords);  // To mark on the matched points
             // For the map activity
             intent.putIntegerArrayListExtra("matchedElevCoordsIndexes", (ArrayList<Integer>) matchedElevCoordsIndexes);  // To mark on the matched points
@@ -163,7 +163,7 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
         return highPoints;
     }
 
-    public static int getIndexOfLastPath(int resultsLength, int samplesPerPath) {
+    static int getIndexOfLastPath(int resultsLength, int samplesPerPath) {
         int distFromEnd = (resultsLength - 2) % samplesPerPath;
         return resultsLength - distFromEnd - 1;
     }
@@ -225,7 +225,7 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
     }
 
     // Flip on the x axis, doesn't matter where on the axes it ends up as gets scaled anyway
-    public static List<Point> invertY(List<Point> coords)
+    private static List<Point> invertY(List<Point> coords)
     {
         List<Point> inverted = new ArrayList<>();
         for(Point p : coords)
@@ -235,15 +235,5 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
                 inverted.add(null);
 
         return inverted;
-    }
-
-    private static Point findMaxPoint(List<Point> coords) {
-        Point maxPoint = coords.get(0);
-
-        for (Point p : coords)
-            if (p.getY() > maxPoint.getY())
-                maxPoint = p;
-
-        return maxPoint;
     }
 }

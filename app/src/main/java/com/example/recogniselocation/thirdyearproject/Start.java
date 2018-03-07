@@ -79,8 +79,9 @@ public class Start extends AppCompatActivity {
         LocationDirection locDir = null;
         if (view.getId() == R.id.camera) {
             uri = dispatchTakePictureIntent();
-            try {   // Wait until the image is saved
-                while(MediaStore.Images.Media.getBitmap(this.getContentResolver(), uri) == null);
+            try {
+                while(MediaStore.Images.Media.getBitmap(this.getContentResolver(), uri) == null)
+                    ;   // Wait until the image is saved
             } catch (IOException e) {
                 e.printStackTrace();
             }
