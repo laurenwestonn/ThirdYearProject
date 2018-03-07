@@ -6,15 +6,13 @@ import android.util.Log;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
-import java.nio.charset.IllegalCharsetNameException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import static android.content.ContentValues.TAG;
 
 class HorizonMatching {
-    private static boolean debug = true;   // Can't log when testing
+    private static boolean debug = false;   // Can't log when testing
 
     // Returns the horizon you manage to match up from the photo as a series so can plot on graph
     static Horizon matchUpHorizons(List<Point> photoCoords, List<Point> elevationCoords) {
@@ -169,7 +167,7 @@ class HorizonMatching {
     }
 
     // Depending on if maxima or minima was found first, decide which elevation index to start at
-    public static int getFirstElevationIndex(boolean photoInTheOrderMaxMin, boolean elevaInTheOrderMaxMin) {
+    static int getFirstElevationIndex(boolean photoInTheOrderMaxMin, boolean elevaInTheOrderMaxMin) {
 
         if (photoInTheOrderMaxMin)    // Found a max, then min in the photo's horizon
             return elevaInTheOrderMaxMin ? 0 : 2;    // Get the index of the first maxima in the elevations
@@ -287,7 +285,7 @@ class HorizonMatching {
     // Gets the average difference in y between the next 'width' coords
     // In the event that 'width' number of coordinates ahead of this one doesn't exist,
     // it'll return the gradient of the remaining coords. Gradient is 0 if this is the last coord
-    public static double gradientAhead(List<Point> coords, int startingIndex, int searchWidth)
+    static double gradientAhead(List<Point> coords, int startingIndex, int searchWidth)
     {
         double sum = 0;
         int offset = 0;
@@ -316,14 +314,14 @@ class HorizonMatching {
     // Returned in the form where maximas are are even indexes, minima at odd indexes
     // Coords are in the graph coordinate system, where up right is positive
     // MaximasMinimas indexes return will start with a -1 if coords start with null (minima)
-    public static MaximasMinimas findMaximasMinimas(List<Point> coords, boolean loosenThreshold)
+    static MaximasMinimas findMaximasMinimas(List<Point> coords, boolean loosenThreshold)
     {
         int arrayIndex = 0;
         double nextGradient = Integer.MAX_VALUE;
         MaximasMinimas mms = new MaximasMinimas(new ArrayList<Point>(), new ArrayList<Integer>());
         boolean wereGoingUp = true;    //  Whether the hill is heading up or down
         boolean wereGoingDown = false;  // Both are needed because could be flat
-        double threshold = getThreshold(coords) * (loosenThreshold ? 6 : 1);
+        double threshold = loosenThreshold ? 6 : 1;
         int searchWidth = getSearchWidth(coords);
         if (debug)
             Log.d(TAG, "findMaximasMinimas: Using a noise threshold of " + threshold + " and searching a width of " + searchWidth);
@@ -411,31 +409,8 @@ class HorizonMatching {
         return mms;
     }
 
-    public static int getSearchWidth(List<Point> coords) {
+    static int getSearchWidth(List<Point> coords) {
         return (int) Math.floor(coords.size() / 50) + 1;  // At least 1
-    }
-
-    // Find a value that can be used to determine if an area is an in/decline or just flat
-    // based on the coordinates
-    private static double getThreshold(List<Point> coords) {
-
-        // Surely the smallest difference is 1? Use this. No need to adjust threshold
-        // either as this WILL give results
-        return 1;
-
-        /*
-        Point smallestY, biggestY;
-        smallestY = biggestY = null;
-
-        for (Point coord : coords)
-            if (coord != null) {
-                if (smallestY == null || coord.getY() < smallestY.getY())
-                    smallestY = coord;
-                else if (biggestY == null || coord.getY() > biggestY.getY())
-                    biggestY = coord;
-            }
-            
-        return (biggestY.getY() - smallestY.getY()) / 1000;*/
     }
 
     private static boolean outOfBounds(int index, int searchWidth, List<Point> coords) {
@@ -450,7 +425,7 @@ class HorizonMatching {
     }
 
     // Returns true if a max or min was added. Needed to reset the up and down booleans to false
-    private static boolean addAnyMaximaMinima(List<Point> coords, int maxOrMinIndex, MaximasMinimas mms,
+    private static void addAnyMaximaMinima(List<Point> coords, int maxOrMinIndex, MaximasMinimas mms,
                                               boolean wereGoingUp, boolean wereGoingDown, double nextGradient, double threshold)
     {
         boolean areNowGoingUp = nextGradient > threshold;
@@ -468,9 +443,7 @@ class HorizonMatching {
 
             mms.getMaximasMinimas().add(coords.get(maxOrMinIndex));
             mms.getIndexes().add(maxOrMinIndex);
-
-            return true;
-                                                            //  MINIMA
+                                                             //  MINIMA
         } else if (wereGoingDown && areNowGoingUp) {         //          \_______/
             if (debug)
                 Log.d("gradient", "Minima found at " + coords.get(maxOrMinIndex).toString());
@@ -483,20 +456,15 @@ class HorizonMatching {
 
             mms.getMaximasMinimas().add(coords.get(maxOrMinIndex));
             mms.getIndexes().add(maxOrMinIndex);
-
-            return true;
                             // \_____   or    _____/
         } else {            //       \       /
             if (debug)
                 Log.d("gradient", "The gradient after is " + nextGradient
                         + " which doesn't make a max or min considering that before,"
                         + " we were going " + (wereGoingUp ? "up" : "straight or down"));
-            return false;
         }
     }
 
-    // Todo: Fix this, not going up doesn't necessarily mean not going down so 'weregoingUp' bool makes no sense
-    // Todo: Pass through prevGradient, compare it against the threshold
     private static MaximasMinimas addAnyPointyPeaks(List<Point> coords, int arrayIndex,
                                                     boolean wereGoingUp, boolean wereGoingDown,
                                                     double nextGradient, MaximasMinimas mms, double threshold)
@@ -538,7 +506,7 @@ class HorizonMatching {
     }
 
     // True if the next 'searchWidth' coords after the index are all there
-    public static boolean aheadExists(List<Point> coords, int index, int searchWidth)
+    static boolean aheadExists(List<Point> coords, int index, int searchWidth)
     {
         // In case you're mad enough to ask to check no points ahead
         if (searchWidth == 0)
@@ -553,36 +521,5 @@ class HorizonMatching {
             if (coords.get(i) == null)
                 return false;
         return true;
-    }
-
-    static List<Integer> removeDimensionFromCoords(List<List<Integer>> coords2D)
-    {
-        if (coords2D != null) {
-            List<Integer> coords1D = new ArrayList<>();
-
-            for (List<Integer> col : coords2D)
-                if (col.size() > 0)
-                    coords1D.add(col.get(0));
-                else
-                    coords1D.add(-1);
-            return coords1D;
-
-        } else {
-            Log.e(TAG, "removeDimensionFromCoords: Can't make \"null\" 1D");
-            return null;
-        }
-
-    }
-
-    static List<Point> convertToPoints(List<Integer> intList, int pointWidth)
-    {
-        List<Point> pointList = new ArrayList<>();
-        for (int i = 0; i < intList.size(); i++)
-            if (intList.get(i) != -1)
-                pointList.add(new Point(i * pointWidth + (pointWidth-1)/2, intList.get(i)));
-            else
-                pointList.add(null);
-
-        return pointList;
     }
 }

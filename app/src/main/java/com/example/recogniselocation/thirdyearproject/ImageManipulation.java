@@ -74,14 +74,15 @@ class ImageManipulation {
         return new Edge(fineEdgeCoords, coarseEdgeCoords, resultFineBMP);
     }
 
-    private static List<Point> thinColumns(List<Point> edgeCoords)
+    private static List<Point> thinColumns(List<Point> coords)
     {
         List<Point> onePerColumn = new ArrayList<>();
         Point prevBestPoint = null;
-        for (Point p : edgeCoords) {
+        for (int i = 0; i < coords.size(); i++) {
             // Find all points within the same column
-            int colIndex = (int) p.getX();
-            List<Point> pointsInCol = findPointsInCol(edgeCoords, colIndex);
+            int colIndex = (int) coords.get(i).getX();
+            List<Point> pointsInCol = findPointsInCol(coords, colIndex);
+            i += pointsInCol.size() - 1;
 
             // Pick best point in column (middle, more towards top due to noise below horizon)
             Point bestPoint = bestPointInCol(pointsInCol, prevBestPoint);

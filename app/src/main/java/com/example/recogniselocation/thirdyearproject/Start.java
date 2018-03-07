@@ -16,6 +16,7 @@ import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
 import java.io.File;
 import java.io.IOException;
@@ -92,6 +93,7 @@ public class Start extends AppCompatActivity {
                 Log.e(TAG, "buttonClicked: Couldn't find the ID for the drawable " + locDir.getName());
         }
 
+        Toast.makeText(this, R.string.loading_msg, Toast.LENGTH_LONG).show();
         // Use the location and direction to perform the location recognition
         Log.d(TAG, "onCreate: Going to recognise from "
                 + ((locDir == null) ? "your location." : locDir));

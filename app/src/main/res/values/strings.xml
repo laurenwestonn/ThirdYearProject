@@ -9,6 +9,7 @@
     <string name="image_button_description">Button with the horizon to detect on it</string>
     <string name="youre_at">You\'re at</string>
     <string name="url_start">https://maps.googleapis.com/maps/api/elevation/json?path=</string>
+    <string name="loading_msg">"Recognising your location&#8230;"</string>
 
     <!-- The names for each activity, used to go to each activity -->
     <string name="START_ACTIVITY">com.example.recogniselocation.thirdyearproject.START</string>
