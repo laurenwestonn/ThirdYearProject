@@ -64,7 +64,7 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
         if (Start.uri != null) {    // Actual Location - load photo from where was saved
             try {   // Resize, phones can take large photos
                 bmp = MediaStore.Images.Media.getBitmap(activity.getContentResolver(), Start.uri);
-                bmp = Bitmap.createScaledBitmap(bmp, bmp.getWidth() / 2, bmp.getHeight() / 2, false);
+                bmp = Bitmap.createScaledBitmap(bmp, bmp.getWidth() / 8, bmp.getHeight() / 8, false);
                 Log.d(TAG, "onPostExecute: Bitmap got is " + bmp.getWidth() + " x " + bmp.getHeight() + ". " + bmp.getConfig());
             } catch(Exception e) {
                 Log.e(TAG, "onPostExecute: Couldn't find bitmap: " + e.getMessage());

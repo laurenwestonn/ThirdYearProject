@@ -48,7 +48,7 @@ public class PhotoActivity extends Activity {
             try {
                 origBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), Start.uri);
                 // Make the image smaller so the app can deal with it
-                origBitmap = Bitmap.createScaledBitmap(origBitmap, origBitmap.getWidth() / 2, origBitmap.getHeight() / 2, false);
+                origBitmap = Bitmap.createScaledBitmap(origBitmap, origBitmap.getWidth() / 8, origBitmap.getHeight() / 8, false);
             } catch (Exception e) {
                 Log.e(TAG, "onCreate: Couldn't get bitmap: " + e.getMessage());
             }
