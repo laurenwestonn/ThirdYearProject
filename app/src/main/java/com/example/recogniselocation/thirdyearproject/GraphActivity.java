@@ -121,7 +121,7 @@ public class GraphActivity extends Activity {
                 intent = new Intent(this.getString(R.string.START_ACTIVITY));
         }
 
-        if (view.getId() == R.id.before || view.getId() == R.id.next) {
+        if (view.getId() == R.id.before || view.getId() == R.id.next) {// Send data to the next activity
             // For the photo activity
             int drawableID = getIntent().getIntExtra("drawableID", 0);
             intent.putExtra("drawableID", drawableID);  // Bitmap is too big, find it via ID

@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static android.content.ContentValues.TAG;
+import static java.lang.Double.isNaN;
 
 class HorizonMatching {
     private static boolean debug = false;   // Can't log when testing
@@ -227,7 +228,8 @@ class HorizonMatching {
                 // Build up a series to plot
                 series.appendData(new DataPoint(tX, tY), true, transformCoords.size());
                 series.setColor(Color.BLACK);
-                transformedPhotoCoords.add(new Point(tX, tY));
+                if (!isNaN(tX) && !isNaN(tY))
+                    transformedPhotoCoords.add(new Point(tX, tY));
             }
         if (debug)
             Log.d(TAG, " ");

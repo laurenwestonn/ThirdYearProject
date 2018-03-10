@@ -108,7 +108,8 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
             // For the map activity
             intent.putIntegerArrayListExtra("matchedElevCoordsIndexes", (ArrayList<Integer>) matchedElevCoordsIndexes);  // To mark on the matched points
             // For the graph activity
-            intent.putParcelableArrayListExtra("photoSeriesCoords", (ArrayList<Point>) photoSeriesCoords);
+            if (photoSeriesCoords != null && photoSeriesCoords.size() > 0)
+                intent.putParcelableArrayListExtra("photoSeriesCoords", (ArrayList<Point>) photoSeriesCoords);
 
 
         } else

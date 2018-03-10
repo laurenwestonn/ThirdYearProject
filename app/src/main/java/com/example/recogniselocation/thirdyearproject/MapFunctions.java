@@ -47,13 +47,15 @@ public class MapFunctions extends Activity {
     // Add a list of LatLng markers to the map
     public static void addMarkersAt(GoogleMap map, List<LatLng> locations)
     {
-        boolean even = locations.get(0) != null;
-        for (LatLng l : locations) {
-            if (l != null) {
-                BitmapDescriptor icon = even ? BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ROSE) :
-                        BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE);
-                addMarkerAt(map, l, (even ? "Maxima" : "Minima"), icon);
-                even = !even;
+        if (locations != null && locations.size() > 0) {
+            boolean even = locations.get(0) != null;
+            for (LatLng l : locations) {
+                if (l != null) {
+                    BitmapDescriptor icon = even ? BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ROSE) :
+                            BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE);
+                    addMarkerAt(map, l, (even ? "Maxima" : "Minima"), icon);
+                    even = !even;
+                }
             }
         }
     }

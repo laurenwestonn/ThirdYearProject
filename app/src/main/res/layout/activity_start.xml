@@ -5,46 +5,55 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".Start"
-    android:weightSum="1">
+    android:weightSum="1"
+    android:background="@color/colorPrimary">
+
+    <Space
+        android:id="@+id/topSpace"
+        android:layout_width="0dp"
+        android:layout_height="40dp"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentTop="true"/>
 
     <ImageButton
         android:id="@+id/camera"
         android:layout_width="80dp"
         android:layout_height="80dp"
-        android:background="@color/colorAccent"
-        android:contentDescription="@string/camera"
-        android:layout_marginTop="25dp"
         android:layout_centerHorizontal="true"
+        android:layout_marginTop="35dp"
+        android:layout_below="@id/topSpace"
+        android:background="@android:drawable/ic_menu_camera"
+        android:contentDescription="@string/camera"
         android:onClick="buttonClicked" />
 
     <Button
         android:id="@+id/demo1"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
         android:layout_below="@+id/camera"
         android:layout_marginEnd="30dp"
         android:layout_marginTop="30dp"
         android:layout_toStartOf="@id/demo2"
-        android:background="@color/colorAccent"
+        android:background="@drawable/roundedbutton"
         android:contentDescription="@string/demo1"
         android:fontFamily="casual"
         android:onClick="buttonClicked"
         android:text="@string/one"
         android:textAlignment="center"
-        android:textColor="@android:color/white"
+        android:textColor="@color/colorPrimaryDark"
         android:textSize="48sp"
         android:textStyle="bold" />
 
 
     <Button
         android:id="@+id/demo2"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:background="@color/colorAccent"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:background="@drawable/roundedbutton"
         android:contentDescription="@string/demo2"
         android:fontFamily="casual"
         android:textAlignment="center"
-        android:textColor="@android:color/white"
+        android:textColor="@color/colorPrimaryDark"
         android:textSize="48sp"
         android:textStyle="bold"
         android:text="@string/two"
@@ -59,44 +68,43 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"/>
+        android:layout_centerVertical="true" />
 
     <Button
         android:id="@+id/demo3"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:background="@color/colorAccent"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_below="@+id/camera"
+        android:layout_marginStart="15dp"
+        android:layout_marginTop="30dp"
+        android:layout_toEndOf="@id/centre"
+        android:background="@drawable/roundedbutton"
         android:contentDescription="@string/demo3"
         android:fontFamily="casual"
-        android:textAlignment="center"
-        android:textColor="@android:color/white"
-        android:textSize="48sp"
-        android:textStyle="bold"
-        android:text="@string/three"
-        android:layout_marginTop="30dp"
-        android:layout_below="@+id/camera"
-        android:layout_toEndOf="@id/centre"
-        android:layout_marginStart="15dp"
         android:onClick="buttonClicked"
-        />
+        android:text="@string/three"
+        android:textAlignment="center"
+        android:textColor="@color/colorPrimaryDark"
+        android:textSize="48sp"
+        android:textStyle="bold" />
 
 
     <Button
         android:id="@+id/demo4"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:background="@color/colorAccent"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_below="@+id/camera"
+        android:layout_marginStart="30dp"
+        android:layout_marginTop="30dp"
+        android:layout_toEndOf="@id/demo3"
+        android:background="@drawable/roundedbutton"
         android:contentDescription="@string/demo4"
         android:fontFamily="casual"
-        android:textAlignment="center"
-        android:textColor="@android:color/white"
-        android:textSize="48sp"
-        android:textStyle="bold"
+        android:onClick="buttonClicked"
         android:text="@string/four"
-        android:layout_marginTop="30dp"
-        android:layout_below="@+id/camera"
-        android:layout_toEndOf="@id/demo3"
-        android:layout_marginStart="30dp"
-        android:onClick="buttonClicked"/>
+        android:textAlignment="center"
+        android:textColor="@color/colorPrimaryDark"
+        android:textSize="48sp"
+        android:textStyle="bold" />
 
 </RelativeLayout>
