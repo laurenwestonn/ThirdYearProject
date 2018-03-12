@@ -323,7 +323,7 @@ class HorizonMatching {
         MaximasMinimas mms = new MaximasMinimas(new ArrayList<Point>(), new ArrayList<Integer>());
         boolean wereGoingUp = true;    //  Whether the hill is heading up or down
         boolean wereGoingDown = false;  // Both are needed because could be flat
-        double threshold = loosenThreshold ? 6 : 1;
+        double threshold = loosenThreshold ? 6 : 30;
         int searchWidth = getSearchWidth(coords);
         if (debug)
             Log.d(TAG, "findMaximasMinimas: Using a noise threshold of " + threshold + " and searching a width of " + searchWidth);

@@ -19,7 +19,7 @@ import static android.content.ContentValues.TAG;
 
 public class APIFunctions {
 
-    private static int widthOfSearch = 135;
+    private static int widthOfSearch = 180;
     static int noOfPaths = widthOfSearch / 4;
     private static int noOfPathsPerGroup = 5;   // (This + duplicates) * samplesPerPath needs to be <= 512. More middle paths causes more distortion so only 3 mid is ok
     static int samplesPerPath = widthOfSearch / 6;

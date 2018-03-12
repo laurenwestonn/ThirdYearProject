@@ -118,10 +118,10 @@ public class PhotoActivity extends Activity {
             if (p != null) {
                 if (max) {
                     bmp = ImageManipulation.colourArea(bmp, (int) p.getX(), (int) p.getY(), maxColour, 40, 40);
-                    maxColour += 254 / photoMMs.size() / 2; // Varying reds
+                    maxColour += 254 / photoMMs.size() / 2; // Varying reds Todo: Make these varying!
                 } else {
                     bmp = ImageManipulation.colourArea(bmp, (int) p.getX(), (int) p.getY(), minColour, 40, 40);
-                    minColour += 254 / photoMMs.size() / 2; // Varying blues
+                    minColour += (254 / photoMMs.size() / 2) << 16; // Varying blues
                 }
             }
             max = !max;

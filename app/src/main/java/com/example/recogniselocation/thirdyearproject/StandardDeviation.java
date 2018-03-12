@@ -64,19 +64,19 @@ public class StandardDeviation {
         this.bmp = bmp;
     }
 
-    public double getMean() {
+    double getMean() {
         return mean;
     }
 
-    public double getSd() {
+    double getSd() {
         return sd;
     }
 
-    public int getMinRange() {
+    int getMinRange() {
         return minRange;
     }
 
-    public int getMaxRange() {
+    int getMaxRange() {
         return maxRange;
     }
 
