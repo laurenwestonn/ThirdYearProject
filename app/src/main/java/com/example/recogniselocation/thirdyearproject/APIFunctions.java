@@ -1,10 +1,8 @@
 package com.example.recogniselocation.thirdyearproject;
 
 import android.app.Activity;
-import android.location.Location;
 import android.util.Log;
 
-import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
@@ -168,26 +166,20 @@ public class APIFunctions {
     }
 
     // Find highest visible point of this path
-    public static Result getHighestVisiblePoint(List<Result> path, double yourElevation)
+    static Result getHighestVisiblePoint(List<Result> path, double yourElevation)
     {
         double currentHiAng = Integer.MIN_VALUE;
         int distanceUnit = 1;
         double hiLat, hiLng, hiEl, hiDis;
         hiLat = hiLng = hiEl = hiDis = 0;
-        double adjust = 0.4;
 
         for (Result r : path) {
             double thisOnesDistance = (searchLength * LONLAT_TO_METRES)
                     * distanceUnit++ / samplesPerPath;
             double angleOfThisElevation = Math.atan(
-                    (r.getElevation() - yourElevation) / thisOnesDistance);/* * adjust;
-            if (adjust != 1)
-                adjust += 0.2; Todo: THIS*/
+                    (r.getElevation() - yourElevation) / thisOnesDistance);
 
             if (angleOfThisElevation > currentHiAng) {
-                /*Log.d(TAG, "getHighestVisiblePoint: Ooh ("+ r.getLocation() +") at distance "
-                        + thisOnesDistance + "\t at elevation " + r.getElevation() + " at angle " + angleOfThisElevation
-                        + "\t is bigger than our current max " + currentHiAng);*/
                 hiLat = r.getLocation().getLat();
                 hiLng = r.getLocation().getLng();
                 hiEl = r.getElevation() - yourElevation;
@@ -229,7 +221,7 @@ public class APIFunctions {
     }
 
     // Allows you to draw onto the graph
-    public static double findDistanceBetweenPlots(Result comparisonPoint)
+    private static double findDistanceBetweenPlots(Result comparisonPoint)
     {
         double step = widthOfSearch / (noOfPaths - 1);
         double distanceToFirstPeakInMetres = comparisonPoint.getDistance();
