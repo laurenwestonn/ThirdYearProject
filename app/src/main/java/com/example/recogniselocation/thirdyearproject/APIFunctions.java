@@ -174,13 +174,15 @@ public class APIFunctions {
         int distanceUnit = 1;
         double hiLat, hiLng, hiEl, hiDis;
         hiLat = hiLng = hiEl = hiDis = 0;
+        double adjust = 0.4;
 
         for (Result r : path) {
             double thisOnesDistance = (searchLength * LONLAT_TO_METRES)
                     * distanceUnit++ / samplesPerPath;
             double angleOfThisElevation = Math.atan(
-                    (r.getElevation() - yourElevation) / thisOnesDistance); // Distance of the first one away
-            // from you, i.e. step
+                    (r.getElevation() - yourElevation) / thisOnesDistance);/* * adjust;
+            if (adjust != 1)
+                adjust += 0.2; Todo: THIS*/
 
             if (angleOfThisElevation > currentHiAng) {
                 /*Log.d(TAG, "getHighestVisiblePoint: Ooh ("+ r.getLocation() +") at distance "

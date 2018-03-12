@@ -18,25 +18,29 @@ class HorizonMatching {
     // Returns the horizon you manage to match up from the photo as a series so can plot on graph
     static Horizon matchUpHorizons(List<Point> photoCoords, List<Point> elevationCoords) {
         // Find all minimas and maximas of both horizons
-        MaximasMinimas photoMMsObj = findMaximasMinimas(photoCoords, true);
-        List<Point> photoMMs = photoMMsObj.getMaximasMinimas();
-        if (debug) {
-            Log.d(TAG, "matchUpHorizons: Just found photo max mins: " + photoMMs);
-        }
-        MaximasMinimas elevMMsObj = findMaximasMinimas(elevationCoords, false);
-        List<Point> elevationMMs = elevMMsObj.getMaximasMinimas();
-        if (debug) {
-            Log.d(TAG, "matchUpHorizons: Just found elevation max mins: " + elevationMMs);
+        MaximasMinimas photoMMsObj = findMaximasMinimas(photoCoords, 6, 1);
+        List<Point> photoMMs = null;
+        if (photoMMsObj != null) {
+            photoMMs = photoMMsObj.getMaximasMinimas();
+            if (debug) {
+                Log.d(TAG, "matchUpHorizons: Just found photo max mins: " + photoMMs);
+            }
         }
 
-        if (photoMMs == null || elevationMMs == null                        // None found
-                ||photoMMs.size() < 2 || elevationMMs.size() < 2            // Just a maxima found
-                || photoMMs.get(0) == null && photoMMs.size() <= 2          // Just a minima found
-                || elevationMMs.get(0) == null && elevationMMs.size() == 2) {// Just a minima found
+        MaximasMinimas elevMMsObj = findMaximasMinimas(elevationCoords, 30, 1);
+        List<Point> elevationMMs = null;
+        List<Integer> elevIndexes = null;
+        if (elevMMsObj != null) {
+            elevationMMs = elevMMsObj.getMaximasMinimas();
+            elevIndexes = elevMMsObj.getIndexes();
+            if (debug) {
+                Log.d(TAG, "matchUpHorizons: Just found elevation max mins: " + elevationMMs);
+            }
+        }
 
-            Log.e(TAG, "matchUpHorizons: Didn't find enough maximas and minimas; "
-                    + "Elevation ones: " + elevationMMs + "\tPhoto ones: " + photoMMs);
-            return new Horizon(photoMMs, elevMMsObj.getIndexes(), null,
+        if (photoMMsObj == null || elevMMsObj == null){
+            Log.e(TAG, "matchUpHorizons: Didn't find enough maximas and minimas to match up");
+            return new Horizon(photoMMs, elevIndexes, null,
                     null);
         } else {
             // Find best minima maxima pair for the photo - i.e. the biggest difference in height
@@ -316,15 +320,16 @@ class HorizonMatching {
     // Returned in the form where maximas are are even indexes, minima at odd indexes
     // Coords are in the graph coordinate system, where up right is positive
     // MaximasMinimas indexes return will start with a -1 if coords start with null (minima)
-    static MaximasMinimas findMaximasMinimas(List<Point> coords, boolean loosenThreshold)
+    // Returns null if didn't find enough - enough is at least two non null points
+    static MaximasMinimas findMaximasMinimas(List<Point> coords, double initialThreshold, double modifier)
     {
+        MaximasMinimas mms = new MaximasMinimas(new ArrayList<Point>(), new ArrayList<Integer>());
         int arrayIndex = 0;
         double nextGradient = Integer.MAX_VALUE;
-        MaximasMinimas mms = new MaximasMinimas(new ArrayList<Point>(), new ArrayList<Integer>());
         boolean wereGoingUp = true;    //  Whether the hill is heading up or down
         boolean wereGoingDown = false;  // Both are needed because could be flat
-        double threshold = loosenThreshold ? 6 : 30;
         int searchWidth = getSearchWidth(coords);
+        double threshold = initialThreshold * modifier;
         if (debug)
             Log.d(TAG, "findMaximasMinimas: Using a noise threshold of " + threshold + " and searching a width of " + searchWidth);
 
@@ -408,6 +413,24 @@ class HorizonMatching {
             wereGoingUp = false;
             wereGoingDown = false;
         }
+
+        // If we didn't get enough, try a few more times with a bigger threshold
+        if ((threshold > initialThreshold / 3)  // Avoids recursion
+                && (mms.getMaximasMinimas() == null // None found
+                || mms.getMaximasMinimas().size() <= 1   // Only one maxima found
+                || mms.getMaximasMinimas().get(0) == null && mms.getMaximasMinimas().size() == 2)) { // Only one minima found
+            if (debug)
+                Log.d(TAG, "findMaximasMinimas: Didn't find enough maximas or minimas, "
+                    + "try again with threshold " + (initialThreshold * (modifier * 0.75)));
+            return findMaximasMinimas(coords, initialThreshold, modifier * 0.75);
+        }
+
+        if (threshold <= initialThreshold / 3) {
+            Log.e(TAG, "findMaximasMinimas: Didn't find enough maximas or minimas, "
+                    + "even at threshold " + threshold + ". Path: " + coords);
+            return null;
+        }
+
         return mms;
     }
 
