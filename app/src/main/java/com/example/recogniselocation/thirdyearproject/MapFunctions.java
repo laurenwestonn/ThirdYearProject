@@ -10,6 +10,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.util.List;
@@ -22,18 +23,19 @@ public class MapFunctions extends Activity {
 
 
     // Draw a line around the points, add a marker to where you are
-    public static void plotPoints(GoogleMap map, List<Result> highPoints, LatLng p)
+    public static void plotPoints(GoogleMap map, List<Result> highPoints, LatLng yourLoc)
     {
         // Centre the camera around the middle of the points and your location
         LatLng midHorizon = highPoints.get(noOfPaths / 2).getLocation();
-        double avLat = (p.getLat() + midHorizon.getLat()) / 2;
-        double avLng = (p.getLng() + midHorizon.getLng()) / 2;
+        double avLat = (yourLoc.getLat() + midHorizon.getLat()) / 2;
+        double avLng = (yourLoc.getLng() + midHorizon.getLng()) / 2;
         goToLocation(map, avLat, avLng);
 
-        addMarkerAt(map, p, "You are here!", BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+        addMarkerAt(map, yourLoc, "You are here!",
+                BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET));
 
         // Draw a line to show the visible peaks
-        drawVisiblePeaksPolyline(highPoints);
+        drawVisiblePeaksPolygon(highPoints, yourLoc);
     }
 
     public static void goToLocation(GoogleMap map, double lat, double lng) {
@@ -44,6 +46,7 @@ public class MapFunctions extends Activity {
         Log.d("MapFunctions", "Moved to location " + lat + ", " + lng);
     }
 
+    // Todo: Only show the markers that are corresponding to the photo
     // Add a list of LatLng markers to the map
     public static void addMarkersAt(GoogleMap map, List<LatLng> locations)
     {
@@ -51,9 +54,9 @@ public class MapFunctions extends Activity {
             boolean even = locations.get(0) != null;
             for (LatLng l : locations) {
                 if (l != null) {
-                    BitmapDescriptor icon = even ? BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ROSE) :
-                            BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE);
-                    addMarkerAt(map, l, (even ? "Maxima" : "Minima"), icon);
+                    BitmapDescriptor icon = even ? BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED) :
+                            BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE);
+                    addMarkerAt(map, l, (even ? "Peak" : "Trough"), icon);
                     even = !even;
                 }
             }
@@ -69,24 +72,24 @@ public class MapFunctions extends Activity {
                 .icon(icon));
     }
 
-    // Add marker to map at the specified location with no message
-    public static void addMarkerAt(GoogleMap map, LatLng p, BitmapDescriptor icon)
+    public static void drawVisiblePeaksPolygon(List<Result> highPoints, LatLng yourLoc)
     {
-        addMarkerAt(map, p, "", icon);
-    }
-
-    public static void drawVisiblePeaksPolyline(List<Result> highPoints)
-    {
-        PolylineOptions polylineOptions = new PolylineOptions();
-        polylineOptions.color(Color.YELLOW);
+        // Initialise polygon at your position
+        PolygonOptions polygonOptions = new PolygonOptions();
+        polygonOptions.fillColor(Color.argb(50, 250, 150, 50));
+        polygonOptions.strokeColor(Color.argb(200, 250, 150, 50));
+        polygonOptions.strokeWidth(3);
+        polygonOptions.add(new com.google.android.gms.maps.model.LatLng(
+                yourLoc.getLat(),
+                yourLoc.getLng()));
 
         for (Result highPoint : highPoints) {
-            // Show the path of the peaks
-            polylineOptions.add(new com.google.android.gms.maps.model.LatLng(
+            // Add a point for each of the peaks
+            polygonOptions.add(new com.google.android.gms.maps.model.LatLng(
                     highPoint.getLocation().getLat(),
                     highPoint.getLocation().getLng()));
         }
-        MapActivity.googleMap.addPolyline(polylineOptions);
+        MapActivity.googleMap.addPolygon(polygonOptions);
     }
 
     private static double diffFromFirst(double comparisonDistance, double thisPeaksAngle, double comparisonElevation)
