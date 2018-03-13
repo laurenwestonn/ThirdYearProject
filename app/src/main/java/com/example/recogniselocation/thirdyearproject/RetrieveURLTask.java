@@ -89,7 +89,6 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
             Log.d(TAG, "onPostExecute: Going to match up horizons");
             photoCoords = invertY(photoCoords); // To match the graph's coordinate system: Up Right +ve
 
-            // Todo: Check flippedness of graph results against other photos - does the elevation look right?
             Horizon horizon = HorizonMatching.matchUpHorizons(photoCoords, elevationsCoords);
             /////// MATCH UP HORIZONS //////
 

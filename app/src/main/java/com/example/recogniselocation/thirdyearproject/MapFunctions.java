@@ -77,7 +77,7 @@ public class MapFunctions extends Activity {
         // Initialise polygon at your position
         PolygonOptions polygonOptions = new PolygonOptions();
         polygonOptions.fillColor(Color.argb(50, 250, 150, 50));
-        polygonOptions.strokeColor(Color.argb(200, 250, 150, 50));
+        polygonOptions.strokeColor(Color.argb(255, 250, 150, 50));
         polygonOptions.strokeWidth(3);
         polygonOptions.add(new com.google.android.gms.maps.model.LatLng(
                 yourLoc.getLat(),

@@ -10,12 +10,14 @@ class Matching {
     private List<Point> photoCoords;
     private LineGraphSeries<DataPoint> photoSeries;
     private double difference;
+    private int elevStartIndex;
 
-    Matching(List<Point> photoCoords, LineGraphSeries<DataPoint> photoSeries, double diff)
+    Matching(List<Point> photoCoords, LineGraphSeries<DataPoint> photoSeries, double diff, int elevStartIndex)
     {
         this.photoCoords = photoCoords;
         this.photoSeries = photoSeries;
         this.difference = diff;
+        this.elevStartIndex = elevStartIndex;
     }
 
     double getDifference() {
@@ -27,6 +29,8 @@ class Matching {
     }
 
     List<Point> getPhotoCoords() { return photoCoords; }
+
+    int getElevStartIndex() { return elevStartIndex; }
 
     @Override
     public String toString() {
