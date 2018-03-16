@@ -48,7 +48,7 @@ public class PhotoActivity extends Activity {
             try {
                 origBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), Start.uri);
                 // Make the image smaller so the app can deal with it
-                origBitmap = Bitmap.createScaledBitmap(origBitmap, origBitmap.getWidth() / 8, origBitmap.getHeight() / 8, false);
+                origBitmap = Bitmap.createScaledBitmap(origBitmap, origBitmap.getWidth() / 2, origBitmap.getHeight() / 2, false);
             } catch (Exception e) {
                 Log.e(TAG, "onCreate: Couldn't get bitmap: " + e.getMessage());
             }
@@ -112,15 +112,16 @@ public class PhotoActivity extends Activity {
     {
         int minColour = Color.BLUE;
         int maxColour = Color.RED;
+        int diam = bmp.getHeight() / 17 * 2 + 1;
         boolean max = true;
 
         for (Point p : photoMMs) {
             if (p != null) {
                 if (max) {
-                    bmp = ImageManipulation.colourArea(bmp, (int) p.getX(), (int) p.getY(), maxColour, 40, 40);
+                    bmp = ImageManipulation.colourArea(bmp, (int) p.getX(), (int) p.getY(), maxColour, diam, diam);
                     maxColour += 254 / photoMMs.size() / 2; // Varying reds Todo: Make these varying!
                 } else {
-                    bmp = ImageManipulation.colourArea(bmp, (int) p.getX(), (int) p.getY(), minColour, 40, 40);
+                    bmp = ImageManipulation.colourArea(bmp, (int) p.getX(), (int) p.getY(), minColour, diam, diam);
                     minColour += (254 / photoMMs.size() / 2) << 16; // Varying blues
                 }
             }

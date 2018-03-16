@@ -51,11 +51,7 @@ public class Start extends AppCompatActivity {
         locationListener = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
-                //Todo: Get your direction, I've just hardcoded 60 degrees :/
-                // *Todo: Check, this isn't going to get called every 5 ms is it? If so, only carry on if has changed from last time (global variable required)
-                yourLocation = new LatLng(location);
-                LocationDirection locDir = new LocationDirection(null, new LatLng(location),60);
-                APIFunctions.getElevations(locDir, Start.this);
+                Log.d(TAG, "onLocationChanged: Location changed");
             }
 
             @Override
@@ -108,7 +104,12 @@ public class Start extends AppCompatActivity {
                     android.Manifest.permission.ACCESS_FINE_LOCATION) == ALLOWED
                     && ActivityCompat.checkSelfPermission(Start.this,
                     android.Manifest.permission.ACCESS_COARSE_LOCATION) == ALLOWED) {
-                locationManager.requestLocationUpdates("gps", 0, 5, locationListener);
+                // Get your location
+                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1, 5, locationListener);
+                Location location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                yourLocation = new LatLng(location);
+                locDir = new LocationDirection(null, new LatLng(location),60); //Todo: Get your direction, I've just hardcoded 60 degrees :/
+
             } else
                 ActivityCompat.requestPermissions(Start.this, new String[]{
                         android.Manifest.permission.ACCESS_FINE_LOCATION,
@@ -116,31 +117,13 @@ public class Start extends AppCompatActivity {
                         android.Manifest.permission.INTERNET
                 }, 10);
 
-        } else { // You're doing a demo, and faking your location. Go ahead
+        } else // You're doing a demo, and faking your location. Go ahead
             Log.d(TAG, "onCreate: Going to recognise from " + locDir);
-            APIFunctions.getElevations(locDir, this);
-        }
+
+        APIFunctions.getElevations(locDir, this);
     }
 
     // The below got from https://developer.android.com/training/camera/photobasics.html#TaskCaptureIntent
-    String mCurrentPhotoPath;
-
-    private File createImageFile() throws IOException {
-        // Create an image file name
-        String timeStamp = DateFormat.getDateTimeInstance().format(new Date());
-        String imageFileName = "JPEG_" + timeStamp + "_";
-        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        File image = File.createTempFile(
-                imageFileName,  /* prefix */
-                ".jpg",         /* suffix */
-                storageDir      /* directory */
-        );
-
-        // Save a file: path for use with ACTION_VIEW intents
-        mCurrentPhotoPath = image.getAbsolutePath();
-        return image;
-    }
-
 
     // Start the intent to take a photo
     private Uri dispatchTakePictureIntent() {
@@ -174,6 +157,24 @@ public class Start extends AppCompatActivity {
             }
         }
         return null;
+    }
+
+    String mCurrentPhotoPath;
+
+    private File createImageFile() throws IOException {
+        // Create an image file name
+        String timeStamp = DateFormat.getDateTimeInstance().format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
+
+        // Save a file: path for use with ACTION_VIEW intents
+        mCurrentPhotoPath = image.getAbsolutePath();
+        return image;
     }
 
     @Override
