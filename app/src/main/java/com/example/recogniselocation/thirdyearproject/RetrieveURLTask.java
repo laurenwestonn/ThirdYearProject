@@ -8,6 +8,7 @@ import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -73,10 +74,14 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
             int photoID = Start.drawableID;
             bmp = BitmapFactory.decodeResource(activity.getResources(), photoID);
         }
-        Edge edge = ImageManipulation.detectEdge(
-                bmp, sdDetail, useThinning, showEdgeOnly);
-        List<Point> photoCoords = edge.getCoords();
-        List<Point> coarsePhotoCoords = edge.getCoarseCoords();
+
+        List<Point> photoCoords, coarsePhotoCoords;
+        photoCoords = coarsePhotoCoords = null;
+        if (bmp != null) {
+            Edge edge = ImageManipulation.detectEdge(bmp, sdDetail, useThinning, showEdgeOnly);
+            photoCoords = edge.getCoords();
+            coarsePhotoCoords = edge.getCoarseCoords();
+        }
         /////// PHOTO EDGE DETECTION //////
 
         // Will be going to the photo activity next
@@ -109,6 +114,9 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
             // For the graph activity
             if (photoSeriesCoords != null && photoSeriesCoords.size() > 0)
                 intent.putParcelableArrayListExtra("photoSeriesCoords", (ArrayList<Point>) photoSeriesCoords);
+            else
+                Toast.makeText(activity, "Didn't find enough peaks and troughs to match horizons",
+                        Toast.LENGTH_LONG).show();
 
 
         } else

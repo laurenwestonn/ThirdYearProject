@@ -1,6 +1,5 @@
 package com.example.recogniselocation.thirdyearproject;
 
-import android.*;
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
@@ -83,7 +82,7 @@ public class Start extends AppCompatActivity {
                 android.Manifest.permission.ACCESS_COARSE_LOCATION) == ALLOWED
                 && ActivityCompat.checkSelfPermission(Start.this,
                 Manifest.permission.INTERNET) == ALLOWED)
-            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1, 5, locationListener);
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 1, locationListener);
         else    // If not allowed, ask if you can get the location
             ActivityCompat.requestPermissions(Start.this, new String[]{
                     android.Manifest.permission.ACCESS_FINE_LOCATION,
@@ -125,7 +124,7 @@ public class Start extends AppCompatActivity {
                     && ActivityCompat.checkSelfPermission(Start.this,
                     Manifest.permission.INTERNET) == ALLOWED) {
                 // Get your location
-                Location location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
                 yourLocation = new LatLng(location);
                 locDir = new LocationDirection(null, new LatLng(location),60); //Todo: Get your direction, I've just hardcoded 60 degrees :/
 
