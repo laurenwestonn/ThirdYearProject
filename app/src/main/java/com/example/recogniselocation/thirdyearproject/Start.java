@@ -34,8 +34,6 @@ public class Start extends AppCompatActivity {
     private static final int REQUEST_TAKE_PHOTO = 0;
     int ALLOWED = PackageManager.PERMISSION_GRANTED;
 
-
-
     // Todo: Try pass these to the Async method if possible
     static LatLng yourLocation;
     static int drawableID;
@@ -82,7 +80,7 @@ public class Start extends AppCompatActivity {
                 android.Manifest.permission.ACCESS_COARSE_LOCATION) == ALLOWED
                 && ActivityCompat.checkSelfPermission(Start.this,
                 Manifest.permission.INTERNET) == ALLOWED)
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 1, locationListener);
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1, 5, locationListener);
         else    // If not allowed, ask if you can get the location
             ActivityCompat.requestPermissions(Start.this, new String[]{
                     android.Manifest.permission.ACCESS_FINE_LOCATION,
