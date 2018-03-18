@@ -112,7 +112,7 @@ public class PhotoActivity extends Activity {
     {
         int minColour = Color.BLUE;
         int maxColour = Color.RED;
-        int diam = bmp.getHeight() / 17 * 2 + 1;
+        int diam = bmp.getHeight() / 34 + 1;
         boolean max = true;
 
         for (Point p : photoMMs) {

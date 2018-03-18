@@ -21,7 +21,7 @@ public class APIFunctions {
     static int noOfPaths = widthOfSearch / 4;
     private static int noOfPathsPerGroup = 5;   // (This + duplicates) * samplesPerPath needs to be <= 512. More middle paths causes more distortion so only 3 mid is ok
     static int samplesPerPath = widthOfSearch / 6;
-    static double searchLength = 0.05;  // radius of the search
+    private static double searchLength = 0.05;  // radius of the search
     private static final int LONLAT_TO_METRES = 111111; // roughly
 
     // This is called at the start, once you know your location and direction
@@ -29,7 +29,8 @@ public class APIFunctions {
     {
         Log.d("APIFunctions", "Building up URLs to request");
         List<String> urls = getURLsToRequest(locDir, widthOfSearch, noOfPaths, noOfPathsPerGroup,
-                samplesPerPath, searchLength, activity.getString(R.string.google_maps_key));
+                samplesPerPath, searchLength, activity.getString(R.string.google_maps_key),
+                activity.getString(R.string.url_start));
 
         // Requesting the elevations from the Google Maps API
         Log.d("APIFunctions", "Requesting URLs " + urls);
@@ -40,7 +41,8 @@ public class APIFunctions {
     // Returns a list of the URLs to request
     public static List<String> getURLsToRequest(LocationDirection locDir, int widthOfSearch,
                                                 int noOfPaths, int noOfPathsPerGroup,
-                                                int samplesPerPath, double searchLength, String key)
+                                                int samplesPerPath, double searchLength, String key,
+                                                String urlStart)
     {
         double step = widthOfSearch / (noOfPaths - 1);
         double start = locDir.getDirection() + step/2 + step*(noOfPaths/2-1);
@@ -60,9 +62,7 @@ public class APIFunctions {
             // First path of a group
             if (i % noOfPathsPerGroup == 0) {
                 // Begin the html and start your path at this end coordinate then go back to your location
-                url.append("https://maps.googleapis.com/maps/api/elevation/json?path=") //Todo: use url_start from strings.xml
-                        .append(endCoordinate).append("|")
-                        .append(loc);
+                url.append(urlStart).append(endCoordinate).append("|").append(loc);
             }
             // Path is in the middle of this group and isn't the last path we have, ever
             else if (i % noOfPathsPerGroup < noOfPathsPerGroup-1 && noOfPaths - i != 1)

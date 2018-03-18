@@ -36,9 +36,8 @@
             android:authorities="com.example.android.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
-            <meta-data
-                android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_paths"></meta-data>
+            <meta-data android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
         </provider>
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
@@ -61,16 +60,6 @@
 
                 <action android:name="com.example.recogniselocation.thirdyearproject.START" />
                 <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </activity>
-        <activity
-            android:name=".OriginalMapsActivity"
-            android:label="@string/title_activity_maps"
-            android:screenOrientation="landscape">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <activity

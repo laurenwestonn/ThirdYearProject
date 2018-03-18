@@ -17,7 +17,6 @@ class ImageManipulation {
     private static boolean gShowEdgeOnly;
 
     private static List<Point> fineEdgeCoords;
-    static int fineWidth;
     private static int fineWidthRadius;
     private static int fineHeightRadius;
 
@@ -57,6 +56,7 @@ class ImageManipulation {
                 fineEdgeCoords = thinColumns(fineEdgeCoords);
                 Log.d(TAG, "Result of 1 per column: " + fineEdgeCoords.toString());
             }
+            Log.d(TAG, "detectEdge: Found the photo edge coords " + fineEdgeCoords);
 
             ///////// SHOW EDGES ONLY? /////////
             if (showEdgeOnly) {
@@ -65,13 +65,12 @@ class ImageManipulation {
                     resultFineBMP = bmp.copy(bmp.getConfig(), true);
                 // Draw the edge on top of the photo from the edge coordinates we saved in fineEdgeCoords
                 colourFineBitmap(resultFineBMP, fineEdgeCoords, fineWidthRadius, fineHeightRadius);
-                }
+            }
 
         } else {
             Log.e(TAG, "detectEdge: Couldn't find edges with the coarse mask, so just return the original photo");
             resultFineBMP = coarse.getBitmap();
         }
-        Log.d(TAG, "detectEdge: Found the photo edge coords " + fineEdgeCoords);
         return new Edge(fineEdgeCoords, coarseEdgeCoords, resultFineBMP);
     }
 
@@ -132,14 +131,16 @@ class ImageManipulation {
 
         // Set the size of the mask. Have it be at least 5x5.
         fineWidthRadius = max(2,resultBMP.getWidth() / 250); // 1 would make a mask of width 3, 2 would give width 5
-        fineWidth = fineWidthRadius * 2 + 1;    // Width of the fine mask
         fineHeightRadius = max(2, resultBMP.getHeight() / 110);
+        int fineWidth = fineWidthRadius * 2 + 1;
         int fineHeight = fineHeightRadius * 2 + 1;
-        boolean relevantEdge;
-        List<Point> edgeCoords = new ArrayList<>();
+
         // Thresholds
         int pointThreshold = resultBMP.getHeight() / 30; // The threshold to determine an edge for a point
         int neighbThreshold = (int) (pointThreshold * 0.9); // A point that is neighbouring an edge's threshold
+
+        boolean relevantEdge;
+        List<Point> edgeCoords = new ArrayList<>();
         int loop = 0;
 
         Log.d(TAG, "fineMask: Fine Masking starting");
@@ -196,8 +197,6 @@ class ImageManipulation {
         // Decide upon the size of the mask, based on the size of the image
         // The number of pixels to the left/right/above/below of the centre pixel
         int coarseRadius = bmp.getHeight() / 17;
-        // The number of pixels for the width/height, the diameter
-        int coarseDiam = coarseRadius * 2 + 1;
 
         // The coordinates detected as edges
         List<Point> edgeCoords = new ArrayList<>();
@@ -390,7 +389,8 @@ class ImageManipulation {
             bmp = bmp.copy(bmp.getConfig(), true);
         }
 
-        if (i < 0 || j < 0 || i + width >= bmp.getWidth() || j + height >= bmp.getHeight()) {
+        if (i < 0 || j < 0 || i + width >= bmp.getWidth() || j + height >= bmp.getHeight()
+                || width < 0 || height < 0) {
             Log.e(TAG, "colourArea: Can't colour in " + width + " x " + height
                     + " around the area " + x + ", " + y
                     + " when the bmp is " + bmp.getWidth() + " x " + bmp.getHeight());
@@ -459,7 +459,7 @@ class ImageManipulation {
     {
         // Find how strong of an edge this is
         double edgeness;
-        if (width == bmp.getHeight() / 17 * 2 + 1) // Coarse masking
+        if (width == bmp.getHeight() / 34 + 1) // Coarse masking
             edgeness = getCoarseEdgeness(bmp, x, y, (width-1)/2);
         else // Fine masking
             edgeness = getFineEdgeness(bmp, x, y, (width - 1) / 2, (height - 1) / 2);

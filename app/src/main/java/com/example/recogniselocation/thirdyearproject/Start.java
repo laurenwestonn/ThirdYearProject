@@ -1,5 +1,7 @@
 package com.example.recogniselocation.thirdyearproject;
 
+import android.*;
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -28,10 +30,11 @@ public class Start extends AppCompatActivity {
 
     private static final String TAG = "Start";
     private LocationManager locationManager;
-    private LocationListener locationListener;
     static Uri uri = null;
     private static final int REQUEST_CAMERA = 123;
     private static final int REQUEST_TAKE_PHOTO = 0;
+    int ALLOWED = PackageManager.PERMISSION_GRANTED;
+
 
 
     // Todo: Try pass these to the Async method if possible
@@ -48,10 +51,11 @@ public class Start extends AppCompatActivity {
 
         // Set up the location manager and listener, detects what is ahead EVERY TIME LOCATION CHANGES?*
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        locationListener = new LocationListener() {
+        LocationListener locationListener = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
-                Log.d(TAG, "onLocationChanged: Location changed");
+                Log.d(TAG, "onLocationChanged: Location changed to " + location);
+                yourLocation = new LatLng(location.getLatitude(), location.getLongitude());
             }
 
             @Override
@@ -71,6 +75,22 @@ public class Start extends AppCompatActivity {
                 startActivity(intent);
             }
         };
+
+        // Get your location
+        if (ActivityCompat.checkSelfPermission(Start.this,
+                android.Manifest.permission.ACCESS_FINE_LOCATION) == ALLOWED
+                && ActivityCompat.checkSelfPermission(Start.this,
+                android.Manifest.permission.ACCESS_COARSE_LOCATION) == ALLOWED
+                && ActivityCompat.checkSelfPermission(Start.this,
+                Manifest.permission.INTERNET) == ALLOWED)
+            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1, 5, locationListener);
+        else    // If not allowed, ask if you can get the location
+            ActivityCompat.requestPermissions(Start.this, new String[]{
+                    android.Manifest.permission.ACCESS_FINE_LOCATION,
+                    android.Manifest.permission.ACCESS_COARSE_LOCATION,
+                    android.Manifest.permission.INTERNET
+            }, 10);
+
     }   // On create
 
     // Deal with all button clicks
@@ -98,14 +118,13 @@ public class Start extends AppCompatActivity {
         if (uri != null) {
             Log.d(TAG, "onCreate: Going to recognise from your location." );
 
-            int ALLOWED = PackageManager.PERMISSION_GRANTED;
-
             if (ActivityCompat.checkSelfPermission(Start.this,
                     android.Manifest.permission.ACCESS_FINE_LOCATION) == ALLOWED
                     && ActivityCompat.checkSelfPermission(Start.this,
-                    android.Manifest.permission.ACCESS_COARSE_LOCATION) == ALLOWED) {
+                    android.Manifest.permission.ACCESS_COARSE_LOCATION) == ALLOWED
+                    && ActivityCompat.checkSelfPermission(Start.this,
+                    Manifest.permission.INTERNET) == ALLOWED) {
                 // Get your location
-                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1, 5, locationListener);
                 Location location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
                 yourLocation = new LatLng(location);
                 locDir = new LocationDirection(null, new LatLng(location),60); //Todo: Get your direction, I've just hardcoded 60 degrees :/
