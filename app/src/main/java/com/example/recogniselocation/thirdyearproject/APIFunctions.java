@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static android.content.ContentValues.TAG;
+import static java.lang.Double.isNaN;
 
 public class APIFunctions {
 
@@ -143,15 +144,23 @@ public class APIFunctions {
                     con.setRequestMethod("GET");
                     con.connect();
 
-                    //Todo: Check that I did get all results!
                     // Build up the response in a string
                     BufferedReader in = new BufferedReader(
                             new InputStreamReader(con.getInputStream()));
 
                     String inputLine;
-                    while ((inputLine = in.readLine()) != null)
+                    int count = -5; // 5 start up and close lines in the response
+                    while ((inputLine = in.readLine()) != null) {
                         response.append(inputLine);
+                        count++;
+                    }
                     urlResponses.add(response.toString());
+
+                    //Todo: Resend if you don't get enough samples
+                    int noOfSamples = findNoOfSamples(url);
+                    if ((count /= 8) != noOfSamples)    // Responses are 8 lines long
+                        Log.e(TAG, "requestURL: Wanted to get " + noOfSamples
+                                + " samples but only got " + count);
 
                     in.close();
                 } else Log.e("Hi", "Connection failed: " + con.getResponseMessage());
@@ -163,6 +172,19 @@ public class APIFunctions {
             }
         }
         return urlResponses;
+    }
+
+    // Find the number of samples requested in a given url
+    private static int findNoOfSamples(String url) {
+        StringBuilder strNoOfSamples = new StringBuilder();
+        int noOfSamples;
+        int indexOfSample = url.indexOf("&samples=") + 9;
+        char newC;
+        while (indexOfSample < url.length() && Character.isDigit(newC = url.charAt(indexOfSample++)))
+            strNoOfSamples.append(newC);
+        noOfSamples = Integer.parseInt(strNoOfSamples.toString());
+
+        return noOfSamples;
     }
 
     // Find highest visible point of this path
