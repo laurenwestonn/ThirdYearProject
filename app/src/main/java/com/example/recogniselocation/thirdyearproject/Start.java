@@ -34,7 +34,7 @@ public class Start extends AppCompatActivity {
     private static final int REQUEST_TAKE_PHOTO = 0;
     int ALLOWED = PackageManager.PERMISSION_GRANTED;
 
-    // Todo: Try pass these to the Async method if possible
+    // Can't send more than the URLs to async, so access these publicly in RetrieveURLTask later
     static LatLng yourLocation;
     static int drawableID;
 
@@ -122,9 +122,8 @@ public class Start extends AppCompatActivity {
                     && ActivityCompat.checkSelfPermission(Start.this,
                     Manifest.permission.INTERNET) == ALLOWED) {
                 // Get your location
-                Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-                yourLocation = new LatLng(location);
-                locDir = new LocationDirection(null, new LatLng(location),60); //Todo: Get your direction, I've just hardcoded 60 degrees :/
+                yourLocation = new LatLng(locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER));
+                locDir = new LocationDirection(null, yourLocation,60); //Todo: Get your direction, I've just hardcoded 60 degrees :/
 
             } else
                 ActivityCompat.requestPermissions(Start.this, new String[]{

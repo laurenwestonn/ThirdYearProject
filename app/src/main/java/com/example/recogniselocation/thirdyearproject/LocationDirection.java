@@ -5,7 +5,7 @@ public class LocationDirection {
 
     private String name;
     private LatLng loc;
-    private double dir; // in degrees
+    private double dir; // in degrees due east anti clockwise
 
     public LocationDirection(String name, LatLng loc, double dir)
     {

@@ -4,7 +4,7 @@ import android.graphics.Bitmap;
 
 import java.util.List;
 
-public class CoarseMasking {
+class CoarseMasking {
 
     // Todo: Reduce classes, don't I have others that are List<point> and bmp?
 

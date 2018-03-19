@@ -3,9 +3,6 @@ package com.example.recogniselocation.thirdyearproject;
 import android.app.Activity;
 import android.util.Log;
 
-import com.jjoe64.graphview.series.DataPoint;
-import com.jjoe64.graphview.series.LineGraphSeries;
-
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -14,7 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static android.content.ContentValues.TAG;
-import static java.lang.Double.isNaN;
 
 public class APIFunctions {
 
@@ -219,11 +215,10 @@ public class APIFunctions {
         }
     }
 
-    static GraphData findGraphData(List<Result> points)
+    static List<Point> findGraphData(List<Result> points)
     {
         List<Point> horizonCoords = new ArrayList<>();
 
-        LineGraphSeries<DataPoint> series = new LineGraphSeries<>();
         int count = -1;
         int x;
         double y;
@@ -234,12 +229,9 @@ public class APIFunctions {
             y = point.getDifference();
 
             horizonCoords.add(new Point(x,y));
-
-            //Log.d("Hi", "Plotting at " + x + ", " + y);
-            series.appendData(new DataPoint(x,y), true, points.size());
         }
 
-        return new GraphData(horizonCoords, series);
+        return horizonCoords;
     }
 
     // Allows you to draw onto the graph

@@ -119,10 +119,10 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
                 Log.d(TAG, "buttonClicked: Toggle the terrain");
                 if (googleMap.getMapType() == GoogleMap.MAP_TYPE_TERRAIN) {
                     googleMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
-                    ((Button) view).setText("Satellite");
+                    ((Button) view).setText(this.getString(R.string.satellite));
                 } else {
                     googleMap.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
-                    ((Button) view).setText("Terrain");
+                    ((Button) view).setText(this.getString(R.string.terrain));
                 }
                 break;
             }

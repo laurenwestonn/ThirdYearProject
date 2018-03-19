@@ -51,7 +51,7 @@ public class Result implements Parcelable {
                 + "\tAngle: " +         angle + "\tDifference: " + difference;
     }
 
-    protected Result(Parcel in) {
+    private Result(Parcel in) {
         location = (LatLng) in.readValue(LatLng.class.getClassLoader());
         elevation = in.readDouble();
         distance = in.readDouble();

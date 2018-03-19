@@ -3,6 +3,8 @@
     <words>
       <w>coords</w>
       <w>edgeness</w>
+      <w>maximas</w>
+      <w>minimas</w>
     </words>
   </dictionary>
 </component>

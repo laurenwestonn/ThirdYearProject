@@ -6,7 +6,7 @@ class MaximasMinimas {
     private List<Point> maximasMinimas;
     private List<Integer> indexes;
 
-    public MaximasMinimas(List<Point> maximasMinimas, List<Integer> indexes)
+    MaximasMinimas(List<Point> maximasMinimas, List<Integer> indexes)
     {
         this.maximasMinimas = maximasMinimas;
         this.indexes = indexes;

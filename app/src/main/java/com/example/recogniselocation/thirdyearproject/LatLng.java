@@ -21,9 +21,9 @@ public class LatLng implements Parcelable {
         this.lng = loc.getLongitude();
     }
 
-    public double getLat() { return lat; }
+    double getLat() { return lat; }
 
-    public double getLng() { return lng; }
+    double getLng() { return lng; }
 
     @Override
     public String toString() {

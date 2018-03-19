@@ -56,7 +56,6 @@ class ImageManipulation {
                 fineEdgeCoords = thinColumns(fineEdgeCoords);
                 Log.d(TAG, "Result of 1 per column: " + fineEdgeCoords.toString());
             }
-            Log.d(TAG, "detectEdge: Found the photo edge coords " + fineEdgeCoords);
 
             ///////// SHOW EDGES ONLY? /////////
             if (showEdgeOnly) {
@@ -65,7 +64,7 @@ class ImageManipulation {
                     resultFineBMP = bmp.copy(bmp.getConfig(), true);
                 // Draw the edge on top of the photo from the edge coordinates we saved in fineEdgeCoords
                 colourFineBitmap(resultFineBMP, fineEdgeCoords, fineWidthRadius, fineHeightRadius);
-            }
+                }
 
         } else {
             Log.e(TAG, "detectEdge: Couldn't find edges with the coarse mask, so just return the original photo");

@@ -6,9 +6,9 @@ import static android.content.ContentValues.TAG;
 
 // A place to hold all of the demos
 // Direction is due east anticlockwise
-public class Demos {
+class Demos {
 
-    public static LocationDirection getDemo(int id)
+    static LocationDirection getDemo(int id)
     {
         LocationDirection demo = null;
         switch (id) {

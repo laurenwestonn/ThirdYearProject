@@ -12,7 +12,8 @@ public class StandardDeviation {
     private int maxRange;
     private Bitmap bmp;
 
-    StandardDeviation(List<Point> coords, int heightFromCentre) {
+    StandardDeviation(List<Point> coords, int heightFromCentre)
+    {
         if (coords.size() > 0) {
             mean = calcYMean(coords);
             sd = calcSD(coords, mean);
@@ -22,22 +23,6 @@ public class StandardDeviation {
             if (minRange < 0)
                 minRange = 0;
         }
-    }
-
-    public static double calcSD(List<Point> coords)
-    {
-        int sum = 0;
-        double sd = 0;
-
-        for (Point p : coords)
-            sum += p.getY();
-
-        double mean = sum / coords.size();
-
-        for (Point p : coords)
-            sd += Math.pow(p.getY() - mean, 2);
-
-        return Math.sqrt(sd / coords.size());
     }
 
     private static double calcSD(List<Point> coords, double yMean)
@@ -50,7 +35,8 @@ public class StandardDeviation {
         return Math.sqrt(sd / coords.size());
     }
 
-    private static double calcYMean(List<Point> coords) {
+    private static double calcYMean(List<Point> coords)
+    {
         int sum = 0;
 
         for (Point p : coords)

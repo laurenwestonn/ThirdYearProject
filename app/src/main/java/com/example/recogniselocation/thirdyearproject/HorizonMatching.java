@@ -1,10 +1,6 @@
 package com.example.recogniselocation.thirdyearproject;
 
-import android.graphics.Color;
 import android.util.Log;
-
-import com.jjoe64.graphview.series.DataPoint;
-import com.jjoe64.graphview.series.LineGraphSeries;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,8 +36,7 @@ class HorizonMatching {
 
         if (photoMMsObj == null || elevMMsObj == null){
             Log.e(TAG, "matchUpHorizons: Didn't find enough maximas and minimas to match up");
-            return new Horizon(photoMMs, elevMMsIndexes, null,
-                    null);
+            return new Horizon(photoMMs, elevMMsIndexes,null);
         } else {
             // Find best minima maxima pair for the photo - i.e. the biggest difference in height
             // If the first in photo is a maxima, the first two in photoMM will hold max then min
@@ -106,8 +101,7 @@ class HorizonMatching {
             matchedElevIndexes.add(elevMMsIndexes.get(bestMatching.getElevStartIndex()));
             matchedElevIndexes.add(elevMMsIndexes.get(bestMatching.getElevStartIndex() + 1));
 
-            return new Horizon(photoMM, matchedElevIndexes, bestMatching.getPhotoCoords(),
-                    bestMatching.getPhotoSeries());
+            return new Horizon(photoMM, matchedElevIndexes, bestMatching.getPhotoCoords());
         }
     }
 
@@ -212,8 +206,7 @@ class HorizonMatching {
 
         int numMatched = 0;
         double diffSum = 0;
-        LineGraphSeries<DataPoint> series = new LineGraphSeries<>();
-        List<Point> transformedPhotoCoords = new ArrayList<>(); // Hold the series as points as is Parcelable
+        List<Point> transformedPhotoCoords = new ArrayList<>(); // Hold the series as Parcelable points
 
         if (debug) {
             Log.d(TAG, "howWellMatched: Matching photo max mins " + transformMM + " to elevation mms " + baseMM);
@@ -236,15 +229,13 @@ class HorizonMatching {
                     numMatched++;
                 }
 
-                // Build up a series to plot
-                series.appendData(new DataPoint(tX, tY), true, transformCoords.size());
-                series.setColor(Color.BLACK);
+                // Build up a series to plot, storing as parcelable points
                 if (!isNaN(tX) && !isNaN(tY))
                     transformedPhotoCoords.add(new Point(tX, tY));
             }
         if (debug)
             Log.d(TAG, " ");
-        return new Matching(transformedPhotoCoords, series, diffSum / numMatched, elevStartIndex);
+        return new Matching(transformedPhotoCoords, diffSum / numMatched, elevStartIndex);
     }
 
     // Return the coordinate that has this x value

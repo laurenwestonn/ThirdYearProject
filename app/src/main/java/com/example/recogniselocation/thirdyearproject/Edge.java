@@ -39,15 +39,9 @@ public class Edge implements Parcelable {
         return bmp;
     }
 
-    void setBitmap(Bitmap b)
-    {
-        bmp = b;
-    }
 
-
-
-    //parcel part
-    public Edge(Parcel in){
+    //  Parcel part
+    private Edge(Parcel in){
         Log.d(TAG, "Edge: In the edge constructor for parcels");
 
         if (in.readByte() == 0x01) {

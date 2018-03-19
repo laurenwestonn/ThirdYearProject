@@ -45,11 +45,9 @@ public class Point implements Parcelable {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null)
-            return false;
-        else
-            return (this.getX() == ((Point) obj).getX() &&
-                this.getY() == ((Point) obj).getY());
+        return !(obj == null || !(obj instanceof Point))
+                && (this.getX() == ((Point) obj).getX()
+                && this.getY() == ((Point) obj).getY());
 
     }
 

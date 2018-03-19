@@ -55,8 +55,8 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
         List<Result> highPoints = getHighPoints(strResponses, yourElevation);
         Log.d("onPostExecute", "Got high points " + highPoints);
         // Get the graph data
-        GraphData gd = APIFunctions.findGraphData(highPoints);
-        List<Point> elevationsCoords = gd.getCoords();
+        List<Point> graphPoints = APIFunctions.findGraphData(highPoints);
+        List<Point> elevationsCoords = graphPoints;
         ///////// CONSTRUCT HORIZON FROM ELEVATIONS /////////
 
 
@@ -71,8 +71,7 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
                 Log.e(TAG, "onPostExecute: Couldn't find bitmap: " + e.getMessage());
             }
         } else { // Faked demo, get photo from /drawable/
-            int photoID = Start.drawableID;
-            bmp = BitmapFactory.decodeResource(activity.getResources(), photoID);
+            bmp = BitmapFactory.decodeResource(activity.getResources(), Start.drawableID);
         }
 
         List<Point> photoCoords, coarsePhotoCoords;
@@ -95,6 +94,8 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
             photoCoords = invertY(photoCoords); // To match the graph's coordinate system: Up Right +ve
 
             Horizon horizon = HorizonMatching.matchUpHorizons(photoCoords, elevationsCoords);
+            if (horizon.getPhotoSeriesCoords() == null)
+                Toast.makeText(activity, "Didn't find enough maximas and minimas to match up", Toast.LENGTH_LONG).show();
             /////// MATCH UP HORIZONS //////
 
 
@@ -114,11 +115,6 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
             // For the graph activity
             if (photoSeriesCoords != null && photoSeriesCoords.size() > 0)
                 intent.putParcelableArrayListExtra("photoSeriesCoords", (ArrayList<Point>) photoSeriesCoords);
-            else
-                Toast.makeText(activity, "Didn't find enough peaks and troughs to match horizons",
-                        Toast.LENGTH_LONG).show();
-
-
         } else
             Log.e(TAG, "onPostExecute: Couldn't find edge coords of photo");
 

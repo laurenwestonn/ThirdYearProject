@@ -29,4 +29,8 @@
     <!-- Photo Activity -->
     <string name="image_button_description">Button with the horizon detected. Click to show result of different sized masks</string>
 
+    <!-- Map Activity -->
+    <string name="satellite">Satellite</string>
+    <string name="terrain">Terrain</string>
+
 </resources>
