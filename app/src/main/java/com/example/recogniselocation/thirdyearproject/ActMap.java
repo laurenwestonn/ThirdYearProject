@@ -15,6 +15,7 @@ import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,18 +67,24 @@ public class ActMap extends Activity implements OnMapReadyCallback {
         googleMap = givenGoogleMap;
         googleMap.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
 
-        // Show results on the map:
-        // Draw the line of the high points
-        LatLng yourLocation = getIntent().getParcelableExtra("yourLocation");
+        // Mark your location and any matched peak/trough pair
         List<Result> highPoints = getIntent().getParcelableArrayListExtra("highPoints");
-        FunctionsMap.plotPoints(googleMap, highPoints, yourLocation);
-        // Mark matched maximas and minimas in appropriate colours
+        LatLng yourLocation = getIntent().getParcelableExtra("yourLocation");
         List<Integer> matchedElevCoordsIndexes = getIntent().getIntegerArrayListExtra("matchedElevCoordsIndexes");
-        if (matchedElevCoordsIndexes != null) {
+        if (matchedElevCoordsIndexes != null) { // Was able to match up horizons, mark these points
             List<LatLng> matchedElevCoords = getLatLngFromResultIndexes(highPoints, matchedElevCoordsIndexes);
             FunctionsMap.addMarkersAt(googleMap, matchedElevCoords);
+            FunctionsMap.centreCameraAround(googleMap, matchedElevCoords, yourLocation);
+        } else {
+            FunctionsMap.centreCameraAround(googleMap, null, yourLocation);
         }
-
+        FunctionsMap.addMarkerAt(googleMap, yourLocation, "You are here!",
+                BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET));
+        /* Uncomment if you want to check the paths you're searching
+        FunctionsMap.drawVisiblePeaksPolygon(highPoints, yourLocation);
+        FunctionsMap.drawPolygon(googleMap, FunctionsRetrieveURLs.endCoords, yourLocation);
+        FunctionsMap.drawPolygon(googleMap, FunctionsRetrieveURLs.midCoords, yourLocation);
+        FunctionsMap.drawPolygon(googleMap, FunctionsRetrieveURLs.startCoords, yourLocation);*/
     }
 
     // Get the locations from the results, that are requested via the indexes

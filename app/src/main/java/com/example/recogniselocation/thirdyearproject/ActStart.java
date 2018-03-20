@@ -23,6 +23,7 @@ import android.widget.Toast;
 import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 
 public class ActStart extends AppCompatActivity {
@@ -45,14 +46,19 @@ public class ActStart extends AppCompatActivity {
 
         uri = null;
         drawableID = 0;
+        FunctionsRetrieveURLs.startCoords = new ArrayList<>();
+        FunctionsRetrieveURLs.midCoords = new ArrayList<>();
+        FunctionsRetrieveURLs.endCoords = new ArrayList<>();
 
         // Set up the location manager and listener, detects what is ahead EVERY TIME LOCATION CHANGES?*
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         LocationListener locationListener = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
-                Log.d(TAG, "onLocationChanged: Location changed to " + location);
-                yourLocation = new LatLng(location.getLatitude(), location.getLongitude());
+                if (uri != null) {  // Only want your actual location if we're not doing a demo
+                    Log.d(TAG, "onLocationChanged: Location changed to " + location);
+                    yourLocation = new LatLng(location.getLatitude(), location.getLongitude());
+                }
             }
 
             @Override
@@ -123,7 +129,7 @@ public class ActStart extends AppCompatActivity {
                     Manifest.permission.INTERNET) == ALLOWED) {
                 // Get your location
                 yourLocation = new LatLng(locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER));
-                locDir = new LocationDirection(null, yourLocation,60); //Todo: Get your direction, I've just hardcoded 60 degrees :/
+                locDir = new LocationDirection(null, yourLocation,0);
 
             } else
                 ActivityCompat.requestPermissions(ActStart.this, new String[]{

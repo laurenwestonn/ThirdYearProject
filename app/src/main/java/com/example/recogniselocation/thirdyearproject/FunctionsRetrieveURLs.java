@@ -29,6 +29,10 @@ public class FunctionsRetrieveURLs extends AsyncTask<List<String>, Void, List<St
     private boolean useThinning = true;
     private boolean showEdgeOnly = true;
 
+    public static List<Result> startCoords;
+    public static List<Result> midCoords;
+    public static List<Result> endCoords;
+
     FunctionsRetrieveURLs(Activity a)
     {
         this.activity = a;
@@ -158,8 +162,6 @@ public class FunctionsRetrieveURLs extends AsyncTask<List<String>, Void, List<St
             // The last path
             highPoints = getLastPath(highPoints, results, yourElevation, indexOfLastPath);
 
-            // Todo: Draw on the area searched using a poly line of the end points and your location
-
         }
         // Find the differences between the elevations so we can plot them
         highPoints = FunctionsMap.findDiffBetweenElevations(highPoints);
@@ -177,6 +179,9 @@ public class FunctionsRetrieveURLs extends AsyncTask<List<String>, Void, List<St
         List<Result> path = new ArrayList<>();
         for (int i = 0; i < length; i++)
             path.add(results.get(length - i - 1));
+        startCoords.add(path.get(0));
+        midCoords.add(path.get(path.size()/2));
+        endCoords.add(path.get(path.size()-1));
         return path;
     }
 
@@ -200,6 +205,9 @@ public class FunctionsRetrieveURLs extends AsyncTask<List<String>, Void, List<St
                     path.add(results.get(i));
 
             if (path.size() != 0) {
+                startCoords.add(path.get(0));
+                midCoords.add(path.get(path.size()/2));
+                endCoords.add(path.get(path.size()-1));
                 highPoints.add(getHighestVisiblePoint(path, yourElevation));
                 path.clear();
             }
@@ -216,8 +224,12 @@ public class FunctionsRetrieveURLs extends AsyncTask<List<String>, Void, List<St
         List<Result> path = new ArrayList<>();
         for (; i < results.size(); i++)
             path.add(results.get(i));
-        if (path.size() != 0)
+        if (path.size() != 0) {
             highPoints.add(getHighestVisiblePoint(path, yourElevation));
+            startCoords.add(path.get(0));
+            midCoords.add(path.get(path.size()/2));
+            endCoords.add(path.get(path.size()-1));
+        }
         return highPoints;
     }
 

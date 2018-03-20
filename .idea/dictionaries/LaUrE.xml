@@ -3,8 +3,11 @@
     <words>
       <w>coords</w>
       <w>edgeness</w>
+      <w>fileprovider</w>
       <w>maximas</w>
       <w>minimas</w>
+      <w>recogniselocation</w>
+      <w>thirdyearproject</w>
     </words>
   </dictionary>
 </component>

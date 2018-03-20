@@ -13,30 +13,23 @@ import com.google.android.gms.maps.model.PolygonOptions;
 
 import java.util.List;
 
-import static com.example.recogniselocation.thirdyearproject.FunctionsAPI.noOfPaths;
-
 class FunctionsMap {
 
-    // Draw a line around the points, add a marker to where you are
-    static void plotPoints(GoogleMap map, List<Result> highPoints, LatLng yourLoc)
+    static void centreCameraAround(GoogleMap map, List<LatLng> coords, LatLng yourLocation)
     {
-        // Centre the camera around the middle of the points and your location
-        LatLng midHorizon = highPoints.get(noOfPaths / 2).getLocation();
-        double avLat = (yourLoc.getLat() + midHorizon.getLat()) / 2;
-        double avLng = (yourLoc.getLng() + midHorizon.getLng()) / 2;
-        goToLocation(map, avLat, avLng);
-
-        addMarkerAt(map, yourLoc, "You are here!",
-                BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET));
-
-        // Draw a line to show the visible peaks
-        drawVisiblePeaksPolygon(highPoints, yourLoc);
+        if (coords == null) // Just centre around your location
+            goToLocation(map, yourLocation.getLat(), yourLocation.getLng());
+        else {  // Was able to match horizons. Centre around your location AND a matched point
+            double avLat = (yourLocation.getLat() + coords.get(1).getLat()) / 2;
+            double avLng = (yourLocation.getLng() + coords.get(1).getLng()) / 2;
+            goToLocation(map, avLat, avLng);
+        }
     }
 
     private static void goToLocation(GoogleMap map, double lat, double lng) {
         CameraUpdate update = CameraUpdateFactory.newLatLngZoom(
-                new com.google.android.gms.maps.model.LatLng(lat, lng), 11);
-        Log.d("df", "goToLocation: Moving camera for map " + map);
+                new com.google.android.gms.maps.model.LatLng(lat, lng), 13);
+        Log.d("FunctionsMap", "goToLocation: Moving camera for map " + map);
         map.moveCamera(update);
         Log.d("FunctionsMap", "Moved to location " + lat + ", " + lng);
     }
@@ -58,7 +51,7 @@ class FunctionsMap {
     }
 
     // Add marker to map at the specified location that says the string
-    private static void addMarkerAt(GoogleMap map, LatLng p, String msg, BitmapDescriptor icon)
+    static void addMarkerAt(GoogleMap map, LatLng p, String msg, BitmapDescriptor icon)
     {
         map.addMarker(new MarkerOptions()
                 .title(msg)
@@ -66,7 +59,7 @@ class FunctionsMap {
                 .icon(icon));
     }
 
-    private static void drawVisiblePeaksPolygon(List<Result> highPoints, LatLng yourLoc)
+    static void drawVisiblePeaksPolygon(List<Result> highPoints, LatLng yourLoc)
     {
         // Initialise polygon at your position
         PolygonOptions polygonOptions = new PolygonOptions();
@@ -84,6 +77,43 @@ class FunctionsMap {
                     highPoint.getLocation().getLng()));
         }
         ActMap.googleMap.addPolygon(polygonOptions);
+    }
+
+    static void drawPolygon(GoogleMap map, List<LatLng> locations)
+    {
+        // Initialise polygon at your position
+        PolygonOptions polygonOptions = new PolygonOptions();
+        polygonOptions.fillColor(Color.argb(50, 200, 100, 50));
+        polygonOptions.strokeColor(Color.argb(255, 200, 100, 50));
+        polygonOptions.strokeWidth(3);
+
+        for (LatLng loc : locations) {
+            // Add a point for each of the peaks
+            polygonOptions.add(new com.google.android.gms.maps.model.LatLng(
+                    loc.getLat(),
+                    loc.getLng()));
+        }
+        map.addPolygon(polygonOptions);
+    }
+
+    static void drawPolygon(GoogleMap map, List<Result> locations, LatLng yourLoc)
+    {
+        // Initialise polygon at your position
+        PolygonOptions polygonOptions = new PolygonOptions();
+        polygonOptions.fillColor(Color.argb(50, 200, 100, 50));
+        polygonOptions.strokeColor(Color.argb(255, 200, 100, 50));
+        polygonOptions.strokeWidth(3);
+        polygonOptions.add(new com.google.android.gms.maps.model.LatLng(
+                yourLoc.getLat(),
+                yourLoc.getLng()));
+
+        for (Result loc : locations) {
+            // Add a point for each of the peaks
+            polygonOptions.add(new com.google.android.gms.maps.model.LatLng(
+                    loc.getLocation().getLat(),
+                    loc.getLocation().getLng()));
+        }
+        map.addPolygon(polygonOptions);
     }
 
     private static double diffFromFirst(double comparisonDistance, double thisPeaksAngle, double comparisonElevation)

@@ -14,9 +14,9 @@ import static android.content.ContentValues.TAG;
 
 public class FunctionsAPI {
 
-    private static int widthOfSearch = 180;
+    private static int widthOfSearch = 360;
     static int noOfPaths = widthOfSearch / 4;
-    private static int noOfPathsPerGroup = 5;   // (This + duplicates) * samplesPerPath needs to be <= 512. More middle paths causes more distortion so only 3 mid is ok
+    private static int noOfPathsPerGroup = 2;   // AT LEAST 2. Any higher introduces skew (This + duplicates) * samplesPerPath needs to be <= 512. More middle paths causes more distortion so only 3 mid is ok
     static int samplesPerPath = widthOfSearch / 6;
     private static double searchLength = 0.05;  // radius of the search
     private static final int LONLAT_TO_METRES = 111111; // roughly
@@ -41,6 +41,12 @@ public class FunctionsAPI {
                                                 int samplesPerPath, double searchLength, String key,
                                                 String urlStart)
     {
+        if (noOfPathsPerGroup < 2) {
+            Log.e(TAG, "getElevations: Must request at least 2 paths per request."
+                    + " You're requesting " + noOfPathsPerGroup);
+            return null;
+        }
+
         double step = widthOfSearch / (noOfPaths - 1);
         double start = locDir.getDirection() + step/2 + step*(noOfPaths/2-1);
         List<String> urls = new ArrayList<>();
@@ -92,8 +98,8 @@ public class FunctionsAPI {
     }
 
     private static LatLng getEndCoordinate(int i, double start, double step, LatLng loc,
-                                           double searchLength) {
-
+                                           double searchLength)
+    {
         double sin = Math.sin(Math.toRadians(((start - i * step) % 360 + 360) % 360));
         double cos = Math.cos(Math.toRadians(((start - i * step) % 360 + 360) % 360));
 
