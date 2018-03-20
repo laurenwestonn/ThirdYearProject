@@ -19,7 +19,7 @@ import static android.content.ContentValues.TAG;
 
 // This is the class that was originally used when you tapped the photo on the old main page
 // Now I'll adapt it to be my full screen photo (as it kinda already was) to be used in the final UI
-public class PhotoActivity extends Activity {
+public class ActPhoto extends Activity {
 
     static boolean requireCoarse = false;
     static Bitmap origBitmap;
@@ -36,17 +36,17 @@ public class PhotoActivity extends Activity {
         // Bitmap is too big to send so find image from resources using ID sent
         int drawableID = getIntent().getIntExtra("drawableID", 0);
 
-        if (Start.uri == null && drawableID == 0)
+        if (ActStart.uri == null && drawableID == 0)
             Log.e(TAG, "onCreate: Photo ID didn't come through and we have no URI for a photo");
 
         // Get a mutable bitmap of the image
         BitmapFactory.Options opt = new BitmapFactory.Options();
         opt.inMutable = true;
         origBitmap = null;
-        if (Start.uri != null) {
+        if (ActStart.uri != null) {
             // Get the photo you took from your location
             try {
-                origBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), Start.uri);
+                origBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), ActStart.uri);
                 // Make the image smaller so the app can deal with it
                 origBitmap = Bitmap.createScaledBitmap(origBitmap, origBitmap.getWidth() / 2, origBitmap.getHeight() / 2, false);
             } catch (Exception e) {
@@ -103,7 +103,7 @@ public class PhotoActivity extends Activity {
 
     static Bitmap colourBitmapCoords(Bitmap bmp, List<Point> coords, int colour, int size) {
         for (Point p : coords)
-            bmp = ImageManipulation.colourArea(bmp, (int) p.getX() , (int) p.getY(), colour, size, size);
+            bmp = FunctionsImageManipulation.colourArea(bmp, (int) p.getX() , (int) p.getY(), colour, size, size);
         return bmp;
     }
 
@@ -118,10 +118,10 @@ public class PhotoActivity extends Activity {
         for (Point p : photoMMs) {
             if (p != null) {
                 if (max) {
-                    bmp = ImageManipulation.colourArea(bmp, (int) p.getX(), (int) p.getY(), maxColour, diam, diam);
+                    bmp = FunctionsImageManipulation.colourArea(bmp, (int) p.getX(), (int) p.getY(), maxColour, diam, diam);
                     maxColour += 254 / photoMMs.size() / 2; // Varying reds Todo: Make these varying!
                 } else {
-                    bmp = ImageManipulation.colourArea(bmp, (int) p.getX(), (int) p.getY(), minColour, diam, diam);
+                    bmp = FunctionsImageManipulation.colourArea(bmp, (int) p.getX(), (int) p.getY(), minColour, diam, diam);
                     minColour += (254 / photoMMs.size() / 2) << 16; // Varying blues
                 }
             }

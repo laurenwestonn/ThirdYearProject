@@ -25,16 +25,16 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.util.Date;
 
-public class Start extends AppCompatActivity {
+public class ActStart extends AppCompatActivity {
 
-    private static final String TAG = "Start";
+    private static final String TAG = "ActStart";
     private LocationManager locationManager;
     static Uri uri = null;
     private static final int REQUEST_CAMERA = 123;
     private static final int REQUEST_TAKE_PHOTO = 0;
     int ALLOWED = PackageManager.PERMISSION_GRANTED;
 
-    // Can't send more than the URLs to async, so access these publicly in RetrieveURLTask later
+    // Can't send more than the URLs to async, so access these publicly in FunctionsRetrieveURLs later
     static LatLng yourLocation;
     static int drawableID;
 
@@ -74,15 +74,15 @@ public class Start extends AppCompatActivity {
         };
 
         // Get your location
-        if (ActivityCompat.checkSelfPermission(Start.this,
+        if (ActivityCompat.checkSelfPermission(ActStart.this,
                 android.Manifest.permission.ACCESS_FINE_LOCATION) == ALLOWED
-                && ActivityCompat.checkSelfPermission(Start.this,
+                && ActivityCompat.checkSelfPermission(ActStart.this,
                 android.Manifest.permission.ACCESS_COARSE_LOCATION) == ALLOWED
-                && ActivityCompat.checkSelfPermission(Start.this,
+                && ActivityCompat.checkSelfPermission(ActStart.this,
                 Manifest.permission.INTERNET) == ALLOWED)
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1, 5, locationListener);
         else    // If not allowed, ask if you can get the location
-            ActivityCompat.requestPermissions(Start.this, new String[]{
+            ActivityCompat.requestPermissions(ActStart.this, new String[]{
                     android.Manifest.permission.ACCESS_FINE_LOCATION,
                     android.Manifest.permission.ACCESS_COARSE_LOCATION,
                     android.Manifest.permission.INTERNET
@@ -97,8 +97,8 @@ public class Start extends AppCompatActivity {
         } else {    // Find the location of this demo
             LocationDirection locDir = Demos.getDemo(view.getId());
             yourLocation = locDir.getLocation();
-            if ((drawableID = Start.this.getResources().getIdentifier(
-                    locDir.getName(),"drawable", Start.this.getPackageName() ))
+            if ((drawableID = ActStart.this.getResources().getIdentifier(
+                    locDir.getName(),"drawable", ActStart.this.getPackageName() ))
                     == 0)
                 Log.e(TAG, "buttonClicked: Couldn't find the ID for the drawable " + locDir.getName());
 
@@ -115,18 +115,18 @@ public class Start extends AppCompatActivity {
         if (uri != null) {
             Log.d(TAG, "onCreate: Going to recognise from your location." );
 
-            if (ActivityCompat.checkSelfPermission(Start.this,
+            if (ActivityCompat.checkSelfPermission(ActStart.this,
                     android.Manifest.permission.ACCESS_FINE_LOCATION) == ALLOWED
-                    && ActivityCompat.checkSelfPermission(Start.this,
+                    && ActivityCompat.checkSelfPermission(ActStart.this,
                     android.Manifest.permission.ACCESS_COARSE_LOCATION) == ALLOWED
-                    && ActivityCompat.checkSelfPermission(Start.this,
+                    && ActivityCompat.checkSelfPermission(ActStart.this,
                     Manifest.permission.INTERNET) == ALLOWED) {
                 // Get your location
                 yourLocation = new LatLng(locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER));
                 locDir = new LocationDirection(null, yourLocation,60); //Todo: Get your direction, I've just hardcoded 60 degrees :/
 
             } else
-                ActivityCompat.requestPermissions(Start.this, new String[]{
+                ActivityCompat.requestPermissions(ActStart.this, new String[]{
                         android.Manifest.permission.ACCESS_FINE_LOCATION,
                         android.Manifest.permission.ACCESS_COARSE_LOCATION,
                         android.Manifest.permission.INTERNET
@@ -135,12 +135,12 @@ public class Start extends AppCompatActivity {
         } else // You're doing a demo, and faking your location. Go ahead
             Log.d(TAG, "onCreate: Going to recognise from " + locDir);
 
-        APIFunctions.getElevations(locDir, this);
+        FunctionsAPI.getElevations(locDir, this);
     }
 
     // The below got from https://developer.android.com/training/camera/photobasics.html#TaskCaptureIntent
 
-    // Start the intent to take a photo
+    // ActStart the intent to take a photo
     private Uri dispatchTakePictureIntent() {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         // Ensure that there's a camera activity to handle the intent
@@ -200,7 +200,7 @@ public class Start extends AppCompatActivity {
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED)
                     Log.d(TAG, "onRequestPermissionsResult: Camera is now allowed");
                 else
-                    Toast.makeText(Start.this, "Camera access denied", Toast.LENGTH_SHORT)
+                    Toast.makeText(ActStart.this, "Camera access denied", Toast.LENGTH_SHORT)
                             .show();
                     
             default:

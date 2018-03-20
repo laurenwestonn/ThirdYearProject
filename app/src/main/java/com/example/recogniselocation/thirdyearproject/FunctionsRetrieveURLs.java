@@ -17,10 +17,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static android.content.ContentValues.TAG;
-import static com.example.recogniselocation.thirdyearproject.APIFunctions.getHighestVisiblePoint;
-import static com.example.recogniselocation.thirdyearproject.APIFunctions.samplesPerPath;
+import static com.example.recogniselocation.thirdyearproject.FunctionsAPI.getHighestVisiblePoint;
+import static com.example.recogniselocation.thirdyearproject.FunctionsAPI.samplesPerPath;
 
-public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>  {
+public class FunctionsRetrieveURLs extends AsyncTask<List<String>, Void, List<String>>  {
 
     @SuppressLint("StaticFieldLeak")
     private Activity activity;
@@ -29,7 +29,7 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
     private boolean useThinning = true;
     private boolean showEdgeOnly = true;
 
-    RetrieveURLTask(Activity a)
+    FunctionsRetrieveURLs(Activity a)
     {
         this.activity = a;
     }
@@ -38,8 +38,8 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
     @SafeVarargs
     protected final List<String> doInBackground(List<String>... urls)
     {
-        Log.d("RetrieveURLTask", "Going to take some time getting the results from the API");
-        return APIFunctions.requestURL(urls[0]);
+        Log.d("FunctionsRetrieveURLs", "Going to take some time getting the results from the API");
+        return FunctionsAPI.requestURL(urls[0]);
     }
 
     // Interpreting the responses
@@ -55,29 +55,29 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
         List<Result> highPoints = getHighPoints(strResponses, yourElevation);
         Log.d("onPostExecute", "Got high points " + highPoints);
         // Get the graph data
-        List<Point> graphPoints = APIFunctions.findGraphData(highPoints);
+        List<Point> graphPoints = FunctionsAPI.findGraphData(highPoints);
         List<Point> elevationsCoords = graphPoints;
         ///////// CONSTRUCT HORIZON FROM ELEVATIONS /////////
 
 
         /////// PHOTO EDGE DETECTION //////
         Bitmap bmp = null;
-        if (Start.uri != null) {    // Actual Location - load photo from where was saved
+        if (ActStart.uri != null) {    // Actual Location - load photo from where was saved
             try {   // Resize, phones can take large photos
-                bmp = MediaStore.Images.Media.getBitmap(activity.getContentResolver(), Start.uri);
+                bmp = MediaStore.Images.Media.getBitmap(activity.getContentResolver(), ActStart.uri);
                 bmp = Bitmap.createScaledBitmap(bmp, bmp.getWidth() / 2, bmp.getHeight() / 2, false);
                 Log.d(TAG, "onPostExecute: Bitmap got is " + bmp.getWidth() + " x " + bmp.getHeight() + ". " + bmp.getConfig());
             } catch(Exception e) {
                 Log.e(TAG, "onPostExecute: Couldn't find bitmap: " + e.getMessage());
             }
         } else { // Faked demo, get photo from /drawable/
-            bmp = BitmapFactory.decodeResource(activity.getResources(), Start.drawableID);
+            bmp = BitmapFactory.decodeResource(activity.getResources(), ActStart.drawableID);
         }
 
         List<Point> photoCoords, coarsePhotoCoords;
         photoCoords = coarsePhotoCoords = null;
         if (bmp != null) {
-            Edge edge = ImageManipulation.detectEdge(bmp, sdDetail, useThinning, showEdgeOnly);
+            Edge edge = FunctionsImageManipulation.detectEdge(bmp, sdDetail, useThinning, showEdgeOnly);
             photoCoords = edge.getCoords();
             coarsePhotoCoords = edge.getCoarseCoords();
         }
@@ -93,7 +93,7 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
             Log.d(TAG, "onPostExecute: Going to match up horizons");
             photoCoords = invertY(photoCoords); // To match the graph's coordinate system: Up Right +ve
 
-            Horizon horizon = HorizonMatching.matchUpHorizons(photoCoords, elevationsCoords);
+            Horizon horizon = FunctionsHorizonMatching.matchUpHorizons(photoCoords, elevationsCoords);
             if (horizon.getPhotoSeriesCoords() == null)
                 Toast.makeText(activity, "Didn't find enough maximas and minimas to match up", Toast.LENGTH_LONG).show();
             /////// MATCH UP HORIZONS //////
@@ -124,17 +124,17 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
 
         // Pass the basic data to the next activity (the elevations data)
         // For the photo activity
-        if (Start.uri == null)  // If we saved a photo, use this. Only use DrawableID for a demo
-            intent.putExtra("drawableID", Start.drawableID);  // Bitmap is too big, find it via ID
+        if (ActStart.uri == null)  // If we saved a photo, use this. Only use DrawableID for a demo
+            intent.putExtra("drawableID", ActStart.drawableID);  // Bitmap is too big, find it via ID
 
         // For the map activity
         intent.putParcelableArrayListExtra("highPoints", (ArrayList<Result>) highPoints);
-        intent.putExtra("yourLocation", Start.yourLocation);
+        intent.putExtra("yourLocation", ActStart.yourLocation);
 
         // For the graph activity (already have the photo coords)
         intent.putParcelableArrayListExtra("elevationsCoords", (ArrayList<Point>) elevationsCoords);
 
-        Log.d(TAG, "buttonClicked: Put at the relevant info into the intent. Start the activity.");
+        Log.d(TAG, "buttonClicked: Put at the relevant info into the intent. ActStart the activity.");
         activity.startActivity(intent);
         activity.finish();
     }
@@ -162,7 +162,7 @@ public class RetrieveURLTask extends AsyncTask<List<String>, Void, List<String>>
 
         }
         // Find the differences between the elevations so we can plot them
-        highPoints = MapFunctions.findDiffBetweenElevations(highPoints);
+        highPoints = FunctionsMap.findDiffBetweenElevations(highPoints);
 
         return highPoints;
     }

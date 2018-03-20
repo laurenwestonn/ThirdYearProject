@@ -12,7 +12,7 @@ import java.util.List;
 
 import static android.content.ContentValues.TAG;
 
-public class APIFunctions {
+public class FunctionsAPI {
 
     private static int widthOfSearch = 180;
     static int noOfPaths = widthOfSearch / 4;
@@ -24,14 +24,14 @@ public class APIFunctions {
     // This is called at the start, once you know your location and direction
     static void getElevations(LocationDirection locDir, Activity activity)
     {
-        Log.d("APIFunctions", "Building up URLs to request");
+        Log.d("FunctionsAPI", "Building up URLs to request");
         List<String> urls = getURLsToRequest(locDir, widthOfSearch, noOfPaths, noOfPathsPerGroup,
                 samplesPerPath, searchLength, activity.getString(R.string.google_maps_key),
                 activity.getString(R.string.url_start));
 
         // Requesting the elevations from the Google Maps API
-        Log.d("APIFunctions", "Requesting URLs " + urls);
-        try { new RetrieveURLTask(activity).execute(urls); }
+        Log.d("FunctionsAPI", "Requesting URLs " + urls);
+        try { new FunctionsRetrieveURLs(activity).execute(urls); }
         catch (Exception e) { e.printStackTrace(); }
     }
 

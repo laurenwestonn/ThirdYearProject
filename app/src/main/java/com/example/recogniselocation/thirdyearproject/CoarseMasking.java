@@ -6,8 +6,6 @@ import java.util.List;
 
 class CoarseMasking {
 
-    // Todo: Reduce classes, don't I have others that are List<point> and bmp?
-
     private List<Point> coords;
     private Bitmap bmp;
 

@@ -8,7 +8,7 @@ import java.util.List;
 import static android.content.ContentValues.TAG;
 import static java.lang.Double.isNaN;
 
-class HorizonMatching {
+class FunctionsHorizonMatching {
     private static boolean debug = false;   // Can't log when testing
 
     // Returns the horizon you manage to match up from the photo as a series so can plot on graph
@@ -53,7 +53,7 @@ class HorizonMatching {
             List<Matching> allMatchings = new ArrayList<>();
 
             // Go through each maxima minima pair from the elevations
-            // Start at the odd index if this starts with a minimum
+            // ActStart at the odd index if this starts with a minimum
             int i = getFirstElevationIndex( photoMM.size() == 2,
                     elevationMMs.get(0) != null);
             for (; i < elevationMMs.size() - 1; i += 2) {
@@ -187,7 +187,7 @@ class HorizonMatching {
     {
         double scaleX, scaleY, translateX, translateY;
 
-        // Start from index 1 if this is a minima - maxima pair
+        // ActStart from index 1 if this is a minima - maxima pair
         int i = (baseMM.get(0) == null) ? 1 : 0;
 
         /////////////SCALE//////////////

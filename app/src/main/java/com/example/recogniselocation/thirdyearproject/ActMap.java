@@ -21,7 +21,7 @@ import java.util.List;
 
 import static android.content.ContentValues.TAG;
 
-public class MapActivity extends Activity implements OnMapReadyCallback {
+public class ActMap extends Activity implements OnMapReadyCallback {
 
     static GoogleMap googleMap;
 
@@ -70,12 +70,12 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
         // Draw the line of the high points
         LatLng yourLocation = getIntent().getParcelableExtra("yourLocation");
         List<Result> highPoints = getIntent().getParcelableArrayListExtra("highPoints");
-        MapFunctions.plotPoints(googleMap, highPoints, yourLocation);
+        FunctionsMap.plotPoints(googleMap, highPoints, yourLocation);
         // Mark matched maximas and minimas in appropriate colours
         List<Integer> matchedElevCoordsIndexes = getIntent().getIntegerArrayListExtra("matchedElevCoordsIndexes");
         if (matchedElevCoordsIndexes != null) {
             List<LatLng> matchedElevCoords = getLatLngFromResultIndexes(highPoints, matchedElevCoordsIndexes);
-            MapFunctions.addMarkersAt(googleMap, matchedElevCoords);
+            FunctionsMap.addMarkersAt(googleMap, matchedElevCoords);
         }
 
     }

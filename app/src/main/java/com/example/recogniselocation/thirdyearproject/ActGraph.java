@@ -19,7 +19,7 @@ import static android.content.ContentValues.TAG;
 import static java.lang.Math.min;
 import static java.lang.StrictMath.max;
 
-public class GraphActivity extends Activity {
+public class ActGraph extends Activity {
 
     static GraphView graph;
     @Override
@@ -40,7 +40,7 @@ public class GraphActivity extends Activity {
 
             if (photoSeriesCoords == null) { // Only have the coordinates for the elevation's horizon
                 elevSeries.setColor(Color.BLACK);
-                GraphActivity.graph.addSeries(elevSeries);
+                ActGraph.graph.addSeries(elevSeries);
             }
         }
         if (photoSeriesCoords != null) {// Found the coordinates for the photo's horizon
@@ -49,7 +49,7 @@ public class GraphActivity extends Activity {
 
             if (elevSeries == null) { // Only have the coordinates of the photo's horizon
                 photoSeries.setColor(Color.argb(255, 250, 150, 50));
-                GraphActivity.graph.addSeries(photoSeries);
+                ActGraph.graph.addSeries(photoSeries);
             }
         }
 
@@ -63,12 +63,12 @@ public class GraphActivity extends Activity {
                                            LineGraphSeries<DataPoint> elevSeries, int elevColour)
     {
         photoSeries.setColor(photoColour);
-        GraphActivity.graph.addSeries(photoSeries);
+        ActGraph.graph.addSeries(photoSeries);
 
         elevSeries.setColor(elevColour);
-        GraphActivity.graph.addSeries(elevSeries);
+        ActGraph.graph.addSeries(elevSeries);
 
-        setBounds(GraphActivity.graph,
+        setBounds(ActGraph.graph,
                 min(photoSeries.getLowestValueX(),elevSeries.getLowestValueX()),
                 max(photoSeries.getHighestValueX(),elevSeries.getHighestValueX()),
                 min(photoSeries.getLowestValueY(),elevSeries.getLowestValueY()),

@@ -12,7 +12,7 @@ import java.util.List;
 import static android.content.ContentValues.TAG;
 import static java.lang.StrictMath.max;
 
-class ImageManipulation {
+class FunctionsImageManipulation {
 
     private static boolean gShowEdgeOnly;
 
@@ -175,14 +175,14 @@ class ImageManipulation {
             Log.d("sd", "Range should be from " + sd.getMinRange()  + " to " + sd.getMaxRange());
 
             // Draw mean height of edges
-            ImageManipulation.colourArea(bmp, bmp.getWidth()/2, (int)sd.getMean(), Color.YELLOW,
+            FunctionsImageManipulation.colourArea(bmp, bmp.getWidth()/2, (int)sd.getMean(), Color.YELLOW,
                     bmp.getWidth()-1, 10);
 
             // Draw SD of edges
             int drawnSDRadius = 15;
-            ImageManipulation.colourArea(bmp, bmp.getWidth()/2,sd.getMinRange()+drawnSDRadius,
+            FunctionsImageManipulation.colourArea(bmp, bmp.getWidth()/2,sd.getMinRange()+drawnSDRadius,
                     Color.RED,bmp.getWidth()-1, 30);
-            ImageManipulation.colourArea(bmp, bmp.getWidth()/2,sd.getMaxRange()-drawnSDRadius,
+            FunctionsImageManipulation.colourArea(bmp, bmp.getWidth()/2,sd.getMaxRange()-drawnSDRadius,
                     Color.RED,bmp.getWidth()-1, 30);
         }
         sd.setBitmap(bmp);

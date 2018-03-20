@@ -13,9 +13,9 @@ import com.google.android.gms.maps.model.PolygonOptions;
 
 import java.util.List;
 
-import static com.example.recogniselocation.thirdyearproject.APIFunctions.noOfPaths;
+import static com.example.recogniselocation.thirdyearproject.FunctionsAPI.noOfPaths;
 
-class MapFunctions {
+class FunctionsMap {
 
     // Draw a line around the points, add a marker to where you are
     static void plotPoints(GoogleMap map, List<Result> highPoints, LatLng yourLoc)
@@ -38,7 +38,7 @@ class MapFunctions {
                 new com.google.android.gms.maps.model.LatLng(lat, lng), 11);
         Log.d("df", "goToLocation: Moving camera for map " + map);
         map.moveCamera(update);
-        Log.d("MapFunctions", "Moved to location " + lat + ", " + lng);
+        Log.d("FunctionsMap", "Moved to location " + lat + ", " + lng);
     }
 
     // Add a list of LatLng markers to the map
@@ -83,7 +83,7 @@ class MapFunctions {
                     highPoint.getLocation().getLat(),
                     highPoint.getLocation().getLng()));
         }
-        MapActivity.googleMap.addPolygon(polygonOptions);
+        ActMap.googleMap.addPolygon(polygonOptions);
     }
 
     private static double diffFromFirst(double comparisonDistance, double thisPeaksAngle, double comparisonElevation)

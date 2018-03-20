@@ -1,6 +1,6 @@
 package com.example.recogniselocation.thirdyearproject.test;
 
-import com.example.recogniselocation.thirdyearproject.APIFunctions;
+import com.example.recogniselocation.thirdyearproject.FunctionsAPI;
 import com.example.recogniselocation.thirdyearproject.LatLng;
 import com.example.recogniselocation.thirdyearproject.LocationDirection;
 
@@ -11,7 +11,7 @@ import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
 
-public class APIFunctionsTest {
+public class FunctionsAPITest {
 
     @Test
     public void checkIndexingString() {
@@ -43,7 +43,7 @@ public class APIFunctionsTest {
         int indexOfSamples;
 
         // Only start and end path exists in a group. One group. One sample per path
-        result = APIFunctions.getURLsToRequest(new LocationDirection("", yourLoc, dir), widthOfSearch, noOfPaths, noOfPathsPerGroup, samplesPerPath, searchLength, key, urlStart);
+        result = FunctionsAPI.getURLsToRequest(new LocationDirection("", yourLoc, dir), widthOfSearch, noOfPaths, noOfPathsPerGroup, samplesPerPath, searchLength, key, urlStart);
         assertThat(result.size(), is(1));
         //  First path's end | HERE | Last path's end
         assertTrue(result.get(0).matches("https://maps\\.googleapis\\.com/maps/api/elevation/json\\?path=[^|]*\\|" + yourLoc + "\\|[^|]*"));
@@ -51,37 +51,37 @@ public class APIFunctionsTest {
         assertThat(result.get(0).charAt(indexOfSamples), is('3'));
 
 
-        // Start, middle and end path exists in a group. One group. One sample per path
+        // ActStart, middle and end path exists in a group. One group. One sample per path
         noOfPaths = 3;
         noOfPathsPerGroup = 3;
-        result = APIFunctions.getURLsToRequest(new LocationDirection("", yourLoc, dir), widthOfSearch, noOfPaths, noOfPathsPerGroup, samplesPerPath, searchLength, key, urlStart);
+        result = FunctionsAPI.getURLsToRequest(new LocationDirection("", yourLoc, dir), widthOfSearch, noOfPaths, noOfPathsPerGroup, samplesPerPath, searchLength, key, urlStart);
         assertThat(result.size(), is(1));
         // First End | HERE | Mid end | HERE | Last end
         assertTrue(result.get(0).matches("https://maps\\.googleapis\\.com/maps/api/elevation/json\\?path=[^|]*\\|" + yourLoc + "\\|[^|]*\\|" + yourLoc + "\\|[^|]*"));
         indexOfSamples = result.get(0).indexOf("&samples=") + 9;
         assertThat(result.get(0).charAt(indexOfSamples), is('5'));
 
-        // Start, middle and end path exists in a group. Two full groups. One sample per path
+        // ActStart, middle and end path exists in a group. Two full groups. One sample per path
         noOfPaths = 6;
-        result = APIFunctions.getURLsToRequest(new LocationDirection("", yourLoc, dir), widthOfSearch, noOfPaths, noOfPathsPerGroup, samplesPerPath, searchLength, key, urlStart);
+        result = FunctionsAPI.getURLsToRequest(new LocationDirection("", yourLoc, dir), widthOfSearch, noOfPaths, noOfPathsPerGroup, samplesPerPath, searchLength, key, urlStart);
         assertThat(result.size(), is(2));
         // Last request: First End | HERE | Mid end | HERE | Last end
         assertTrue(result.get(1).matches("https://maps\\.googleapis\\.com/maps/api/elevation/json\\?path=[^|]*\\|" + yourLoc + "\\|[^|]*\\|" + yourLoc + "\\|[^|]*"));
         indexOfSamples = result.get(1).indexOf("&samples=") + 9;
         assertThat(result.get(1).charAt(indexOfSamples), is('5'));
 
-        // Start, middle and end path exists in a group. Two groups - last partial. One sample per path
+        // ActStart, middle and end path exists in a group. Two groups - last partial. One sample per path
         noOfPaths = 5;
-        result = APIFunctions.getURLsToRequest(new LocationDirection("", yourLoc, dir), widthOfSearch, noOfPaths, noOfPathsPerGroup, samplesPerPath, searchLength, key, urlStart);
+        result = FunctionsAPI.getURLsToRequest(new LocationDirection("", yourLoc, dir), widthOfSearch, noOfPaths, noOfPathsPerGroup, samplesPerPath, searchLength, key, urlStart);
         assertThat(result.size(), is(2));
         // Last request: First End | HERE | Last end
         assertTrue(result.get(1).matches("https://maps\\.googleapis\\.com/maps/api/elevation/json\\?path=[^|]*\\|" + yourLoc + "\\|[^|]*"));
         indexOfSamples = result.get(1).indexOf("&samples=") + 9;
         assertThat(result.get(1).charAt(indexOfSamples), is('3'));
 
-        // Start, middle and end path exists in a group. Two groups - last only has one. One sample per path
+        // ActStart, middle and end path exists in a group. Two groups - last only has one. One sample per path
         noOfPaths = 4;
-        result = APIFunctions.getURLsToRequest(new LocationDirection("", yourLoc, dir), widthOfSearch, noOfPaths, noOfPathsPerGroup, samplesPerPath, searchLength, key, urlStart);
+        result = FunctionsAPI.getURLsToRequest(new LocationDirection("", yourLoc, dir), widthOfSearch, noOfPaths, noOfPathsPerGroup, samplesPerPath, searchLength, key, urlStart);
         assertThat(result.size(), is(2));
         // Last request: First End | HERE
         assertTrue(result.get(1).matches("https://maps\\.googleapis\\.com/maps/api/elevation/json\\?path=[^|]*\\|" + yourLoc + "[^|]*"));
@@ -111,16 +111,16 @@ public class APIFunctionsTest {
         int indexOfSamples;
 
         // Only two path exists in a group. One group. Two samples per path
-        result = APIFunctions.getURLsToRequest(new LocationDirection("", yourLoc, dir), widthOfSearch, noOfPaths, noOfPathsPerGroup, samplesPerPath, searchLength, key, urlStart);
+        result = FunctionsAPI.getURLsToRequest(new LocationDirection("", yourLoc, dir), widthOfSearch, noOfPaths, noOfPathsPerGroup, samplesPerPath, searchLength, key, urlStart);
         //  First path's end | HERE | Last path's end
         indexOfSamples = result.get(0).indexOf("&samples=") + 9;
         assertThat(result.get(0).charAt(indexOfSamples), is('5'));
 
 
-        // Start, middle and end path exists in a group. One group. Two sample per path
+        // ActStart, middle and end path exists in a group. One group. Two sample per path
         noOfPaths = 3;
         noOfPathsPerGroup = 3;
-        result = APIFunctions.getURLsToRequest(new LocationDirection("", yourLoc, dir), widthOfSearch, noOfPaths, noOfPathsPerGroup, samplesPerPath, searchLength, key, urlStart);
+        result = FunctionsAPI.getURLsToRequest(new LocationDirection("", yourLoc, dir), widthOfSearch, noOfPaths, noOfPathsPerGroup, samplesPerPath, searchLength, key, urlStart);
         // First End | HERE | Mid end | HERE | Last end
         indexOfSamples = result.get(0).indexOf("&samples=") + 9;
         assertThat(result.get(0).charAt(indexOfSamples), is('9'));
@@ -128,15 +128,15 @@ public class APIFunctionsTest {
         // Three paths exists in a group. Two groups - last partial. Two samples per path
         // Last should have 5 samples
         noOfPaths = 5;
-        result = APIFunctions.getURLsToRequest(new LocationDirection("", yourLoc, dir), widthOfSearch, noOfPaths, noOfPathsPerGroup, samplesPerPath, searchLength, key, urlStart);
+        result = FunctionsAPI.getURLsToRequest(new LocationDirection("", yourLoc, dir), widthOfSearch, noOfPaths, noOfPathsPerGroup, samplesPerPath, searchLength, key, urlStart);
         // Last request: First End | HERE | Last end
         indexOfSamples = result.get(1).indexOf("&samples=") + 9;
         assertThat(result.get(1).charAt(indexOfSamples), is('5'));
 
-        // Start, middle and end path exists in a group. Two groups - last only has one. One sample per path
+        // ActStart, middle and end path exists in a group. Two groups - last only has one. One sample per path
         // Last should have 3 samples
         noOfPaths = 4;
-        result = APIFunctions.getURLsToRequest(new LocationDirection("", yourLoc, dir), widthOfSearch, noOfPaths, noOfPathsPerGroup, samplesPerPath, searchLength, key, urlStart);
+        result = FunctionsAPI.getURLsToRequest(new LocationDirection("", yourLoc, dir), widthOfSearch, noOfPaths, noOfPathsPerGroup, samplesPerPath, searchLength, key, urlStart);
         // Last request: First End | HERE
         indexOfSamples = result.get(1).indexOf("&samples=") + 9;
         assertThat(result.get(1).charAt(indexOfSamples), is('3'));
