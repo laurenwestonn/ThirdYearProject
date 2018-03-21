@@ -80,8 +80,7 @@ public class FunctionsRetrieveURLs extends AsyncTask<List<String>, Void, List<St
             photoCoords = edge.getCoords();
             coarsePhotoCoords = edge.getCoarseCoords();
             sd = edge.getSD();  //Todo: Send Edge as one, ignoring the bitmap as we can't send that (too big)
-        }
-        /////// PHOTO EDGE DETECTION //////
+        } /////// PHOTO EDGE DETECTION //////
 
         // Will be going to the photo activity next
         Intent intent = new Intent(activity.getString(R.string.PHOTO_ACTIVITY));
