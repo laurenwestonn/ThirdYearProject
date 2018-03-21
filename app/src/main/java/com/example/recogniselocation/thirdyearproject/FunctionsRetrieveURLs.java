@@ -7,6 +7,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.provider.MediaStore;
+import android.text.style.TabStopSpan;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -25,7 +26,6 @@ public class FunctionsRetrieveURLs extends AsyncTask<List<String>, Void, List<St
     @SuppressLint("StaticFieldLeak")
     private Activity activity;
 
-    private boolean sdDetail = false;
     private boolean useThinning = true;
     private boolean showEdgeOnly = true;
 
@@ -79,11 +79,13 @@ public class FunctionsRetrieveURLs extends AsyncTask<List<String>, Void, List<St
         }
 
         List<Point> photoCoords, coarsePhotoCoords;
+        StandardDeviation sd = null;
         photoCoords = coarsePhotoCoords = null;
         if (bmp != null) {
-            Edge edge = FunctionsImageManipulation.detectEdge(bmp, sdDetail, useThinning, showEdgeOnly);
+            Edge edge = FunctionsImageManipulation.detectEdge(bmp, useThinning, showEdgeOnly);
             photoCoords = edge.getCoords();
             coarsePhotoCoords = edge.getCoarseCoords();
+            sd = edge.getSD();  //Todo: Send Edge as one, ignoring the bitmap as we can't send that (too big)
         }
         /////// PHOTO EDGE DETECTION //////
 
@@ -113,6 +115,7 @@ public class FunctionsRetrieveURLs extends AsyncTask<List<String>, Void, List<St
 
             intent.putParcelableArrayListExtra("photoCoords", (ArrayList<Point>) photoCoords);      // To draw the edge
             intent.putParcelableArrayListExtra("coarsePhotoCoords", (ArrayList<Point>) coarsePhotoCoords);      // To draw the coarse edge
+            intent.putExtra("sd", sd);      // To mark coarse range
             intent.putParcelableArrayListExtra("matchedPhotoCoords", (ArrayList<Point>) matchedPhotoCoords);  // To mark on the matched points
             // For the map activity
             intent.putIntegerArrayListExtra("matchedElevCoordsIndexes", (ArrayList<Integer>) matchedElevCoordsIndexes);  // To mark on the matched points

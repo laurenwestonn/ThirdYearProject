@@ -129,6 +129,8 @@ public class ActGraph extends Activity {
             intent.putParcelableArrayListExtra("photoCoords", photoCoords);      // To draw the edge
             List<Point> coarsePhotoCoords = getIntent().getParcelableArrayListExtra("coarsePhotoCoords");
             intent.putParcelableArrayListExtra("coarsePhotoCoords", (ArrayList<Point>) coarsePhotoCoords);      // To draw the coarse edge
+            StandardDeviation sd = getIntent().getParcelableExtra("sd");
+            intent.putExtra("sd", sd);      // To mark coarse range
             ArrayList<Point> matchedPhotoCoords = getIntent().getParcelableArrayListExtra("matchedPhotoCoords");
             intent.putParcelableArrayListExtra("matchedPhotoCoords", matchedPhotoCoords);  // To mark on the matched points
 

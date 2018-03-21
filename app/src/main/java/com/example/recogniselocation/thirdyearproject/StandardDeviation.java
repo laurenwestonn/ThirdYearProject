@@ -1,16 +1,16 @@
 package com.example.recogniselocation.thirdyearproject;
 
-import android.graphics.Bitmap;
+import android.os.Parcel;
+import android.os.Parcelable;
 
 import java.util.List;
 
-public class StandardDeviation {
+public class StandardDeviation implements Parcelable {
 
     private double mean;
     private double sd;
     private int minRange;
     private int maxRange;
-    private Bitmap bmp;
 
     StandardDeviation(List<Point> coords, int heightFromCentre)
     {
@@ -18,7 +18,7 @@ public class StandardDeviation {
             mean = calcYMean(coords);
             sd = calcSD(coords, mean);
             minRange = (int) (mean - 3 * sd) - heightFromCentre;  // Get more above the horizon
-            maxRange = (int) (mean + sd) + heightFromCentre;    // as there's more likely to be more noise below
+            maxRange = (int) (mean + 1.5 * sd) + heightFromCentre;    // as there's more likely to be more noise below
 
             if (minRange < 0)
                 minRange = 0;
@@ -45,11 +45,6 @@ public class StandardDeviation {
         return sum / coords.size();
     }
 
-    void setBitmap(Bitmap bmp)
-    {
-        this.bmp = bmp;
-    }
-
     double getMean() {
         return mean;
     }
@@ -66,7 +61,36 @@ public class StandardDeviation {
         return maxRange;
     }
 
-    public Bitmap getBitmap() {
-        return bmp;
+    protected StandardDeviation(Parcel in) {
+        mean = in.readDouble();
+        sd = in.readDouble();
+        minRange = in.readInt();
+        maxRange = in.readInt();
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeDouble(mean);
+        dest.writeDouble(sd);
+        dest.writeInt(minRange);
+        dest.writeInt(maxRange);
+    }
+
+    @SuppressWarnings("unused")
+    public static final Parcelable.Creator<StandardDeviation> CREATOR = new Parcelable.Creator<StandardDeviation>() {
+        @Override
+        public StandardDeviation createFromParcel(Parcel in) {
+            return new StandardDeviation(in);
+        }
+
+        @Override
+        public StandardDeviation[] newArray(int size) {
+            return new StandardDeviation[size];
+        }
+    };
 }

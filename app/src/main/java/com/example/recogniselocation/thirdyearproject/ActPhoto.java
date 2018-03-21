@@ -23,8 +23,9 @@ public class ActPhoto extends Activity {
 
     static boolean requireCoarse = false;
     static Bitmap origBitmap;
-    static List<Point> coarsePhotoCoords;
-    static List<Point> photoCoords;
+    static List<Point> coarsePhotoCoords;   // These need to be global variables so that
+    static StandardDeviation sd;            // they can be accessed whenever someone
+    static List<Point> photoCoords;         // taps the screen to view the coarse coords
     static List<Point> matchedCoords;
 
     @Override
@@ -58,6 +59,7 @@ public class ActPhoto extends Activity {
 
         // Get the results
         coarsePhotoCoords = getIntent().getParcelableArrayListExtra("coarsePhotoCoords");
+        sd = getIntent().getParcelableExtra("sd");
         photoCoords = getIntent().getParcelableArrayListExtra("photoCoords");
         matchedCoords = getIntent().getParcelableArrayListExtra("matchedPhotoCoords");
 
@@ -72,12 +74,12 @@ public class ActPhoto extends Activity {
             Bitmap resultBMP = bmp.copy(bmp.getConfig(), true);
             if (showCoarse) {
                 if (coarsePhotoCoords != null)
-                    return markCoarseEdgeCoords(resultBMP, coarsePhotoCoords);
+                    return markCoarseEdgeCoords(resultBMP, coarsePhotoCoords, sd);
                 else
                     return null;
             } else {
                 if (photoCoords != null)
-                    ;//resultBMP = markEdgeCoords(resultBMP, photoCoords);  Uncomment to display the edge detected
+                    resultBMP = markEdgeCoords(resultBMP, photoCoords);  //Uncomment to display the edge detected
                 // Mark the maximas and minimas (common with the map)
                 if (matchedCoords != null)
                     resultBMP = markMaximasMinimasOnPhoto(resultBMP, matchedCoords);
@@ -89,10 +91,23 @@ public class ActPhoto extends Activity {
         }
     }
 
-    private static Bitmap markCoarseEdgeCoords(Bitmap bmp, List<Point> photoCoords) {
+    // Mark the coarse edge coordinates found, and the SD range found from these points
+    private static Bitmap markCoarseEdgeCoords(Bitmap bmp, List<Point> photoCoords, StandardDeviation sd) {
         int width = (bmp.getHeight() / 17) * 2 + 1; // Width got from coarseMask method
-        return colourBitmapCoords(
-                bmp, photoCoords, Color.argb(255, 250, 150, 50), width);
+        bmp = colourBitmapCoords(bmp, photoCoords, Color.argb(255, 250, 150, 50), width);
+        return colourSD(bmp, sd);
+    }
+
+    private static Bitmap colourSD(Bitmap bmp, StandardDeviation sd) {
+        // Draw the horizontal middle of the edges as found by the coarse masking's Standard Deviation
+        bmp = FunctionsImageManipulation.colourArea(bmp, bmp.getWidth()/2, (int)sd.getMean(), Color.YELLOW,
+                bmp.getWidth()-1, 10);
+        // Draw the range decided to be the horizon by the coarse masking's Standard Deviation
+        int drawnSDRadius = 15;
+        bmp = FunctionsImageManipulation.colourArea(bmp, bmp.getWidth()/2,sd.getMinRange()+drawnSDRadius,
+                Color.RED,bmp.getWidth()-1, 30);
+        return FunctionsImageManipulation.colourArea(bmp, bmp.getWidth()/2,sd.getMaxRange()-drawnSDRadius,
+                Color.RED,bmp.getWidth()-1, 30);
     }
 
     private static Bitmap markEdgeCoords(Bitmap bmp, List<Point> photoCoords) {
@@ -173,6 +188,8 @@ public class ActPhoto extends Activity {
             intent.putParcelableArrayListExtra("photoCoords", photoCoords);      // To draw the edge
             List<Point> coarsePhotoCoords = getIntent().getParcelableArrayListExtra("coarsePhotoCoords");
             intent.putParcelableArrayListExtra("coarsePhotoCoords", (ArrayList<Point>) coarsePhotoCoords);      // To draw the coarse edge
+            StandardDeviation sd = getIntent().getParcelableExtra("sd");
+            intent.putExtra("sd", sd);      // To mark coarse range
             ArrayList<Point> matchedPhotoCoords = getIntent().getParcelableArrayListExtra("matchedPhotoCoords");
             intent.putParcelableArrayListExtra("matchedPhotoCoords", matchedPhotoCoords);  // To mark on the matched points
 

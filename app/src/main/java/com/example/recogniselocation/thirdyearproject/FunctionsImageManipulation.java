@@ -20,9 +20,7 @@ class FunctionsImageManipulation {
     private static int fineWidthRadius;
     private static int fineHeightRadius;
 
-    static Edge detectEdge(Bitmap bmp,
-                           boolean sdDetail,
-                           boolean useThinning, boolean showEdgeOnly)
+    static Edge detectEdge(Bitmap bmp, boolean useThinning, boolean showEdgeOnly)
     {
         if (bmp == null)
             Log.e(TAG, "Null bitmap was passed to detectEdge");
@@ -31,15 +29,17 @@ class FunctionsImageManipulation {
         gShowEdgeOnly = showEdgeOnly;
         Bitmap resultFineBMP;
         List<Point> coarseEdgeCoords = null;
+        StandardDeviation coarseSD = null;
 
         ////////////// COARSE MASK /////////////////
         CoarseMasking coarse = coarseMask(bmp);
 
         ///////////// Standard Deviation //////////////
         if (coarse.getCoords() == null || coarse.getCoords().size() > 0) {
-            StandardDeviation coarseSD = findStandardDeviation(coarse.getBitmap(), coarse.getCoords(), sdDetail);
+
+            coarseSD = new StandardDeviation(coarse.getCoords(), coarse.getBitmap().getHeight() / 17);
             coarseEdgeCoords = coarse.getCoords();
-            Log.d(TAG, "findStandardDeviation: SD got");
+            Log.d(TAG, "detectEdge: SD got");
 
             // Whether SD was drawn on or not, the coarse mask will get returned from the above
 
@@ -70,7 +70,7 @@ class FunctionsImageManipulation {
             Log.e(TAG, "detectEdge: Couldn't find edges with the coarse mask, so just return the original photo");
             resultFineBMP = coarse.getBitmap();
         }
-        return new Edge(fineEdgeCoords, coarseEdgeCoords, resultFineBMP);
+        return new Edge(fineEdgeCoords, coarseEdgeCoords, coarseSD, resultFineBMP);
     }
 
     static Point bestPointInCol(List<Point> col, Point prevP)
@@ -160,33 +160,7 @@ class FunctionsImageManipulation {
         }
         Log.d(TAG, "fineMask: Fine Masking done. Looped " + loop + " times");
 
-        return new Edge(edgeCoords, null, resultBMP);
-    }
-
-    private static StandardDeviation findStandardDeviation(Bitmap bmp, List<Point> coords, boolean sdDetail) {
-        // Here we work out the standard deviation of the edges found using the coarse mask
-        // We need this so we can narrow down the area to search using the fine mask
-        StandardDeviation sd = new StandardDeviation(coords, bmp.getHeight() / 17);
-
-        // Enable sdDetail if you want to print info and draw mean/sd lines on the image
-        if (sdDetail) {
-            Log.d("sd", "Coarse edge coords: " + coords.toString());
-            Log.d("sd", "Standard Deviation is " + sd.getSd() + ". Mean is " + sd.getMean());
-            Log.d("sd", "Range should be from " + sd.getMinRange()  + " to " + sd.getMaxRange());
-
-            // Draw mean height of edges
-            FunctionsImageManipulation.colourArea(bmp, bmp.getWidth()/2, (int)sd.getMean(), Color.YELLOW,
-                    bmp.getWidth()-1, 10);
-
-            // Draw SD of edges
-            int drawnSDRadius = 15;
-            FunctionsImageManipulation.colourArea(bmp, bmp.getWidth()/2,sd.getMinRange()+drawnSDRadius,
-                    Color.RED,bmp.getWidth()-1, 30);
-            FunctionsImageManipulation.colourArea(bmp, bmp.getWidth()/2,sd.getMaxRange()-drawnSDRadius,
-                    Color.RED,bmp.getWidth()-1, 30);
-        }
-        sd.setBitmap(bmp);
-        return sd;
+        return new Edge(edgeCoords, null, coarseSD, resultBMP);
     }
 
     // Run a large mask over the image to find roughly where the horizon is
