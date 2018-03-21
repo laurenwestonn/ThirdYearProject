@@ -52,6 +52,7 @@ public class FunctionsRetrieveURLs extends AsyncTask<List<String>, Void, List<St
         double yourElevation = gson.fromJson(strResponses.get(0), Response.class).getResults().get(samplesPerPath).getElevation();
 
         // Find the highest point in each path for each response
+        Log.d("onPostExecute", "Going to find the high points from that response");
         List<Result> highPoints = getHighPoints(strResponses, yourElevation);
         Log.d("onPostExecute", "Got high points " + highPoints);
         // Get the graph data
@@ -229,11 +230,11 @@ public class FunctionsRetrieveURLs extends AsyncTask<List<String>, Void, List<St
         return highPoints;
     }
 
-    // Get the results as an object from the string reponse of the request
-    private List<Result> getResults(String strResponse) {
-        Gson gson = new GsonBuilder().create();
-        Response response = gson.fromJson(strResponse, Response.class);
-        return response.getResults();
+    // Get the results as an object from the string response of the request
+    // This takes quite a bit of time - unavoidable
+    private List<Result> getResults(String strResponse)
+    {
+        return new GsonBuilder().create().fromJson(strResponse, Response.class).getResults();
     }
 
     // Flip on the x axis, doesn't matter where on the axes it ends up as gets scaled anyway
