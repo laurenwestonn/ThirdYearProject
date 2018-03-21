@@ -14,19 +14,14 @@ import static java.lang.StrictMath.max;
 
 class FunctionsImageManipulation {
 
-    private static boolean gShowEdgeOnly;
-
     private static List<Point> fineEdgeCoords;
-    private static int fineWidthRadius;
-    private static int fineHeightRadius;
 
-    static Edge detectEdge(Bitmap bmp, boolean useThinning, boolean showEdgeOnly)
+    static Edge detectEdge(Bitmap bmp, boolean useThinning)
     {
         if (bmp == null)
             Log.e(TAG, "Null bitmap was passed to detectEdge");
 
         // Save these variables globally for now Todo: This better
-        gShowEdgeOnly = showEdgeOnly;
         Bitmap resultFineBMP;
         List<Point> coarseEdgeCoords = null;
         StandardDeviation coarseSD = null;
@@ -56,15 +51,6 @@ class FunctionsImageManipulation {
                 fineEdgeCoords = thinColumns(fineEdgeCoords);
                 Log.d(TAG, "Result of 1 per column: " + fineEdgeCoords.toString());
             }
-
-            ///////// SHOW EDGES ONLY? /////////
-            if (showEdgeOnly) {
-                // Get a new copy of the photo to draw the edge on top of
-                if (bmp != null)
-                    resultFineBMP = bmp.copy(bmp.getConfig(), true);
-                // Draw the edge on top of the photo from the edge coordinates we saved in fineEdgeCoords
-                colourFineBitmap(resultFineBMP, fineEdgeCoords, fineWidthRadius, fineHeightRadius);
-                }
 
         } else {
             Log.e(TAG, "detectEdge: Couldn't find edges with the coarse mask, so just return the original photo");
@@ -129,8 +115,8 @@ class FunctionsImageManipulation {
         Bitmap resultBMP = origBMP.copy(origBMP.getConfig(), true);
 
         // Set the size of the mask. Have it be at least 5x5.
-        fineWidthRadius = max(2,resultBMP.getWidth() / 250); // 1 would make a mask of width 3, 2 would give width 5
-        fineHeightRadius = max(2, resultBMP.getHeight() / 110);
+        int fineWidthRadius = max(2, resultBMP.getWidth() / 250);
+        int fineHeightRadius = max(2, resultBMP.getHeight() / 110);
         int fineWidth = fineWidthRadius * 2 + 1;
         int fineHeight = fineHeightRadius * 2 + 1;
 
@@ -287,16 +273,6 @@ class FunctionsImageManipulation {
         }
         edgeness /= 4; // Max could be 4 * 255 due to the 6 neighbours and weighting
         return edgeness > 0 ? edgeness : 0; // Edges with dark on top are -ve, ignore these
-    }
-
-    // Colour in bitmap bmp at the locations in edgeCoords
-    // edgeCoords is a 2D list:
-    // x increases by 1 - but don't forget the bitmap increases by width
-    // y is the actual y coordinate from the bitmap
-    private static void colourFineBitmap(Bitmap bmp, List<Point> edgeCoords, int pWidth, int pHeight)
-    {
-        for (Point p : edgeCoords)
-            colourArea(bmp, (int) p.getX(), (int) p.getY(), Color.YELLOW, pWidth, pHeight);
     }
 
     /////// COLOUR ///////
@@ -503,6 +479,7 @@ class FunctionsImageManipulation {
     private static List<Point> skeletonisePoints(List<Point> edgeCoords, int pointDiametre)
     {
         List<Point> thinnedCoords = new ArrayList<>();
+        boolean gShowEdgeOnly = true;
 
         // Go through each of the edge coords
         for (int i = 0; i < edgeCoords.size(); i++) {

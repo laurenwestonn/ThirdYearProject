@@ -7,7 +7,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.provider.MediaStore;
-import android.text.style.TabStopSpan;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -26,12 +25,9 @@ public class FunctionsRetrieveURLs extends AsyncTask<List<String>, Void, List<St
     @SuppressLint("StaticFieldLeak")
     private Activity activity;
 
-    private boolean useThinning = true;
-    private boolean showEdgeOnly = true;
-
-    public static List<Result> startCoords;
-    public static List<Result> midCoords;
-    public static List<Result> endCoords;
+    static List<Result> startCoords;
+    static List<Result> midCoords;
+    static List<Result> endCoords;
 
     FunctionsRetrieveURLs(Activity a)
     {
@@ -59,8 +55,6 @@ public class FunctionsRetrieveURLs extends AsyncTask<List<String>, Void, List<St
         List<Result> highPoints = getHighPoints(strResponses, yourElevation);
         Log.d("onPostExecute", "Got high points " + highPoints);
         // Get the graph data
-        List<Point> graphPoints = FunctionsAPI.findGraphData(highPoints);
-        List<Point> elevationsCoords = graphPoints;
         ///////// CONSTRUCT HORIZON FROM ELEVATIONS /////////
 
 
@@ -82,7 +76,7 @@ public class FunctionsRetrieveURLs extends AsyncTask<List<String>, Void, List<St
         StandardDeviation sd = null;
         photoCoords = coarsePhotoCoords = null;
         if (bmp != null) {
-            Edge edge = FunctionsImageManipulation.detectEdge(bmp, useThinning, showEdgeOnly);
+            Edge edge = FunctionsImageManipulation.detectEdge(bmp, true);
             photoCoords = edge.getCoords();
             coarsePhotoCoords = edge.getCoarseCoords();
             sd = edge.getSD();  //Todo: Send Edge as one, ignoring the bitmap as we can't send that (too big)
@@ -99,7 +93,7 @@ public class FunctionsRetrieveURLs extends AsyncTask<List<String>, Void, List<St
             Log.d(TAG, "onPostExecute: Going to match up horizons");
             photoCoords = invertY(photoCoords); // To match the graph's coordinate system: Up Right +ve
 
-            Horizon horizon = FunctionsHorizonMatching.matchUpHorizons(photoCoords, elevationsCoords);
+            Horizon horizon = FunctionsHorizonMatching.matchUpHorizons(photoCoords, FunctionsAPI.findGraphData(highPoints));
             if (horizon.getPhotoSeriesCoords() == null)
                 Toast.makeText(activity, "Didn't find enough maximas and minimas to match up", Toast.LENGTH_LONG).show();
             /////// MATCH UP HORIZONS //////
@@ -139,7 +133,7 @@ public class FunctionsRetrieveURLs extends AsyncTask<List<String>, Void, List<St
         intent.putExtra("yourLocation", ActStart.yourLocation);
 
         // For the graph activity (already have the photo coords)
-        intent.putParcelableArrayListExtra("elevationsCoords", (ArrayList<Point>) elevationsCoords);
+        intent.putParcelableArrayListExtra("elevationsCoords", (ArrayList<Point>) FunctionsAPI.findGraphData(highPoints));
 
         Log.d(TAG, "buttonClicked: Put at the relevant info into the intent. ActStart the activity.");
         activity.startActivity(intent);
