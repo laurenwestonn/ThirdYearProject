@@ -62,7 +62,7 @@ class FunctionsHorizonMatching {
                 List<Point> elevationMM = getTheNextElevationMM(elevationMMs, i);
 
                 // Checking if these maxima minima pair are a good match to use, i.e. aren't 2 pixels apart
-                if (signifDiff(elevationMM, elevationCoords)) {
+                if (reasonableDifference(elevationMM, elevationCoords)) {
                     if (debug)
                         Log.d("matching", "Checking elevation max min " + elevationMM);
                     allMatchings.add(howWellMatched(photoMM, elevationMM, photoCoords,
@@ -106,27 +106,33 @@ class FunctionsHorizonMatching {
     }
 
     // Check that the difference between this elevations max and min points are far - we want mountains not dips
-    private static boolean signifDiff(List<Point> elevationMM, List<Point> elevationCoords) {
+    // but close enough to be within the same photo
+    private static boolean reasonableDifference(List<Point> elevationMM, List<Point> elevationCoords) {
         if (elevationMM != null) {
+            // Don't want to pick up peaks that are too close to be a useful measurement
             double signifWidth = getCoordsSignifWidth(elevationCoords);
             double signifHeight = getCoordsSignifHeight(elevationCoords);
+            // As we're searching 360 degrees, it's impossible for a photo to capture the whole scope
+            double tooWideIfBigger = elevationCoords.get(elevationCoords.size()-1).getX() - signifWidth*2;
 
             if (elevationMM.get(0) == null) {   // Starts with a minima
-                if ((elevationMM.get(2).getX() - elevationMM.get(1).getX()) < signifWidth
+                if (( (elevationMM.get(2).getX() - elevationMM.get(1).getX()) < signifWidth
+                            && (elevationMM.get(2).getX() - elevationMM.get(1).getX()) > tooWideIfBigger )
                         || (elevationMM.get(2).getY() - elevationMM.get(1).getY()) < signifHeight) {    // Minima is valid
                     if (debug)
                         Log.d(TAG, "matchUpHorizons: the width between this pair of elevations max/min \n"
                                 + elevationMM + " is\n" + (elevationMM.get(2).getX() - elevationMM.get(1).getX())
-                                + " which needs to be bigger than " + signifWidth
+                                + " which needs to be bigger than " + signifWidth + " or smaller than " + tooWideIfBigger
                                 + ". Also the height difference must be bigger than " + signifHeight);
                     return false;
                 }
-            } else if ((elevationMM.get(1).getX() - elevationMM.get(0).getX()) < signifWidth
-                    || (elevationMM.get(0).getY() - elevationMM.get(1).getY()) < signifHeight) { // Maxima is valid
+            } else if (( (elevationMM.get(1).getX() - elevationMM.get(0).getX()) < signifWidth
+                            && (elevationMM.get(1).getX() - elevationMM.get(0).getX()) > tooWideIfBigger )
+                        || (elevationMM.get(0).getY() - elevationMM.get(1).getY()) < signifHeight) { // Maxima is valid
                 if (debug)
                     Log.d(TAG, "matchUpHorizons: the width between this pair of elevations max/min \n"
                             + elevationMM + " is\n" + (elevationMM.get(1).getX() - elevationMM.get(0).getX())
-                            + " which needs to be bigger than " + signifWidth
+                            + " which needs to be bigger than " + signifWidth + " or smaller than " + tooWideIfBigger
                             + ". Also the height difference must be bigger than " + signifHeight);
                 return false;
             }
@@ -137,7 +143,7 @@ class FunctionsHorizonMatching {
     }
 
     private static double getCoordsSignifWidth(List<Point> coords) {
-        return coords.get(coords.size()-1).getX() / 12;
+        return coords.get(coords.size()-1).getX() / 24;
     }
 
     private static double getCoordsSignifHeight(List<Point> coords) {
@@ -151,7 +157,7 @@ class FunctionsHorizonMatching {
                 minY = p.getY();
         }
 
-        return (minY + maxY) / 12;
+        return (minY + maxY) / 24;
     }
 
     private static List<Point> getTheNextElevationMM(List<Point> elevationMMs, int i)
