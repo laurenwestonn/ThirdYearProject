@@ -134,7 +134,7 @@ public class ActPhoto extends Activity {
             if (p != null) {
                 if (max) {
                     bmp = FunctionsImageManipulation.colourArea(bmp, (int) p.getX(), (int) p.getY(), maxColour, diam, diam);
-                    maxColour += 254 / photoMMs.size() / 2; // Varying reds Todo: Make these varying!
+                    maxColour += 254 / photoMMs.size() / 2; // Varying reds
                 } else {
                     bmp = FunctionsImageManipulation.colourArea(bmp, (int) p.getX(), (int) p.getY(), minColour, diam, diam);
                     minColour += (254 / photoMMs.size() / 2) << 16; // Varying blues

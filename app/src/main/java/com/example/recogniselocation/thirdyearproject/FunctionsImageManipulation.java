@@ -2,7 +2,6 @@ package com.example.recogniselocation.thirdyearproject;
 
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.support.annotation.NonNull;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -23,9 +22,9 @@ class FunctionsImageManipulation {
             return null;
         }
 
-        // Save these variables globally for now Todo: This better
-        Bitmap resultFineBMP;
+        // Values to get returned
         StandardDeviation coarseSD = null;
+        Bitmap resultFineBMP;
 
         ////////////// COARSE MASK /////////////////
         List<Point> coarseEdgeCoords = coarseMask(bmp);

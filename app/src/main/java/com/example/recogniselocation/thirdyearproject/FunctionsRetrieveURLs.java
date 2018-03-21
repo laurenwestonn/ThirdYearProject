@@ -73,43 +73,35 @@ public class FunctionsRetrieveURLs extends AsyncTask<List<String>, Void, List<St
             bmp = BitmapFactory.decodeResource(activity.getResources(), ActStart.drawableID);
         }
 
-        List<Point> photoCoords, coarsePhotoCoords;
-        StandardDeviation sd = null;
-        photoCoords = coarsePhotoCoords = null;
+        Edge edge = null;
         if (bmp != null) {
-            Edge edge = FunctionsImageManipulation.detectEdge(bmp, true);
-            photoCoords = edge.getCoords();
-            coarsePhotoCoords = edge.getCoarseCoords();
-            sd = edge.getSD();  //Todo: Send Edge as one, ignoring the bitmap as we can't send that (too big)
+            edge = FunctionsImageManipulation.detectEdge(bmp, true);
         } /////// PHOTO EDGE DETECTION //////
 
         // Will be going to the photo activity next
         Intent intent = new Intent(activity.getString(R.string.PHOTO_ACTIVITY));
 
-        if (photoCoords != null) {
+        if (edge != null && edge.getCoords() != null) {
             Log.d(TAG, "onPostExecute: Photo's edge Detected");
 
             /////// MATCH UP HORIZONS //////
             Log.d(TAG, "onPostExecute: Going to match up horizons");
-            photoCoords = invertY(photoCoords); // To match the graph's coordinate system: Up Right +ve
 
-            Horizon horizon = FunctionsHorizonMatching.matchUpHorizons(photoCoords, FunctionsAPI.findGraphData(highPoints));
+            Horizon horizon = FunctionsHorizonMatching.matchUpHorizons(invertY(edge.getCoords()), FunctionsAPI.findGraphData(highPoints));
             if (horizon.getPhotoSeriesCoords() == null)
                 Toast.makeText(activity, "Didn't find enough maximas and minimas to match up", Toast.LENGTH_LONG).show();
             /////// MATCH UP HORIZONS //////
 
 
             // Pass these photo coords and the matched info to the next activity
-            // Todo: Possibly just send the horizon object as one, not as its elements separately
             // Can't send series via intent (isn't parcelable) Send Points & convert within activity
             List<Point> photoSeriesCoords = horizon.getPhotoSeriesCoords();     // Up Right +ve
             List<Integer> matchedElevCoordsIndexes = horizon.getElevMMIndexes();// To get LatLng
             List<Point> matchedPhotoCoords = invertY(horizon.getPhotoMMs());    // Down Right +ve
-            photoCoords = invertY(photoCoords); // Down Right +ve
 
-            intent.putParcelableArrayListExtra("photoCoords", (ArrayList<Point>) photoCoords);      // To draw the edge
-            intent.putParcelableArrayListExtra("coarsePhotoCoords", (ArrayList<Point>) coarsePhotoCoords);      // To draw the coarse edge
-            intent.putExtra("sd", sd);      // To mark coarse range
+            intent.putParcelableArrayListExtra("photoCoords", (ArrayList<Point>) invertY(edge.getCoords()));      // To draw the edge
+            intent.putParcelableArrayListExtra("coarsePhotoCoords", (ArrayList<Point>) edge.getCoarseCoords());      // To draw the coarse edge
+            intent.putExtra("sd", edge.getSD());      // To mark coarse range
             intent.putParcelableArrayListExtra("matchedPhotoCoords", (ArrayList<Point>) matchedPhotoCoords);  // To mark on the matched points
             // For the map activity
             intent.putIntegerArrayListExtra("matchedElevCoordsIndexes", (ArrayList<Integer>) matchedElevCoordsIndexes);  // To mark on the matched points

@@ -49,10 +49,6 @@ public class StandardDeviation implements Parcelable {
         return mean;
     }
 
-    double getSd() {
-        return sd;
-    }
-
     int getMinRange() {
         return minRange;
     }
@@ -61,7 +57,7 @@ public class StandardDeviation implements Parcelable {
         return maxRange;
     }
 
-    protected StandardDeviation(Parcel in) {
+    private StandardDeviation(Parcel in) {
         mean = in.readDouble();
         sd = in.readDouble();
         minRange = in.readInt();

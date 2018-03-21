@@ -158,7 +158,7 @@ public class FunctionsAPI {
                     }
                     urlResponses.add(response.toString());
 
-                    //Todo: Resend if you don't get enough samples
+                    //Todo: Resend if you don't get enough samples (not asking for that many, isn't likely this is needed)
                     int noOfSamples = findNoOfSamples(url);
                     if ((count /= 8) != noOfSamples)    // Responses are 8 lines long
                         Log.e(TAG, "requestURL: Wanted to get " + noOfSamples

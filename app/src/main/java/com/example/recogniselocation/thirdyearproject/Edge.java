@@ -43,7 +43,7 @@ public class Edge implements Parcelable {
         return bmp;
     }
 
-    protected Edge(Parcel in) {
+    private Edge(Parcel in) {
         if (in.readByte() == 0x01) {
             coords = new ArrayList<>();
             in.readList(coords, Point.class.getClassLoader());
