@@ -13,7 +13,7 @@
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
         android:onClick="buttonClicked"
-        android:text="Home" />
+        android:text="@string/title_start" />
 
     <Button
         android:id="@+id/before"
@@ -22,7 +22,7 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentStart="true"
         android:onClick="buttonClicked"
-        android:text="Map" />
+        android:text="@string/title_map" />
 
     <Button
         android:id="@+id/next"
@@ -32,7 +32,7 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
         android:onClick="buttonClicked"
-        android:text="Photo" />
+        android:text="@string/title_photo" />
 
     <com.jjoe64.graphview.GraphView
         android:id="@+id/graph"

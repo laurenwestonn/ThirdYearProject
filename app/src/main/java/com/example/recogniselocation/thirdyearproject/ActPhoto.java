@@ -79,7 +79,7 @@ public class ActPhoto extends Activity {
                     return null;
             } else {
                 if (photoCoords != null)
-                    resultBMP = markEdgeCoords(resultBMP, photoCoords);  //Uncomment to display the edge detected
+                    ;//resultBMP = markEdgeCoords(resultBMP, photoCoords);  //Uncomment to display the edge detected
                 // Mark the maximas and minimas (common with the map)
                 if (matchedCoords != null)
                     resultBMP = markMaximasMinimasOnPhoto(resultBMP, matchedCoords);

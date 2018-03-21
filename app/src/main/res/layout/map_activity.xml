@@ -13,7 +13,7 @@
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
         android:onClick="buttonClicked"
-        android:text="Home"
+        android:text="@string/title_start"
         android:textAlignment="center" />
 
     <Button
@@ -23,7 +23,8 @@
         android:layout_alignParentEnd="true"
         android:layout_alignParentTop="true"
         android:onClick="buttonClicked"
-        android:text="Terrain" />
+        android:text="@string/terrain"
+        tools:ignore="RelativeOverlap" />
 
     <Button
         android:id="@+id/before"
@@ -33,7 +34,7 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentStart="true"
         android:onClick="buttonClicked"
-        android:text="Photo"
+        android:text="@string/title_photo"
         android:textAlignment="center" />
 
     <Button
@@ -44,7 +45,7 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
         android:onClick="buttonClicked"
-        android:text="Graph"
+        android:text="@string/title_graph"
         android:textAlignment="center" />
 
     <fragment
