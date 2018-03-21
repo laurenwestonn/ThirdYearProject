@@ -9,12 +9,12 @@ import static android.content.ContentValues.TAG;
 import static java.lang.Double.isNaN;
 
 class FunctionsHorizonMatching {
-    private static boolean debug = false;   // Can't log when testing
+    private static boolean debug = true;   // Can't log when testing
 
     // Returns the horizon you manage to match up from the photo as a series so can plot on graph
     static Horizon matchUpHorizons(List<Point> photoCoords, List<Point> elevationCoords) {
         // Find all minimas and maximas of both horizons
-        MaximasMinimas photoMMsObj = findMaximasMinimas(photoCoords, 6, 1);
+        MaximasMinimas photoMMsObj = findMaximasMinimas(photoCoords, 6, 1, getSearchWidth(photoCoords));
         List<Point> photoMMs = null;
         if (photoMMsObj != null) {
             photoMMs = photoMMsObj.getMaximasMinimas();
@@ -23,7 +23,7 @@ class FunctionsHorizonMatching {
             }
         }
 
-        MaximasMinimas elevMMsObj = findMaximasMinimas(elevationCoords, 30, 1);
+        MaximasMinimas elevMMsObj = findMaximasMinimas(elevationCoords, 30, 1, 2);
         List<Point> elevationMMs = null;
         List<Integer> elevMMsIndexes = null;
         if (elevMMsObj != null) {
@@ -325,14 +325,13 @@ class FunctionsHorizonMatching {
     // Coords are in the graph coordinate system, where up right is positive
     // MaximasMinimas indexes return will start with a -1 if coords start with null (minima)
     // Returns null if didn't find enough - enough is at least two non null points
-    static MaximasMinimas findMaximasMinimas(List<Point> coords, double initialThreshold, double modifier)
+    static MaximasMinimas findMaximasMinimas(List<Point> coords, double initialThreshold, double modifier, int searchWidth)
     {
         MaximasMinimas mms = new MaximasMinimas(new ArrayList<Point>(), new ArrayList<Integer>());
         int arrayIndex = 0;
         double nextGradient = Integer.MAX_VALUE;
         boolean wereGoingUp = true;    //  Whether the hill is heading up or down
         boolean wereGoingDown = false;  // Both are needed because could be flat
-        int searchWidth = getSearchWidth(coords);
         double threshold = initialThreshold * modifier;
         if (debug)
             Log.d(TAG, "findMaximasMinimas: Using a noise threshold of " + threshold + " and searching a width of " + searchWidth);
@@ -428,7 +427,7 @@ class FunctionsHorizonMatching {
             if (debug)
                 Log.d(TAG, "findMaximasMinimas: Didn't find enough maximas or minimas, "
                     + "try again with threshold " + (initialThreshold * (modifier * 0.75)));
-            return findMaximasMinimas(coords, initialThreshold, modifier * 0.75);
+            return findMaximasMinimas(coords, initialThreshold, modifier * 0.75, searchWidth);
         }
 
         if (threshold <= initialThreshold / 3) {
@@ -441,7 +440,7 @@ class FunctionsHorizonMatching {
     }
 
     static int getSearchWidth(List<Point> coords) {
-        return (int) Math.floor(coords.size() / 50) + 1;  // At least 1
+        return (int) Math.floor(coords.size() / 40) + 1;  // At least 1
     }
 
     private static boolean outOfBounds(int index, int searchWidth, List<Point> coords) {
@@ -502,9 +501,9 @@ class FunctionsHorizonMatching {
     private static int skipOverInitialFlatAreas(List<Point> coords, double threshold, int searchWidth)
     {
         int index = 0;
-        while (coords.size() > index && coords.get(index) != null // There is an edge here
-                && index + searchWidth - 1 < coords.size()  // We are still within the photo
-                && Math.abs(gradientAhead(coords, index, searchWidth)) < threshold) // Ahead is 'flat'
+        while (index + searchWidth < coords.size() // The next part is still within the photo
+                && coords.get(index+searchWidth) != null // and is an edge
+                && Math.abs(gradientAhead(coords, index, searchWidth)) < threshold) // which is 'flat'
             index += searchWidth;   // Carry on
         return index;
     }

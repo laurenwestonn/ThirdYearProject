@@ -99,7 +99,7 @@ public class FunctionsRetrieveURLs extends AsyncTask<List<String>, Void, List<St
             List<Integer> matchedElevCoordsIndexes = horizon.getElevMMIndexes();// To get LatLng
             List<Point> matchedPhotoCoords = invertY(horizon.getPhotoMMs());    // Down Right +ve
 
-            intent.putParcelableArrayListExtra("photoCoords", (ArrayList<Point>) invertY(edge.getCoords()));      // To draw the edge
+            intent.putParcelableArrayListExtra("photoCoords", (ArrayList<Point>) edge.getCoords());      // To draw the edge
             intent.putParcelableArrayListExtra("coarsePhotoCoords", (ArrayList<Point>) edge.getCoarseCoords());      // To draw the coarse edge
             intent.putExtra("sd", edge.getSD());      // To mark coarse range
             intent.putParcelableArrayListExtra("matchedPhotoCoords", (ArrayList<Point>) matchedPhotoCoords);  // To mark on the matched points
