@@ -388,7 +388,6 @@ class FunctionsImageManipulation {
                     || coords.indexOf(new Point(x - pointDiameter, y)) != -1 && coords.indexOf(new Point(x + pointDiameter, y)) == -1) ) {
             // Don't include this point
             removeThisPoint = true;
-            Log.d(TAG, "skeletonisePoint: As all three neighbouring points exist, we can thin point " + point);
         }
 
         return removeThisPoint;

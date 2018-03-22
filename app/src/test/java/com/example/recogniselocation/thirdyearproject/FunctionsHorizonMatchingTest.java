@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.example.recogniselocation.thirdyearproject.FunctionsHorizonMatching.getSearchWidth;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
 
@@ -132,53 +133,51 @@ public class FunctionsHorizonMatchingTest {
     @Test
     public void findMaximasMinimasTest() throws Exception {
 
-        // Remember that in this coordinate system, the larger y will be the minimum
-        // Because of how I flipped the coordinate system, the highest max that there could
-        // be will have a y value of 1
-
-        // Pointy max, pointy min /\/
-        List<Point> input = Arrays.asList(new Point(0,50), new Point(1,1), new Point(2,50), new Point(3, 1));
-        List<Point> expectedOutput = Arrays.asList(new Point(1,1), new Point(2, 50));
-        assertThat(Arrays.asList(2,3), is(Arrays.asList(2,3)));
-        assertThat(new Point(2,3), is(new Point(2,3)));
-        assertThat(FunctionsHorizonMatching.findMaximasMinimas(input, 6,1).getMaximasMinimas(), is(expectedOutput));
+        // Remember that this is the graph coordinate system - +ve is top right
 
         // Pointy min, pointy max  \/\
+        List<Point> input = Arrays.asList(new Point(0,50), new Point(1,1), new Point(2,50), new Point(3, 1));
+        List<Point> expectedOutput = Arrays.asList(null, new Point(1,1), new Point(2, 50));
+        assertThat(Arrays.asList(2,3), is(Arrays.asList(2,3)));
+        assertThat(new Point(2,3), is(new Point(2,3)));
+        assertThat(FunctionsHorizonMatching.findMaximasMinimas(input, 6,1, getSearchWidth(input)).getMaximasMinimas(), is(expectedOutput));
+
+        // Pointy max, pointy min /\/
         input = Arrays.asList(new Point(0,1), new Point(1,50), new Point(2,1), new Point(3, 50));
-        expectedOutput = Arrays.asList(null, new Point(1,50), new Point(2, 1));
-        assertThat(FunctionsHorizonMatching.findMaximasMinimas(input, 6,1).getMaximasMinimas(), is(expectedOutput));
-
-        // Flat min, pointy max \___/\
+        expectedOutput = Arrays.asList(new Point(1,50), new Point(2, 1));
+        assertThat(FunctionsHorizonMatching.findMaximasMinimas(input, 6,1, getSearchWidth(input)).getMaximasMinimas(), is(expectedOutput));
+        //                       ___
+        // Flat max, pointy min /   \/
         input = Arrays.asList(new Point(0,1), new Point(1,50), new Point(2,50), new Point(3,50), new Point(4,1), new Point(5, 50));
-        expectedOutput = Arrays.asList(null, new Point(2,50), new Point(4, 1));
-        assertThat(FunctionsHorizonMatching.findMaximasMinimas(input, 6,1).getMaximasMinimas(), is(expectedOutput));
-        //                        ___
-        // Pointy min, flat max \/   \
+        expectedOutput = Arrays.asList(new Point(2,50), new Point(4, 1));
+        assertThat(FunctionsHorizonMatching.findMaximasMinimas(input, 6,1, getSearchWidth(input)).getMaximasMinimas(), is(expectedOutput));
+
+        // Pointy max, flat min   /\___/
         input = Arrays.asList(new Point(0,1), new Point(1,50), new Point(2,1), new Point(3,1), new Point(4,1), new Point(5, 50));
-        expectedOutput = Arrays.asList(null, new Point(1,50), new Point(3, 1));
-        assertThat(FunctionsHorizonMatching.findMaximasMinimas(input, 6,1).getMaximasMinimas(), is(expectedOutput));
-        //                         ___
-        // Flat min, flat max \___/   \
+        expectedOutput = Arrays.asList(new Point(1,50), new Point(3, 1));
+        assertThat(FunctionsHorizonMatching.findMaximasMinimas(input, 6,1, getSearchWidth(input)).getMaximasMinimas(), is(expectedOutput));
+        //                     ___
+        // Flat max, flat min /   \__/
         input = Arrays.asList(new Point(0,1), new Point(1,50), new Point(2,50), new Point(3,50), new Point(4,1), new Point(5, 1), new Point(6, 1), new Point(7, 50));
-        expectedOutput = Arrays.asList(null, new Point(2,50), new Point(5, 1));
-        assertThat(FunctionsHorizonMatching.findMaximasMinimas(input, 6,1).getMaximasMinimas(), is(expectedOutput));
-        //                             _._
-        // Smooth min, smooth max \___/   \
+        expectedOutput = Arrays.asList(new Point(2,50), new Point(5, 1));
+        assertThat(FunctionsHorizonMatching.findMaximasMinimas(input, 6,1, getSearchWidth(input)).getMaximasMinimas(), is(expectedOutput));
+        //                         _._
+        // Smooth max, smooth min /   \._./
         input = Arrays.asList(new Point(0,1), new Point(1,45), new Point(2,50), new Point(3,47), new Point(4,5), new Point(5, 2), new Point(6, 10), new Point(7, 50));
-        expectedOutput = Arrays.asList(null, new Point(2,50), new Point(5, 2));
-        assertThat(FunctionsHorizonMatching.findMaximasMinimas(input, 6,1).getMaximasMinimas(), is(expectedOutput));
+        expectedOutput = Arrays.asList(new Point(2,50), new Point(5, 2));
+        assertThat(FunctionsHorizonMatching.findMaximasMinimas(input, 6,1, getSearchWidth(input)).getMaximasMinimas(), is(expectedOutput));
 
-        // Many max/min  \  ./\   /\.
-        //                \./  \./  \
+        // Many max/min    ./\   /\. /
+        //                ./  \./  \/
         input = Arrays.asList(new Point(0,1), new Point(1,50), new Point(2,20), new Point(3,1), new Point(4,50), new Point(5, 1), new Point(6, 10), new Point(7, 50));
-        expectedOutput = Arrays.asList(null, new Point(1,50), new Point(3, 1), new Point(4, 50), new Point(5, 1));
-        assertThat(FunctionsHorizonMatching.findMaximasMinimas(input, 6,1).getMaximasMinimas(), is(expectedOutput));
+        expectedOutput = Arrays.asList(new Point(1,50), new Point(3, 1), new Point(4, 50), new Point(5, 1));
+        assertThat(FunctionsHorizonMatching.findMaximasMinimas(input, 6,1, getSearchWidth(input)).getMaximasMinimas(), is(expectedOutput));
 
-        // Does it ignore minimas that are too small    \  /~\  /
-        //                                               \/   \/        What is too small? Maybe test thresholding? Is picking up a difference of 0.1 when graph is 0 -> 50
+        // Does it ignore minimas that are too small    /\   /\
+        //                                             /  \~/  \        What is too small? Maybe test thresholding? Is picking up a difference of 0.1 when graph is 0 -> 50
         input = Arrays.asList(new Point(0,1), new Point(1,50), new Point(2,1), new Point(3, 2), new Point(4, 1), new Point(5, 50), new Point(6, 1));
-        expectedOutput = Arrays.asList(null, new Point(1,50), new Point(3, 2 ), new Point(5, 50));
-        assertThat(FunctionsHorizonMatching.findMaximasMinimas(input, 6,1).getMaximasMinimas(), is(expectedOutput));
+        expectedOutput = Arrays.asList(new Point(1,50), new Point(3, 2 ), new Point(5, 50));
+        assertThat(FunctionsHorizonMatching.findMaximasMinimas(input, 6,1, getSearchWidth(input)).getMaximasMinimas(), is(expectedOutput));
 
         // Can't have two minimas in a row, in between must be a maxima. No test for that as doesn't exist
 
@@ -188,26 +187,26 @@ public class FunctionsHorizonMatchingTest {
     public void getSearchWidthTest() throws Exception {
         List<Point> coords = new ArrayList<>();
         coords.add(new Point(1,1));
-        assertThat(FunctionsHorizonMatching.getSearchWidth(coords), is(1));
+        assertThat(getSearchWidth(coords), is(1));
 
 
         coords.add(new Point(2,2));
-        assertThat(FunctionsHorizonMatching.getSearchWidth(coords), is(1));
+        assertThat(getSearchWidth(coords), is(1));
 
 
-        for (int i = 3; i <= 49; i++)
+        for (int i = 3; i <= 39; i++)
             coords.add(new Point(i,i));
 
-        // 49 coords
-        assertThat(FunctionsHorizonMatching.getSearchWidth(coords), is(1));
+        // 39 coords
+        assertThat(getSearchWidth(coords), is(1));
 
-        // 50 coords
-        coords.add(new Point(50,50));
-        assertThat(FunctionsHorizonMatching.getSearchWidth(coords), is(2));
+        // 40 coords
+        coords.add(new Point(40,40));
+        assertThat(getSearchWidth(coords), is(2));
 
-        // 51 coords
-        coords.add(new Point(51,51));
-        assertThat(FunctionsHorizonMatching.getSearchWidth(coords), is(2));
+        // 41 coords
+        coords.add(new Point(41,41));
+        assertThat(getSearchWidth(coords), is(2));
 
     }
 }

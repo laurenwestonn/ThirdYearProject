@@ -9,7 +9,7 @@ import static android.content.ContentValues.TAG;
 import static java.lang.Double.isNaN;
 
 class FunctionsHorizonMatching {
-    private static boolean debug = true;   // Can't log when testing
+    private static boolean debug = false;   // Can't log when testing
 
     // Returns the horizon you manage to match up from the photo as a series so can plot on graph
     static Horizon matchUpHorizons(List<Point> photoCoords, List<Point> elevationCoords) {
