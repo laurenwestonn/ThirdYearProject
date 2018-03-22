@@ -180,7 +180,7 @@ class FunctionsImageManipulation {
                     edgeCoords.add(new Point(x, y));
             }
         }
-        Log.d(TAG, "CoarseMasking: Coarse Masking done: " + edgeCoords);
+        Log.d(TAG, "Coarse Masking done: " + edgeCoords);
         return edgeCoords;
     }
 
@@ -352,47 +352,6 @@ class FunctionsImageManipulation {
     }
 
     /////// THINNING ///////
-    private static List<Point> skeletonisePoints(List<Point> edgeCoords, int pointDiametre)
-    {
-        List<Point> thinnedCoords = new ArrayList<>();
-        boolean gShowEdgeOnly = true;
-
-        // Go through each of the edge coords
-        for (int i = 0; i < edgeCoords.size(); i++) {
-            boolean removeThisPoint = skeletonisePoint(edgeCoords, edgeCoords.get(i), pointDiametre);
-
-            if(gShowEdgeOnly)
-                if (!removeThisPoint)
-                    thinnedCoords.add(edgeCoords.get(i));
-        }
-        if (gShowEdgeOnly)
-            return thinnedCoords;
-        else
-            return edgeCoords;
-    }
-
-    // Used for the skeletonisation
-    static boolean skeletonisePoint(List<Point> coords, Point point, int pointDiameter)
-    {
-        boolean removeThisPoint = false;
-        double x,y;
-        x = point.getX();
-        y = point.getY();
-
-        // If point above this one is an edge
-        if (coords.indexOf(new Point(x, y - pointDiameter)) != -1
-                // and if point below is an edge
-                && coords.indexOf(new Point(x, y + pointDiameter)) != -1
-                // and point on EITHER the right or left is an edge
-                && (coords.indexOf(new Point(x + pointDiameter, y)) != -1 && coords.indexOf(new Point(x - pointDiameter, y)) == -1
-                    || coords.indexOf(new Point(x - pointDiameter, y)) != -1 && coords.indexOf(new Point(x + pointDiameter, y)) == -1) ) {
-            // Don't include this point
-            removeThisPoint = true;
-        }
-
-        return removeThisPoint;
-    }
-
     private static List<Point> thinColumns(List<Point> coords)
     {
         List<Point> onePerColumn = new ArrayList<>();
