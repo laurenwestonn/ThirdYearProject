@@ -15,10 +15,10 @@ import static android.content.ContentValues.TAG;
 public class FunctionsAPI {
 
     private static int widthOfSearch = 360;
-    static int noOfPaths = widthOfSearch / 4;
+    static int noOfPaths = widthOfSearch / 6;
     private static int noOfPathsPerGroup = 2;   // AT LEAST 2. Any higher introduces skew (This + duplicates) * samplesPerPath needs to be <= 512. More middle paths causes more distortion so only 3 mid is ok
     static int samplesPerPath = widthOfSearch / 6;
-    private static double searchLength = 0.05;  // radius of the search
+    private static double searchLength = 0.04;  // radius of the search
     private static final int LONLAT_TO_METRES = 111111; // roughly
 
     // This is called at the start, once you know your location and direction
